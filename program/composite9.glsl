@@ -1,0 +1,38 @@
+varying vec2 texcoord;
+
+
+
+#include "/lib/uniform.glsl"
+#include "/lib/settings.glsl"
+#include "/lib/common/utils.glsl"
+#include "/lib/common/position.glsl"
+
+// #include "/lib/camera/colorToolkit.glsl"
+#include "/lib/camera/filter.glsl"
+
+
+#ifdef FSH
+#include "/lib/camera/depthOfField.glsl"
+
+void main() {
+	vec4 color = texture2D(colortex0, texcoord);
+	#ifdef DEPTH_OF_FIELD
+		color.rgb = sampleWithKernel();
+	#endif
+
+/* DRAWBUFFERS:0 */
+	gl_FragData[0] = color;
+}
+
+#endif
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#ifdef VSH
+
+void main() {
+	gl_Position = ftransform();
+	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+}
+
+#endif

@@ -1,0 +1,291 @@
+option.Information = 光影信息
+profile.Low = 低
+profile.Medium = 中
+profile.High = 高
+profile.Ultra = 显卡爆燃
+
+screen.Lighting = 光照
+option.DISABLE_LEAKAGE_REPAIR = 禁用漏光修复
+option.DISABLE_LEAKAGE_REPAIR.comment = 开启该选项将关闭漏光修复功能
+screen.incoming_light_color = 入射光颜色
+screen.lightmap = 原版光照贴图
+screen.shadow = 阴影
+screen.RSM = 反射阴影映射（RSM）
+screen.SSAO = 屏幕空间环境光遮蔽（SSAO）
+
+option.INCOMING_LIGHT_RED = 入射光_红色
+option.INCOMING_LIGHT_GREEN = 入射光_绿色
+option.INCOMING_LIGHT_BLUE = 入射光_蓝色
+option.INCOMING_LIGHT_ALPHA = 入射光_亮度
+option.INCOMING_LIGHT_N_RED = 夜晚入射光_红色
+option.INCOMING_LIGHT_N_GREEN = 夜晚入射光_绿色
+option.INCOMING_LIGHT_N_BLUE = 夜晚入射光_蓝色
+option.INCOMING_LIGHT_N_ALPHA = 夜晚入射光_亮度
+
+option.GLOWING_BRIGHTNESS = 发光物亮度
+option.SKY_LIGHT_BRIGHTNESS = 天空光亮度
+option.ARTIFICIAL_LIGHT_FALLOFF = 人工光源衰减
+option.SKY_LIGHT_FALLOFF = 天空光衰减
+option.ARTIFICIAL_COLOR_RED = 人工光源_红色
+option.ARTIFICIAL_COLOR_GREEN = 人工光源_绿色
+option.ARTIFICIAL_COLOR_BLUE = 人工光源_蓝色
+option.ARTIFICIAL_COLOR_ALPHA = 人工光源_亮度
+option.NIGHT_VISION_BRIGHTNESS = 夜视状态亮度
+
+option.DIRECT_LUMINANCE = 直接光照强度
+option.sunPathRotation = 太阳偏移旋转角度
+option.SHADOW_BIAS = 阴影鱼眼偏移强度
+option.shadowMapResolution = 阴影贴图分辨率
+option.shadowDistance = 阴影渲染距离
+option.BLOCKER_SEARCH_SAMPLES = 阻挡物搜索采样数
+option.SHADOW_SOFTNESS = 阴影柔和度
+option.SHADOW_SAMPLES = 阴影采样数
+option.COLOR_SHADOW_SAMPLES = 彩色阴影采样数
+option.SCREEN_SPACE_SHADOW_SAMPLES = 屏幕空间阴影采样数
+
+option.RSM_ENABLED = 启用RSM
+option.RSM_BRIGHTNESS = RSM亮度
+option.RSM_GEOMETRY_MODE = RSM几何模式
+option.RSM_SEARCH_RADIUS = RSM搜索半径
+option.RSM_MAX_SAMPLES = RSM最大采样数
+option.RSM_MIN_SAMPLES = RSM最小采样数
+option.DENOISER_RADIUS = （RSM/AO）降噪半径
+option.DENOISER_QUALITY = （RSM/AO）降噪质量
+
+option.ambientOcclusionLevel = 原版AO强度
+option.AO_ENABLED = 启用光影SSAO
+option.SSAO_SEARCH_RADIUS = SSAO搜索半径
+option.SSAO_MAX_SAMPLES = SSAO最大采样数
+option.SSAO_MIN_SAMPLES = SSAO最小采样数
+option.SSAO_INTENSITY = SSAO强度
+option.AO_TYPE = AO类型
+option.GTAO_SLICE_COUNT = GTAO切片数量
+option.GTAO_DIRECTION_SAMPLE_COUNT = GTAO方向采样数量
+option.GTAO_INTENSITY = GTAO强度
+option.GTAO_SEARCH_RADIUS = GTAO搜索半径
+option.AO_MULTI_BOUNCE = AO多重弹射模拟
+
+screen.Atmosphere = 大气
+option.CAMERA_HEIGHT = 相机高度
+screen.atmosphere_scattering = 大气散射
+screen.volumetric_clouds = 体积云
+screen.celestial = 天体
+
+option.MIE_G = 米氏散射G值
+option.MIE_STRENGTHNESS = 米氏散射强度
+option.SKY_BASE_COLOR_BRIGHTNESS = 天空亮度
+option.SKY_BASE_COLOR_BRIGHTNESS_N = 夜晚天空亮度
+option.ATMOSPHERE_SCATTERING_SAMPLES = 大气散射采样数
+option.ATMOSPHERE_LUT_SAMPLE_INTERVAL = 大气LUT采样间隔
+option.ATMOSPHERIC_SCATTERING_FOG = 大气散射雾
+option.ATMOSPHERIC_SCATTERING_FOG_DENSITY = 大气散射雾浓度
+option.VOLUME_LIGHT_SAMPLES = 体积光采样数
+
+option.VOLUMETRIC_CLOUDS = 体积云
+option.VOLUMETRIC_CLOUDS_MAX_SAMPLES = 体积云最大采样数
+option.VOLUMETRIC_CLOUDS_MIN_SAMPLES = 体积云最小采样数
+option.VOLUMETRIC_CLOUDS_MIN_HEIGHT = 体积云云底高度
+option.CLOUD_THICKNESS = 云厚度
+option.VOLUME_CLOUD_NOISE_SEED = 体积云噪波种子
+option.CLOUD_SPEED_LOW = 移动速度
+option.CLOUD_LOW_FREQUENCY = 低频频率
+option.CLOUD_WEATHER_FREQUENCY = 天气纹理频率
+option.CLOUD_WEATHER_SHAPE = 天气纹理形状
+option.CLOUD_COVERAGE = 云覆盖率
+option.CLOUD_HIGH_FREQUENCY = 高频频率
+option.CLOUD_HIGHER_NOISE_ENABLE = 启用云更高频噪波
+option.CLOUD_HIGH_FREQ_EROSION = 高频侵蚀强度
+option.CLOUD_DENSITY = 云密度
+option.CLOUD_LIGHTPATH_STEP_SIZE = 云光路步长
+option.CLOUD_LIGHTPATH_SAMPLES = 云光路采样数
+option.CLOUD_ATTENUATION_SECOND_SPREAD = 云副衰减率扩展程度
+option.CLOUD_ATTENUATION_SECOND_INTENSITY = 云副衰减率亮度
+option.CLOUD_INSCATTER_POWER = 云内散射强度
+option.CLOUD_SILVER_INTENSITY = 云银边强度
+option.CLOUD_SILVER_SPREAD = 云银边扩展程度
+option.CLOUD_BRIGHTNESS = 云亮度
+option.CLOUD_SKY_MIX = 天空色混合强度
+option.CLOUD_STEP_ALL = 高海拔裁切
+
+option.SUN_RADIUS = 太阳半径
+option.SUN_BRIGHTNESS = 太阳亮度
+option.MOON_BRIGHTNESS = 月亮亮度
+option.STARS = 星星
+option.STARS_DENSITY = 星星密度
+option.STARS_SIZE = 星星大小
+option.STARS_BRIGHTNESS = 星星亮度
+
+screen.Water = 水
+screen.wave = 波浪
+screen.water_fog = 水雾
+screen.water_reflection_refraction = 水反射折射
+screen.translucent_lighting = 半透明光照
+
+option.WAVE_SPEED = 波浪速度
+option.WAVE_FREQUENCY = 波浪频率
+option.WAVE_HEIGHT = 波浪高度
+option.WAVE_PARALLAX = 波浪视差
+option.WAVE_PARALLAX_HEIGHT = 波浪视差高度
+option.WAVE_PARALLAX_MIN_SAMPLES = 波浪视差最小采样数
+option.WAVE_PARALLAX_MAX_SAMPLES = 波浪视差最大采样数
+option.WAVE_PARALLAX_ITERATIONS = 波浪视差迭代次数
+option.WAVE_NORMAL_ITERATIONS = 波浪法线迭代次数
+
+option.WATER_FOG_COLOR_RED = 水雾_红色
+option.WATER_FOG_COLOR_GREEN = 水雾_绿色
+option.WATER_FOG_COLOR_BLUE = 水雾_蓝色
+option.WATER_FOG_COLOR_ALPHA = 水雾_亮度
+option.WATER_MIST_VISIBILITY = 水雾能见度
+option.UNDERWATER_FOG = 水下雾
+option.UNDERWATER_FOG_SAMPLES = 水下雾采样数
+option.UNDERWATER_FOG_STEP_SIZE = 水下雾步长
+option.UNDERWATER_FOG_LIGHT_BRI = 水下雾体积光亮度
+option.UNDERWATER_FOG_BRI = 水下雾亮度
+option.UNDERWATER_FOG_G = 水下雾相位函数G值
+option.UNDERWATER_FOG_G2 = 水下雾额外相位函数G值
+option.UNDERWATER_FOG_G2_BRI = 水下雾额外相位函数G值亮度
+option.UNDERWATER_FOG_MIST = 水下雾能见度
+option.WATER_FOG_TRANSMIT = 水雾光照透射率
+option.UNDERWATER_ADD_BLOOM = 水下额外bloom
+option.UNDERWATER_CANTRAST = 水下对比度
+option.UNDERWATER_BRI = 水下亮度
+
+option.WATER_REFRACTION = 水折射
+option.WATER_REFRAT_IOR = （全内反射）折射率
+option.WAVE_REFRACTION_INTENSITY = 波浪折射强度
+option.WATER_REFLECTION = 水反射
+option.REFLECTION_STEP_SIZE = 反射步长
+option.REFLECTION_SAMPLES = 反射采样数
+option.REFLECTION_STEP_POWER = 反射步长pow值
+option.REFLECTION_FRESNAL_POWER = 反射菲涅尔强度
+option.WATER_F0 = 水F0值
+option.WATER_REFLECT_HIGH_LIGHT = 水面高光反射
+option.WATER_REFLECT_HIGH_LIGHT_INTENSITY = 水面高光反射强度
+option.UNDERWATER_REFLECTION = 水下反射
+
+option.CAUSTICS = 焦散
+option.TRANSLUCENT_SHADOW = 半透明阴影
+option.TRANSLUCENT_SHADOW_SOFTNESS = 半透明阴影柔和度
+option.TRANSLUCENT_SHADOW_QUALITY = 半透明阴影质量
+option.CAUSTICS_FREQ = 焦散频率
+option.CAUSTICS_SPEED = 焦散速度
+option.CAUSTICS_POWER = 焦散强度
+option.CAUSTICS_BRI_MIN = 焦散最小亮度
+option.CAUSTICS_BRI_MAX = 焦散最大亮度
+
+screen.Vertex = 顶点
+option.WAVING_PLANTS = 植物晃动
+option.WAVING_RATE = 晃动速率
+option.PLANTS_SHORT_AMPLITUDE = 一格植物振幅
+option.PLANTS_TALL_AMPLITUDE = 两格植物振幅
+option.LEAVES_AMPLITUDE = 树叶振幅
+
+screen.Material = 材质
+screen.parallax_mapping = 视差映射
+screen.PBR_reflect = PBR反射
+option.PARALLAX_MAPPING = 视差映射
+option.PARALLAX_SAMPPLES = 视差采样数
+option.PARALLAX_HEIGHT = 视差高度
+option.PARALLAX_LERP = 视差插值
+option.PARALLAX_SHADOW = 视差阴影
+option.PARALLAX_SHADOW_SAMPPLES = 视差阴影采样数
+option.PARALLAX_SHADOW_SOFTENING = 视差阴影柔化程度
+
+option.PBR_REFLECTIVITY = PBR反射
+option.SSS_INTENSITY = 次表面散射强度
+option.EMISSIVENESS_BRIGHTNESS = 自发光亮度
+option.MIRROR_INTENSITY = 镜面反射强度
+option.TRANSLUCENT_ROUGHNESS = （硬编码）半透明物粗糙度
+option.TRANSLUCENT_F0 = （硬编码）半透明物F0
+option.RAINY_GROUND_WET_ENABLE = 下雨地面湿润效果
+
+screen.Camera = 后处理
+option.GAMMA = 伽马（Gamma）
+screen.bloom = 泛光
+screen.exposure = 曝光
+screen.simple_filter = 简单滤镜
+screen.tone_mapping = 色调映射
+screen.motion_blur = 运动模糊
+screen.depth_of_field = 景深
+screen.vignette = 晕影
+screen.letter_box = 遮幅
+
+option.BLOOM = 泛光
+option.BLOOM_MODE = 泛光模式
+option.BLOOM_AMOUNT = 泛光强度
+option.RAIN_ADDITIONAL_BLOOM = 雨天附加泛光
+
+option.EXPOSURE = 曝光
+option.TARGET_BRIGHTNESS = 目标亮度
+option.LIGHT_SENSITIVITY = 光敏感度
+option.EXPOSURE_DELTA = 曝光增量
+option.EXPOSURE_MODE = 曝光采样模式
+
+option.FILTER_SLOPE_RED = 色彩权重_红色
+option.FILTER_SLOPE_GREEN = 色彩权重_绿色
+option.FILTER_SLOPE_BLUE = 色彩权重_蓝色
+option.FILTER_SLOPE_ALPHA = 亮度
+option.FILTER_WHITE = 白点
+option.FILTER_CONTRAST = 对比度
+option.FLITER_SATURATE = 饱和度
+
+option.TONE_MAPPING = 色调映射
+option.AGX_EV = AGX EV
+option.AGX_LOOK_CUSTOM = AGX外观自定义
+option.AGX_LOOK_BRIGHTNESS = AGX外观_亮度
+option.AGX_LOOK_WHITE = AGX外观_白点
+option.AGX_LOOK_CONTRAST = AGX外观_对比度
+option.AGX_LOOK_SATURATE = AGX外观_饱和度
+
+option.MOTION_BLUR = 运动模糊
+option.MOTIONBLUR_MAX = 运动模糊最大值
+option.MOTIONBLUR_STRENGTH = 运动模糊强度
+option.MOTIONBLUR_SAMPLE = 运动模糊采样数
+
+option.DEPTH_OF_FIELD = 景深
+option.centerDepthHalflife = 中心深度半衰期
+option.DOF_BOKEH_RADIUS = 景深散景半径
+option.DOF_BLUR_WEIGHT_MODE = 景深模糊权重模式
+option.DOF_FOCUSRANGE_DIST_FAC = 景深焦点范围距离因子
+option.DOF_FOCUSRANGE_BASE_DIST = 景深焦点范围基础距离
+
+option.VIGNETTE = 晕影
+option.VIGNETTE_SCALE = 晕影缩放
+option.VIGNETTE_OFFSET = 晕影偏移
+option.VIGNETTE_POWER = 晕影强度
+
+option.LETTER_BOX = 遮幅
+option.LETTER_BOX_SIZE = 遮幅宽度
+
+screen.Antialiasing = 反走样
+screen.TAA = 时域抗锯齿（TAA）
+screen.anisotropic_filtering = 各向异性过滤
+option.TAA_JITTER_AMOUNT = TAA抖动量
+option.TAA_VARIANCE_CLIP_GAMMA = TAA方差裁切
+option.SHARPENING_FACTOR = 历史帧采样_锐化因子
+option.TAA_CUSTOM_BLEND_FACTOR = TAA自定义混合因子
+option.TAA_BLEND_FACTOR = TAA混合因子
+
+option.ANISOTROPIC_FILTERING = 各向异性过滤
+option.ANISOTROPIC_FILTERING_MODE = 各向异性过滤模式
+option.ANISOTROPIC_FILTERING_QUALITY = 各向异性过滤质量
+
+screen.RCAS = 自适应锐化 (RCAS)
+option.FSR_RCAS = FSR自适应锐化
+option.RCAS_ENABLE_NOISE_SUPPRESSION = 启用噪声抑制
+option.RCAS_SHARPNESS = 锐化强度
+
+screen.Others = 其他
+option.NOON_DURATION = 中午时长
+option.NIGHT_DURATION = 夜晚时长
+option.NOON_DURATION_SLOW = 中午时长(慢)
+option.NIGHT_DURATION_SLOW = 夜晚时长(慢)
+option.END_COLOR_RED = 末地颜色_红色
+option.END_COLOR_GREEN = 末地颜色_绿色
+option.END_COLOR_BLUE = 末地颜色_蓝色
+option.END_COLOR_INTENSITY = 末地颜色_亮度
+option.NETHER_COLOR_RED = 下界颜色_红色
+option.NETHER_COLOR_GREEN = 下界颜色_绿色
+option.NETHER_COLOR_BLUE = 下界颜色_蓝色
+option.NETHER_COLOR_INTENSITY = 下界颜色_亮度
+option._HIGH = 无意义
