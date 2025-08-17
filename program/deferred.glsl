@@ -26,11 +26,11 @@ const bool colortex7Clear = false;
 0: rgb:color
 1: hrr data
 2: rgb:TAA          		a:temporal data
-3: rgba:temporal data(rsm/ao/ssr)
+3: rgba:temporal data(rsm/ao/sky/cloud/ssr)
 4: r:parallax shadow/ao		g:blockID/gbufferID		ba:specular		(df4)rg:albedo/ao	(df11)rgba:color
-5: rg:normal				ba:lmcoord													(df11)rgba:CT1		(cp0)ba:velocity
-6: normal/depth (pre/cur)
-7: no used
+5: rg:normal				ba:lmcoord																		(cp0)ba:velocity
+6: hrr normal/depth (pre/cur)
+7: sky box/T1/MS/sunColor/skyColor
 */
 
 varying vec2 texcoord;

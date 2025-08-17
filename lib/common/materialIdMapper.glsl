@@ -46,6 +46,17 @@ float IDMappingT(){
         return 0.0;
     }
 
+    float isSkyHRR1(){
+        vec2 uv = texcoord * 2 - vec2(1.0, 0.0);
+        float isSky = 0.0;
+        for(int i = 0; i < 9; i++){
+            vec2 curUV = uv + offsetUV9[i]*invViewSize;
+            float depth = texture(depthtex1, curUV).r;
+            if(depth == 1.0) return 1.0;
+        }
+        return 0.0;
+    }
+
     float blockIDRange = 0.3;
 
     float plantsS   = checkInRange(blockID, PLANTS_SHORT, blockIDRange);

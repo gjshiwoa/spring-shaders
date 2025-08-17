@@ -2,5 +2,7 @@
 
 #define FSH
 #define GBF
+#define END
+
 
 #include "/program/gbuffers_textured_lit.glsl"

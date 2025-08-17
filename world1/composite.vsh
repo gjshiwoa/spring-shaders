@@ -2,5 +2,4 @@
 
 #define VSH
 
-
 #include "/program/composite.glsl"

@@ -1,6 +1,10 @@
 varying vec2 texcoord;
 
+varying vec3 sunWorldDir, moonWorldDir, lightWorldDir;
+varying vec3 sunViewDir, moonViewDir, lightViewDir;
 
+varying float isNoon, isNight, sunRiseSet;
+varying float isNoonS, isNightS, sunRiseSetS;
 
 #include "/lib/uniform.glsl"
 #include "/lib/settings.glsl"
@@ -30,6 +34,16 @@ void main() {
 
 	#ifdef EXPOSURE
 		avgExposure(color.rgb);
+		#if !defined END && !defined NETHER
+			color.rgb *= 1.0 - isNight * 0.4;
+		#endif
+		#if defined END
+			color.rgb = 1.3 * pow(color.rgb, vec3(1.2));
+		#endif
+		#if defined NETHER
+			color.rgb = 1.2 * pow(color.rgb, vec3(1.1));
+		#endif
+
 	#endif
 	
 	#ifdef VIGNETTE
@@ -82,6 +96,18 @@ void main() {
 void main() {
 	gl_Position = ftransform();
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+
+	sunWorldDir = normalize(viewPosToWorldPos(vec4(sunPosition, 0.0)).xyz);
+    moonWorldDir = normalize(viewPosToWorldPos(vec4(moonPosition, 0.0)).xyz);
+    lightWorldDir = normalize(viewPosToWorldPos(vec4(shadowLightPosition, 0.0)).xyz);
+
+	isNoon = saturate(dot(sunWorldDir, upWorldDir) * NOON_DURATION);
+	isNight = saturate(dot(moonWorldDir, upWorldDir) * NIGHT_DURATION);
+	sunRiseSet = saturate(1 - isNoon - isNight);
+
+	isNoonS = saturate(dot(sunWorldDir, upWorldDir) * NOON_DURATION_SLOW);
+	isNightS = saturate(dot(moonWorldDir, upWorldDir) * NIGHT_DURATION_SLOW);
+	sunRiseSetS = saturate(1 - isNoonS - isNightS);
 }
 
 #endif

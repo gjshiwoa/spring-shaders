@@ -79,14 +79,15 @@ void main() {
 
 	// vec3 worldDir = normalize(mat3(gbufferModelViewInverse) * viewPos1.xyz);
 	// color.rgb = texture(colortex7, clamp(0.5 * directionToOctahedral(worldDir), 0.0, 0.5 - 1.0 / 512.0)).rgb;
-	// color.rgb = texture(colortex7, texcoord).rgb;
+	// color.rgb = vec3(texture(colortex1, texcoord * 0.5 + vec2(0.5, 0.0)).rgb);
 
 
-/* DRAWBUFFERS:0456 */
+
+
+/* DRAWBUFFERS:046 */
 	gl_FragData[0] = color;
 	gl_FragData[1] = color1;
-	gl_FragData[2] = CT1;
-	gl_FragData[3] = CT6;
+	gl_FragData[2] = CT6;
 }
 
 #endif

@@ -3,7 +3,7 @@ varying vec2 texcoord;
 
 varying vec4 glcolor;
 
-varying vec3 sunColor, skyColor;
+varying vec3 sunColor, skyColor, lightColor;
 
 
 
@@ -19,14 +19,12 @@ varying vec3 sunColor, skyColor;
 
 void main() {
 	vec4 color = texture(tex, texcoord) * glcolor;
-	if(isEyeInWater == 1) color.rgb = mix(color.rgb, getLuminance(color.rgb) * waterFogColor * 2.0, 0.66);
 #if MC_VERSION >= 11500
-	vec2 lightmap = AdjustLightmap(lmcoord);
 	vec4 texColor = toLinearR(color);
-	color.rgb = texColor.rgb * lightmap.x * 0.2;
-	color.rgb += texColor.rgb * saturate(lightmap.y + 0.005) * getLuminance(sunColor) * 0.2;
+	vec2 lightmap = AdjustLightmap(lmcoord);
+	color.rgb = texColor.rgb * lightmap.x * 0.4 * lightColor;
+	color.rgb += texColor.rgb * saturate(lightmap.y + 0.005) * (sunColor + skyColor);
 	color.rgb += nightVision * texColor.rgb * NIGHT_VISION_BRIGHTNESS / PI;
-	if(isEyeInWater == 1) color.rgb *= 0.5;
 #endif
 
 /* DRAWBUFFERS:05 */
@@ -53,8 +51,21 @@ void main() {
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 	glcolor = gl_Color;
 
-	sunColor = texelFetch(gaux4, sunColorUV, 0).rgb;
+	sunColor = texelFetch(gaux4, sunColorUV, 0).rgb * 0.4;
 	skyColor = texelFetch(gaux4, skyColorUV, 0).rgb;
+	lightColor = artificial_color;
+	#ifdef END
+		sunColor = mix(vec3(1.0), endColor, 0.8) * 10.0;
+		skyColor = endColor * 0.1;
+		lightColor *= 0.5;
+	#endif
+	#ifdef NETHER
+		sunColor = mix(vec3(1.0), netherColor, 0.3) * 6.0;
+		skyColor = netherColor * 0.1;
+		lightColor = netherColor;
+	#endif
+
+
 }
 
 #endif

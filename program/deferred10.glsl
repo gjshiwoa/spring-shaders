@@ -21,19 +21,17 @@ varying vec3 sunViewDir, moonViewDir, lightViewDir;
 
 
 void main() {
-	// vec4 CT1 = texelFetch(colortex1, ivec2(gl_FragCoord.xy), 0);
 	vec4 CT3 = texelFetch(colortex3, ivec2(gl_FragCoord.xy), 0);
 
 #ifdef PBR_REFLECTIVITY
 	vec2 uv1 = texcoord * 2.0 - 1.0;
 	if(!outScreen(uv1)){
 		CT3 = texelFetch(colortex1, ivec2(gl_FragCoord.xy - 0.5 * viewSize), 0);
+		CT3.rgb = max(vec3(0.0), CT3.rgb);
 	}
-	CT3.rgb = max(vec3(0.0), CT3.rgb);
 #endif
 
 /* DRAWBUFFERS:3 */
-	// gl_FragData[0] = CT1;
 	gl_FragData[0] = CT3;
 }
 

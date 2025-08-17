@@ -304,7 +304,7 @@ void main() {
 		#endif
 	}
 
-	// color.rgb = texture(depthtex0, fragCoord.xy).rgb;
+	// color.rgb = texture(noisetex, fragCoord.xy).rgb;
 
 /* DRAWBUFFERS:0 */
 	gl_FragData[0] = color;

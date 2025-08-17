@@ -2,5 +2,6 @@
 
 #define VSH
 #define GBF
+#define END
 
 #include "/program/gbuffers_water.glsl"

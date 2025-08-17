@@ -74,12 +74,15 @@ void main(){
     #endif
 
     vec4 sViewPos = shadowModelView * vec4(vMcPos.xyz - cameraPosition, 1.0);
+    #ifdef DH
+        vWorldDis = length(sViewPos.xy);
+    #endif
+    
     vec4 sClipPos = shadowProjection * sViewPos;
-    gl_Position = sClipPos;
+    vec4 sNDCPos = vec4(sClipPos.xyz / sClipPos.w, 1.0);
+    gl_Position = sNDCPos;
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
-    float dist = length(gl_Position.xy);
-    float distortFactor = (1.0 - SHADOW_BIAS) + dist * SHADOW_BIAS;
-    gl_Position.xy /= distortFactor;
+    gl_Position.xy = shadowDistort1(gl_Position.xy);
     gl_Position.z = mix(gl_Position.z, 0.5, 0.8);
 
     texcoord = gl_TextureMatrix[0] * gl_MultiTexCoord0;

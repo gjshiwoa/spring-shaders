@@ -3,7 +3,7 @@ varying vec2 texcoord;
 varying vec3 sunWorldDir, moonWorldDir, lightWorldDir;
 varying vec3 sunViewDir, moonViewDir, lightViewDir;
 
-varying vec3 sunColor, skyColor;
+// varying vec3 sunColor, skyColor;
 
 varying float isNoon, isNight, sunRiseSet;
 varying float isNoonS, isNightS, sunRiseSetS;
@@ -25,7 +25,7 @@ varying float isNoonS, isNightS, sunRiseSetS;
 #ifdef FSH
 
 #include "/lib/common/gbufferData.glsl"
-#include "/lib/atmosphere/fog.glsl"
+// #include "/lib/atmosphere/fog.glsl"
 #include "/lib/common/materialIdMapper.glsl"
 
 
@@ -313,10 +313,10 @@ vec3 underWaterFog(vec3 color, vec3 worldDir, float worldDis){
     density = mix(1.0, density * 20, 0.66);
 
     float phase0 = hgPhase1(dot(sunWorldDir, worldDir), 0.25);
-    float phase1 = hgPhase1(dot(sunWorldDir, worldDir), 0.55) * 0.5;
+    float phase1 = hgPhase1(dot(sunWorldDir, worldDir), 0.55) * 0.4;
     float phase = phase0 + phase1;
 
-    vec3 underWaterFogColor = 0.065 * density * phase * endColor;
+    vec3 underWaterFogColor = 0.095 * density * phase * endColor;
     color.rgb = mix(color, underWaterFogColor, 0.5 * pow(saturate(worldDis / 60.0), 1.0));
 
     // color += rand2_1(texcoord + sin(frameTimeCounter)) / 102.0;
@@ -388,8 +388,8 @@ void main() {
 	isNightS = saturate(dot(moonWorldDir, upWorldDir) * NIGHT_DURATION_SLOW);
 	sunRiseSetS = saturate(1 - isNoon - isNight);
 
-	sunColor = getSunColor() * (1.0 - 0.95  * isNight);
-	skyColor = getSkyColor();
+	// sunColor = endColor;
+	// skyColor = endColor * 0.05;
 
 	gl_Position = ftransform();
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;

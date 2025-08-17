@@ -13,9 +13,11 @@ vec2 waterRefractionCoord(vec3 normalTex, vec3 worldNormal, float worldDis0){
 #include "/lib/common/octahedralMapping.glsl"
 
 vec3 skyReflection(vec3 reflectWorldDir){
+    #if defined END || defined NETHER
+        return vec3(0.0);
+    #endif
     #ifndef GBF
         vec3 reflectSkyColor = texture(colortex7, clamp(directionToOctahedral(reflectWorldDir) * 0.5, 0.0, 0.5 - 1.0 / 512.0)).rgb;
-
     #else
         vec3 reflectSkyColor = texture(gaux4, clamp(directionToOctahedral(reflectWorldDir) * 0.5, 0.0, 0.5 - 1.0 / 512.0)).rgb;
     #endif
@@ -91,7 +93,7 @@ vec3 reflection(sampler2D tex, vec3 ViewPos, vec3 reflectWorldDir, vec3 reflectV
         }
     }
     if(!hit 
-        #ifdef GBF
+        #if !defined END && !defined NETHER
             && texture(depthtex1, testScreenPos.xy).r < 1.0
         #endif
     ){

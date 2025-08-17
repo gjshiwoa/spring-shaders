@@ -3,7 +3,7 @@ varying vec2 texcoord;
 varying vec3 sunWorldDir, moonWorldDir, lightWorldDir;
 varying vec3 sunViewDir, moonViewDir, lightViewDir;
 
-varying vec3 sunColor, skyColor;
+// varying vec3 sunColor, skyColor;
 
 
 #include "/lib/uniform.glsl"
@@ -150,8 +150,8 @@ void main() {
 	moonViewDir = sunViewDir;
 	lightViewDir = sunViewDir;
 
-	sunColor = getSunColor();
-	skyColor = getSkyColor();
+	// sunColor = getSunColor();
+	// skyColor = getSkyColor();
 
 	gl_Position = ftransform();
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;

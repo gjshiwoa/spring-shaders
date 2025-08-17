@@ -59,7 +59,7 @@ void main() {
 		float cloudHitLength = 0.0;
 		vec3 color = vec3(0.0);
 		#ifdef VOLUMETRIC_CLOUDS
-			cloudRayMarching(color, camera, worldDir * d, cloudTransmittance, cloudScattering, cloudHitLength);
+			cloudRayMarching(camera, worldDir * d, cloudTransmittance, cloudScattering, cloudHitLength);
 		#endif
 
 		vec3 celestial = drawCelestial(worldDir, cloudTransmittance, false);

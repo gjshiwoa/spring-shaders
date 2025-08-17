@@ -196,9 +196,15 @@ void main() {
 
 		float cloudTransmittance = 1.0;
 		vec3 cloudScattering = vec3(0.0);
-		float cloudHitLength = 0.0;
+		float cloudHitLength = clamp(intersectHorizontalPlane(camera, worldDir, VOLUMETRIC_CLOUDS_MIN_HEIGHT), 0.0, 20000.0);
+
 		#ifdef VOLUMETRIC_CLOUDS
-			cloudRayMarching(color.rgb, camera, worldDir * dist1, cloudTransmittance, cloudScattering, cloudHitLength);
+			vec2 cloud_uv = texcoord * 0.5 + vec2(0.5, 0.0);
+			if(!outScreen(cloud_uv * 2.0 - vec2(1.0, 0.0) - 1.0 * invViewSize))	{
+				vec4 CT1_c = texture(colortex1, cloud_uv);
+				cloudScattering = CT1_c.rgb;
+				cloudTransmittance = CT1_c.a;
+			}
 		#endif
 
 		vec3 skyBaseColor = texture(colortex1, texcoord * 0.5 + 0.5).rgb * SKY_BASE_COLOR_BRIGHTNESS;
@@ -210,14 +216,14 @@ void main() {
 		cloudScattering = max(cloudScattering, vec3(0.0));
 		color.rgb = color.rgb * cloudTransmittance + cloudScattering * CLOUD_BRIGHTNESS;
 
-		if(cloudTransmittance < 1.0){
+		if(cloudTransmittance < 0.9999){
 			color.rgb = mix(skyBaseColor + celestial, color.rgb, 
-					mix(saturate(1.0 * pow(getLuminance(cloudScattering), 1.0)), exp(-cloudHitLength / (CLOUD_SKY_MIX * (1.0 + 1.0 * sunRiseSetS))) * 0.90, 0.60));
+					mix(saturate(pow(getLuminance(cloudScattering), 1.0)), exp(-cloudHitLength / (CLOUD_SKY_MIX * (1.0 + 0.5 * sunRiseSetS))) * 0.90, 0.6));
 		}
 	}
 	
 	color.rgb = max(BLACK, color.rgb);
-	// color.rgb = vec3(texture(colortex1, texcoord * 0.5).rgb);
+	// color.rgb = vec3(texture(colortex1, texcoord).rgb);
 	
 	
 	CT4.rg = pack4x8To2x16(vec4(albedo, ao));

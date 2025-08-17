@@ -68,7 +68,8 @@ vec3 RSM(vec4 p_worldPos, vec3 p_worldNormal){
         q_lm_y = smoothstep(0.0, 0.25, q_lm_y);
         // q_lm_y = 1.0;
 
-        float dist = length((shadowProjectionInverse * vec4(pq, 0.0)).xyz) + 0.05;
+        float worldDis = saturate(length(p_worldPos.xyz) / shadowDistance);
+        float dist = length((shadowProjectionInverse * vec4(pq, 0.0)).xyz) + 0.05 + 2.0 * worldDis;
 
         vec3 q_albedo = texelFetch(shadowcolor0, ivec2(sampleTexel), 0).rgb;
         toLinear(q_albedo);
@@ -78,6 +79,8 @@ vec3 RSM(vec4 p_worldPos, vec3 p_worldNormal){
         float b = i * dStep;
         float b2 = b * b;
         float w_cur = (a2 - b2) * PI;
+        w_cur = mix(PI / 256, w_cur, saturate(1.0 - worldDis));
+
         L += w_cur * q_albedo * q_lm_y * PQoPN * QPoQN / (dist * dist + 0.05);
     }
 

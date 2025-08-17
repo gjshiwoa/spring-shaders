@@ -130,7 +130,8 @@ mat2x3 CalculatePBR(vec3 viewDir, vec3 N, vec3 L, vec3 albedo, MaterialParams pa
     vec3 kS = F;
     vec3 kD = vec3(1.0) - kS;
     kD *= 1.0 - params.metalness;   
-    // kD *= vec3(params.roughness);
+
+    // kD *= pow(1.0 - params.smoothness, 1.0 / MIRROR_INTENSITY);
 
     return mat2x3(kD * albedo / PI , specular); 
 }

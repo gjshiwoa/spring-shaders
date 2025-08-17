@@ -3,7 +3,7 @@ varying vec2 texcoord;
 varying vec3 sunWorldDir, moonWorldDir, lightWorldDir;
 varying vec3 sunViewDir, moonViewDir, lightViewDir;
 
-varying vec3 sunColor, skyColor;
+// varying vec3 sunColor, skyColor;
 
 varying float isNoon, isNight, sunRiseSet;
 varying float isNoonS, isNightS, sunRiseSetS;
@@ -25,10 +25,10 @@ varying float isNoonS, isNightS, sunRiseSetS;
 #ifdef FSH
 
 #include "/lib/common/gbufferData.glsl"
-#include "/lib/atmosphere/fog.glsl"
+// #include "/lib/atmosphere/fog.glsl"
 #include "/lib/common/materialIdMapper.glsl"
-#include "/lib/atmosphere/celestial.glsl"
-#include "/lib/atmosphere/volumetricClouds.glsl"
+// #include "/lib/atmosphere/celestial.glsl"
+// #include "/lib/atmosphere/volumetricClouds.glsl"
 
 
 
@@ -84,8 +84,8 @@ void main() {
 	isNightS = saturate(dot(moonWorldDir, upWorldDir) * NIGHT_DURATION_SLOW);
 	sunRiseSetS = saturate(1 - isNoon - isNight);
 
-	sunColor = getSunColor() * (1.0 - 0.95  * isNight);
-	skyColor = getSkyColor();
+	// sunColor = getSunColor() * (1.0 - 0.95  * isNight);
+	// skyColor = getSkyColor();
 
 	gl_Position = ftransform();
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
