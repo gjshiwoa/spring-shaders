@@ -79,19 +79,17 @@ void main() {
 			float d = d_p2e > 0.0 ? d_p2e : d_p2a;
 			float dist1 = hrrZ == 1.0 ? d : hrrWorldDis1;
 
-			float cloudTransmittance = 1.0;
-			vec3 cloudScattering = vec3(0.0);
+			vec4 intScattTrans = vec4(vec3(0.0), 1.0);
 			float cloudHitLength = 0.0;
 			#ifdef VOLUMETRIC_CLOUDS
-				cloudRayMarching(camera, hrrWorldDirO * dist1, cloudTransmittance, cloudScattering, cloudHitLength);
+				cloudRayMarching(camera, hrrWorldDirO * dist1, intScattTrans, cloudHitLength);
 			#endif
-			vec4 cloud = vec4(cloudScattering, cloudTransmittance);
-			cloud = temporal_CLOUD3D(cloud);
-			cloud.rgb = max(vec3(0.0), cloud.rgb);
-			cloud.a = min(cloud.a, 1.0);
+			intScattTrans = temporal_CLOUD3D(intScattTrans);
+			intScattTrans.rgb = max(vec3(0.0), intScattTrans.rgb);
+			intScattTrans.a = min(intScattTrans.a, 1.0);
 
-			CT1 = cloud;
-			CT3 = cloud;
+			CT1 = intScattTrans;
+			CT3 = intScattTrans;
 		}
 	}
 

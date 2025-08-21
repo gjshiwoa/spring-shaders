@@ -121,6 +121,7 @@ screen.water_fog = 水雾
 screen.water_reflection_refraction = 水反射折射
 screen.translucent_lighting = 半透明光照
 
+option.WAVE_TYPE = 水波样式
 option.WAVE_SPEED = 波浪速度
 option.WAVE_FREQUENCY = 波浪频率
 option.WAVE_HEIGHT = 波浪高度

@@ -100,7 +100,7 @@ vec3 reflection(sampler2D tex, vec3 ViewPos, vec3 reflectWorldDir, vec3 reflectV
         reflectColor = textureLod(tex, testScreenPos.xy, 0).rgb * colorScale;
     }
 
-    return reflectColor;
+    return max(reflectColor, BLACK);
 }
 
 vec3 getScatteredReflection(vec3 reflectDir, float roughness, vec3 normal) {

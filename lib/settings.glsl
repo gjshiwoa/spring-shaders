@@ -23,8 +23,8 @@
 #define NOON_DURATION 40.0          // [5.0 10.0 15.0 20.0 25.0 30.0 35.0 40.0 45.0 50.0]
 #define NIGHT_DURATION 30.0         // [5.0 10.0 15.0 20.0 25.0 30.0 35.0 40.0 45.0 50.0]
 
-#define NOON_DURATION_SLOW 2.5      // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 6.0 7.0 8.0 9.0 10.0]
-#define NIGHT_DURATION_SLOW 5.0     // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 6.0 7.0 8.0 9.0 10.0]
+#define NOON_DURATION_SLOW 5.0      // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 6.0 7.0 8.0 9.0 10.0]
+#define NIGHT_DURATION_SLOW 10.0     // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 6.0 7.0 8.0 9.0 10.0]
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 const int noiseTextureResolution = 64;
@@ -207,38 +207,9 @@ const vec3 IncomingLight_N = vec3(INCOMING_LIGHT_N_RED, INCOMING_LIGHT_N_GREEN, 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define VOLUMETRIC_CLOUDS
 
-#define CLOUD_THICKNESS 350                 // [50 100 150 200 250 300 350 400 450 500 550 600 650 700 750 800 850 900 950 1000]
-#define VOLUMETRIC_CLOUDS_MIN_HEIGHT 650.0  // [350 450 550 650.0 750.0 850.0 950.0 1050.0 1150.0 1250.0 1350.0 1450.0 1550.0 1650.0 1750.0 1850.0 1950.0]
-const float cloudHeightMin = VOLUMETRIC_CLOUDS_MIN_HEIGHT + CAMERA_HEIGHT;
-const vec2 cloudHeight = vec2(cloudHeightMin, cloudHeightMin + CLOUD_THICKNESS);
-
-#define VOLUMETRIC_CLOUDS_MAX_SAMPLES 24    // [4 8 12 16 20 24 28 36 44 52]
-#define VOLUMETRIC_CLOUDS_MIN_SAMPLES 12     // [4 8 12 16 20 24 28 36 44 52]
-#define CLOUD_STEP_ALL 0.75                 // [0.75 1.0]
-
-#define VOLUME_CLOUD_NOISE_SEED 0.5         // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
-#define CLOUD_SPEED_LOW 10.0                // [2.5 5.0 7.5 10.0 12.5 15.0 17.5 20.0 22.5 25.0 30.0 35.0 40.0 45.0 50.0]
-#define CLOUD_LOW_FREQUENCY 0.00035          // [0.00005 0.0001 0.00015 0.0002 0.00025 0.0003 0.00035 0.0004 0.00045 0.0005]
-#define CLOUD_WEATHER_FREQUENCY 0.00003    // [0.000005 0.00001 0.000015 0.00002 0.000025 0.00003 0.000035 0.00004 0.000045 0.00005]
-#define CLOUD_WEATHER_SHAPE 0.5            // [0.0 0.1 0.2 0.3 0.33 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
-#define CLOUD_COVERAGE 0.8                  // [0.4 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.6 1.7 1.8 1.9 2.0]
-#define CLOUD_HIGH_FREQUENCY 0.0055         // [0.0005 0.001 0.0015 0.0018 0.002 0.0025 0.003 0.0035 0.004 0.0045 0.005 0.0055 0.006 0.0065 0.007]
-// #define CLOUD_HIGHER_NOISE_ENABLE
-#define CLOUD_HIGH_FREQ_EROSION 0.5         // [0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95]
-#define CLOUD_DENSITY 0.07                  // [0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.11 0.12 0.13 0.14 0.15 0.16 0.17 0.18 0.19 0.2]
-
-#define CLOUD_LIGHTPATH_STEP_SIZE 20.0      // [10.0 20.0 30.0 40.0 50.0 60.0 70.0 80.0 90.0 100.0]
-#define CLOUD_LIGHTPATH_SAMPLES 5           // [1 2 3 4 5 6 7 8 9 10]
-#define CLOUD_ATTENUATION_SECOND_SPREAD 0.25 // [0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5]
-#define CLOUD_ATTENUATION_SECOND_INTENSITY 0.6 // [0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0]
-#define CLOUD_INSCATTER_POWER 1.0           // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
-
-#define CLOUD_SILVER_INTENSITY 0.5          // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9]
-#define CLOUD_SILVER_SPREAD 0.24             // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9]
-
-#define CLOUD_BRIGHTNESS 10.0                // [1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0 11.0 12.0 13.0 14.0 15.0]
-#define CLOUD_SKY_MIX 9000                  // [1000 2000 3000 4000 5000 6000 7000 8000 9000 10000 11000 12000 13000 14000 15000]
-
+const float cloudHeightMin = 650.0 + CAMERA_HEIGHT;
+const float cloudThinkness = 350.0;
+const vec2 cloudHeight = vec2(cloudHeightMin, cloudHeightMin + cloudThinkness);
 
 const float CLOUD_LARGE_STEP = 280.0;  // 大步幅
 const float CLOUD_SMALL_STEP = 70.0;   // 小步幅
@@ -345,11 +316,12 @@ const float ambientOcclusionLevel = 0.0;  // [0.0 0.05 0.2 0.4 0.6 0.8 1.0 1.2 1
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define COLOR_UI_SCALE 4.0
 
+#define WAVE_TYPE 1                    // [0 1]
 #define WAVE_SPEED 1.5      // [0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0]
-#define WAVE_FREQUENCY 0.75 // [0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0]
-#define WAVE_HEIGHT 0.3     // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+#define WAVE_FREQUENCY 1.0 // [0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0]
+#define WAVE_HEIGHT 0.25     // [0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 #define WAVE_PARALLAX
-#define WAVE_PARALLAX_HEIGHT 2.0    // [0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0]
+#define WAVE_PARALLAX_HEIGHT 4.0    // [0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0 3.25 3.5 3.75 4.0 4.5 5.0]
 #define WAVE_PARALLAX_MIN_SAMPLES 5.0   // [5.0 10.0 15.0 20.0 25.0 30.0 35.0 40.0 45.0 50.0]
 #define WAVE_PARALLAX_MAX_SAMPLES 15.0  // [5.0 10.0 15.0 20.0 25.0 30.0 35.0 40.0 45.0 50.0]
 #define WAVE_PARALLAX_ITERATIONS 10     // [0 5 10 15 20 25 30 35 40 45 50]
@@ -379,13 +351,13 @@ const vec3 waterFogColor = vec3(WATER_FOG_COLOR_RED, WATER_FOG_COLOR_GREEN, WATE
 
 #define UNDERWATER_ADD_BLOOM 0.035  // [0.005 0.0075 0.01 0.0125 0.015 0.0175 0.02 0.0225 0.025 0.0275 0.03 0.035 0.04 0.045 0.05]
 #define UNDERWATER_CANTRAST 1.5     // [0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
-#define UNDERWATER_BRI 1.4          // [1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.25 2.5 2.75 3.0 3.25 3.5 3.75 4.0]
+#define UNDERWATER_BRI 1.2          // [1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.25 2.5 2.75 3.0 3.25 3.5 3.75 4.0]
 
 
 
 
 #define WATER_REFRACTION
-#define WAVE_REFRACTION_INTENSITY 1.75   // [0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0]
+#define WAVE_REFRACTION_INTENSITY 1.5   // [0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0]
 #define WATER_REFRAT_IOR 1.2        // [1.0 1.1 1.2 1.3 1.33 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
 #define WATER_REFLECTION
 #define UNDERWATER_REFLECTION
@@ -393,7 +365,7 @@ const vec3 waterFogColor = vec3(WATER_FOG_COLOR_RED, WATER_FOG_COLOR_GREEN, WATE
 #define REFLECTION_SAMPLES 20       // [10 15 20 25 30 35 40 45 50]
 #define REFLECTION_STEP_POWER 1.6   // [1.0 1.2 1.4 1.6 1.8 2.0 2.2 2.4 2.6 2.8 3.0 4.0 5.0]
 #define REFLECTION_FRESNAL_POWER 5.0    // [0.1 1.0 2.0 3.0 4.0 5.0]
-#define WATER_F0 0.02               // [0.02 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+#define WATER_F0 0.02               // [0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 #define WATER_REFLECT_HIGH_LIGHT
 #define WATER_REFLECT_HIGH_LIGHT_INTENSITY 1.0  // [0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 2.5 3.0 3.5 4.0 5.0]
 
@@ -413,7 +385,7 @@ const vec3 waterFogColor = vec3(WATER_FOG_COLOR_RED, WATER_FOG_COLOR_GREEN, WATE
 #define CAUSTICS_FREQ 0.11          // [0.01 0.03 0.05 0.06 0.07 0.09 0.11 0.13 0.15 0.17 0.19]
 #define CAUSTICS_SPEED 0.03         // [0.01 0.03 0.05 0.06 0.07 0.09 0.11 0.13 0.15 0.17 0.19]
 #define CAUSTICS_POWER 3.0          // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
-#define CAUSTICS_BRI_MIN 0.8        // [0.2 0.4 0.6 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0]
+#define CAUSTICS_BRI_MIN 1.0        // [0.2 0.4 0.6 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0]
 #define CAUSTICS_BRI_MAX 2.5        // [0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0]
 
 

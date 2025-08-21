@@ -11,6 +11,7 @@ vec2 wavedx(vec2 position, vec2 direction, float frequency, float timeshift) {
 }
 
 float getwaves(vec2 position, int iterations) {
+    position *= 0.85;
     float iter = 0.5 * PI; // this will help generating well distributed wave directions
     float frequency = 1.0; // frequency of the wave, this will change every iteration
     float timeMultiplier = WAVE_SPEED; // time multiplier for the wave, this will change every iteration
@@ -39,15 +40,57 @@ float getwaves(vec2 position, int iterations) {
         iter += 1232.399963;
     }
   // calculate and return
-    return sumOfValues / sumOfWeights;
+    return mix(1.0, sumOfValues / sumOfWeights, 0.85);
+}
+
+float waterFBM( in vec3 p , int iterations){
+    float n = 0.0;
+    n += 0.50000*Get3DNoise( noisetex, noiseTextureResolution, p*1.0 );
+    n += 0.25000*Get3DNoise( noisetex, noiseTextureResolution, p*2.0 );
+    if(iterations > 11){
+        n += 0.12500*Get3DNoise( noisetex, noiseTextureResolution, p*4.0 );
+        n += 0.06250*Get3DNoise( noisetex, noiseTextureResolution, p*8.0 );
+        // n += 0.03125*Get3DNoise( noisetex, noiseTextureResolution, p*16.0 );
+    }
+    
+    return n/0.984375;
+}
+
+void rot(inout vec2 p, float a) {
+    float c = cos(a);
+    float s = sin(a);
+    p = vec2(p.x*c + p.y*s, -p.x*s + p.y*c);
+}
+
+float getwaves1(vec2 position, int iterations) {
+    float height = 0.0;
+    float h = 10.0;
+    
+    position *= 0.2;
+    rot(position, -0.45);
+    position.y *= 2.5;
+    position += vec2(0, frameTimeCounter * WAVE_SPEED * 0.35);
+
+    height = waterFBM( vec3( position, frameTimeCounter * WAVE_SPEED * 0.3), iterations);
+    height = pow(height, 1.45);
+
+    height = mix(1.0, height, 1.0);
+
+    return height;
 }
 
 float getWaveHeight(vec2 pos, const int quality){
     pos *= WAVE_FREQUENCY;
-    float waveHeight = getwaves(pos,  quality);
+    float waveHeight;
+    #if WAVE_TYPE == 0
+        waveHeight = getwaves(pos, quality);
+    #else
+        waveHeight = getwaves1(pos, quality);
+    #endif
+    waveHeight = saturate(waveHeight);
     if(isEyeInWater == 1) waveHeight = 1.0 - waveHeight;
 
-    return mix(1.0, waveHeight, WAVE_HEIGHT);
+    return saturate(mix(1.0, waveHeight, WAVE_HEIGHT));
 }
 
 vec2 waveParallaxMapping(vec2 uv, vec3 viewDirTS, out float currHeight){

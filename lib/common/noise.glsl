@@ -133,8 +133,8 @@ float Get3DNoise(sampler2D tex, float resolution, vec3 pos) {
 
 	vec2 coord =  (uv  + 0.5f) / resolution;
 	vec2 coord2 = (uv2 + 0.5f) / resolution;
-	float xy1 = texture(tex, coord).x;
-	float xy2 = texture(tex, coord2).x;
+	float xy1 = textureN(tex, coord).x;
+	float xy2 = textureN(tex, coord2).x;
 	float n = mix(xy1, xy2, f.z);
     
     return n;

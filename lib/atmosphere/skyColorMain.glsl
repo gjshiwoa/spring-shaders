@@ -17,9 +17,9 @@ color.rgb = skyBaseColor;
 color.rgb += celestial;
 cloudTransmittance = max(cloudTransmittance, 0.0);
 cloudScattering = max(cloudScattering, vec3(0.0));
-color.rgb = color.rgb * cloudTransmittance + cloudScattering * CLOUD_BRIGHTNESS;
+color.rgb = color.rgb * cloudTransmittance + cloudScattering * 5.0;
 
 if(cloudTransmittance < 1.0){
 	color.rgb = mix(skyBaseColor + celestial, color.rgb, 
-			mix(saturate(1.0 * pow(getLuminance(cloudScattering), 1.0)), exp(-cloudHitLength / (CLOUD_SKY_MIX * (1.0 + 1.0 * sunRiseSetS))) * 0.90, 0.60));
+			mix(saturate(1.0 * pow(getLuminance(cloudScattering), 1.0)), exp(-cloudHitLength / (9000 * (1.0 + 1.0 * sunRiseSetS))) * 0.90, 0.60));
 }

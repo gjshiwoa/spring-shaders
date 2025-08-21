@@ -131,7 +131,7 @@ void main() {
 
 		float shadow = 1.0;
 		vec3 colorShadow = vec3(0.0);
-		if(texture(shadowtex1, shadowPos.xy).r <= 1.0 && !outScreen(shadowPos.xy) && cos_theta > 0.001){
+		if(!outScreen(shadowPos.xy) && cos_theta > 0.001){
 			shadow = min(parallaxShadow, shadowMapping(worldPos1, normalW, sssWrap));
 			colorShadow = getColorShadow(shadowPos, shadow);
 		}
@@ -196,7 +196,7 @@ void main() {
 
 		float cloudTransmittance = 1.0;
 		vec3 cloudScattering = vec3(0.0);
-		float cloudHitLength = clamp(intersectHorizontalPlane(camera, worldDir, VOLUMETRIC_CLOUDS_MIN_HEIGHT), 0.0, 20000.0);
+		float cloudHitLength = clamp(intersectHorizontalPlane(camera, worldDir, 650), 0.0, 20000.0);
 
 		#ifdef VOLUMETRIC_CLOUDS
 			vec2 cloud_uv = texcoord * 0.5 + vec2(0.5, 0.0);
@@ -214,11 +214,11 @@ void main() {
 		color.rgb += celestial;
 		cloudTransmittance = max(cloudTransmittance, 0.0);
 		cloudScattering = max(cloudScattering, vec3(0.0));
-		color.rgb = color.rgb * cloudTransmittance + cloudScattering * CLOUD_BRIGHTNESS;
+		color.rgb = color.rgb * cloudTransmittance + cloudScattering;
 
 		if(cloudTransmittance < 0.9999){
 			color.rgb = mix(skyBaseColor + celestial, color.rgb, 
-					mix(saturate(pow(getLuminance(cloudScattering), 1.0)), exp(-cloudHitLength / (CLOUD_SKY_MIX * (1.0 + 0.5 * sunRiseSetS))) * 0.90, 0.6));
+					mix(saturate(pow(getLuminance(cloudScattering), 1.0)), exp(-cloudHitLength / (6000 * (1.0 + 0.5 * sunRiseSetS))) * 0.90, 0.6));
 		}
 	}
 	

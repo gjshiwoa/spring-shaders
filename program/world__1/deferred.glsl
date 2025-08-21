@@ -1,3 +1,26 @@
+const int R11F_G11F_B10F = 0;
+const int RGBA8 = 0;
+const int RGBA16 = 0;
+const int RGBA16F = 0;
+const int RGBA32 = 0;
+const int RGBA32F = 0;
+
+const int colortex0Format = RGBA16F;
+const int colortex1Format = RGBA16F;
+const int colortex2Format = RGBA16F;
+const int colortex3Format = RGBA16F;
+const int colortex4Format = RGBA16;
+const int colortex5Format = RGBA16F;
+const int colortex6Format = RGBA32F;
+const int colortex7Format = RGBA16F;
+
+const int shadowcolor0Format = RGBA16F;
+const int shadowcolor1Format = RGBA16F;
+
+const bool colortex2Clear = false;
+const bool colortex3Clear = false;
+const bool colortex6Clear = false;
+const bool colortex7Clear = false;
 
 varying vec2 texcoord;
 
