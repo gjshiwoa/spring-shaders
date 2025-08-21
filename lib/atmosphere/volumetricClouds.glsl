@@ -77,7 +77,7 @@ float sampleCloudDensity(vec3 cameraPos, bool doCheaply){
     final_cloud *= coverage; 
 
     final_cloud *= CLOUD_DENSITY;
-    return saturate(final_cloud > 0.006 ? final_cloud : 0.0);
+    return saturate(final_cloud > 0.007 ? final_cloud : 0.0);
 }
 
 
