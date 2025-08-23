@@ -66,7 +66,7 @@ void main() {
 	vec2 hrrUV_c = texcoord * 2.0 - vec2(1.0, 0.0);
 	if(!outScreen(hrrUV_c)){
 		float hrrZ = texture(depthtex1, hrrUV_c).x;
-		vec4 hrrScreenPos = vec4(hrrUV_c, hrrZ, 1.0);
+		vec4 hrrScreenPos = vec4(unTAAJitter(hrrUV_c), hrrZ, 1.0);
 		vec4 hrrViewPos = screenPosToViewPos(hrrScreenPos);
 		vec4 hrrWorldPos = viewPosToWorldPos(hrrViewPos);
 		float hrrWorldDis1 = length(hrrWorldPos.xyz);

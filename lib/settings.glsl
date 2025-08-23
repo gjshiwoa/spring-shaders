@@ -107,7 +107,7 @@ const int noiseTextureResolution = 64;
 #define TAA_BLEND_FACTOR 0.03       // [0.01 0.015 0.02 0.025 0.03 0.035 0.04 0.045 0.05 0.055 0.06 0.065 0.07 0.075 0.08 0.085 0.09 0.095 0.1]
 
 
-#define ANISOTROPIC_FILTERING
+// #define ANISOTROPIC_FILTERING
 #define ANISOTROPIC_FILTERING_MODE 0        // [0 1]
 #define ANISOTROPIC_FILTERING_QUALITY 4.0   // [2.0 4.0 8.0 16.0]
 
@@ -208,7 +208,7 @@ const vec3 IncomingLight_N = vec3(INCOMING_LIGHT_N_RED, INCOMING_LIGHT_N_GREEN, 
 #define VOLUMETRIC_CLOUDS
 
 const float cloudHeightMin = 650.0 + CAMERA_HEIGHT;
-const float cloudThinkness = 350.0;
+const float cloudThinkness = 450.0;
 const vec2 cloudHeight = vec2(cloudHeightMin, cloudHeightMin + cloudThinkness);
 
 const float CLOUD_LARGE_STEP = 280.0;  // 大步幅

@@ -218,7 +218,7 @@ void main() {
 
 		if(cloudTransmittance < 0.9999){
 			color.rgb = mix(skyBaseColor + celestial, color.rgb, 
-					mix(saturate(pow(getLuminance(cloudScattering), 1.0)), exp(-cloudHitLength / (6000 * (1.0 + 0.5 * sunRiseSetS))) * 0.90, 0.6));
+					mix(saturate(pow(getLuminance(cloudScattering), 0.45)), exp(-cloudHitLength / (6000 * (1.0 + 0.5 * sunRiseSetS))) * 0.90, 0.6));
 		}
 	}
 	
