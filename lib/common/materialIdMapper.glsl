@@ -49,8 +49,8 @@ float IDMappingT(){
     float isSkyHRR1(){
         vec2 uv = texcoord * 2 - vec2(1.0, 0.0);
         float isSky = 0.0;
-        for(int i = 0; i < 9; i++){
-            vec2 curUV = uv + offsetUV9[i]*invViewSize;
+        for(int i = 0; i < 12; i++){
+            vec2 curUV = uv + offsetUV12[i]*invViewSize;
             float depth = texture(depthtex1, curUV).r;
             if(depth == 1.0) return 1.0;
         }

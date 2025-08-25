@@ -183,7 +183,7 @@ void main() {
 			fogVis = (fogVis * min(shadowDistance, worldDis1) + max(worldDis1 - shadowDistance, 0.0)) / worldDis1;
 			fogVis = saturate(fogVis * isNoon);
 
-			color.rgb = Transmittance1(earthPos, earthPos + worldPos1.xyz * ATMOSPHERIC_SCATTERING_FOG_DENSITY, VOLUME_LIGHT_SAMPLES) * color.rgb;
+			color.rgb *= Transmittance1(earthPos, earthPos + worldPos1.xyz * ATMOSPHERIC_SCATTERING_FOG_DENSITY, VOLUME_LIGHT_SAMPLES);
 			mat2x3 AtmosphericScattering_Land = AtmosphericScattering(worldPos1.xyz, normalize(worldPos1.xyz), sunWorldDir, IncomingLight, 1.0, int(VOLUME_LIGHT_SAMPLES));
 			color.rgb += (AtmosphericScattering_Land[0] * fogVis * (1.0 + 3.0 * rainStrength) + AtmosphericScattering_Land[1]) * ATMOSPHERIC_SCATTERING_FOG_DENSITY;
 		#endif
@@ -216,10 +216,17 @@ void main() {
 		cloudScattering = max(cloudScattering, vec3(0.0));
 		color.rgb = color.rgb * cloudTransmittance + cloudScattering;
 
-		if(cloudTransmittance < 0.9999){
-			color.rgb = mix(skyBaseColor + celestial, color.rgb, 
-					mix(saturate(pow(getLuminance(cloudScattering), 0.45)), exp(-cloudHitLength / (6000 * (1.0 + 0.5 * sunRiseSetS))) * 0.90, 0.6));
+		if(cloudTransmittance < 1.0){
+			color.rgb = 
+				mix(skyBaseColor + celestial, color.rgb, 
+					saturate(
+						mix(saturate(pow(getLuminance(cloudScattering), 0.45)), 
+							exp(-cloudHitLength / (9000 * (1.0 + 0.5 * sunRiseSetS))) * 0.90, 
+							0.6)
+					)
+				);
 		}
+		// color.rgb = vec3(cloudTransmittance);
 	}
 	
 	color.rgb = max(BLACK, color.rgb);

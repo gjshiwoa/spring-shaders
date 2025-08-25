@@ -208,14 +208,18 @@ const vec3 IncomingLight_N = vec3(INCOMING_LIGHT_N_RED, INCOMING_LIGHT_N_GREEN, 
 #define VOLUMETRIC_CLOUDS
 
 const float cloudHeightMin = 650.0 + CAMERA_HEIGHT;
-const float cloudThinkness = 450.0;
+const float cloudThinkness = 500.0;
 const vec2 cloudHeight = vec2(cloudHeightMin, cloudHeightMin + cloudThinkness);
+
+const float cloudSigmaS = 0.05;
+const float cloudSigmaA = 0.01;
+const float cloudSigmaE = cloudSigmaS + cloudSigmaA;
 
 const float CLOUD_LARGE_STEP = 280.0;  // 大步幅
 const float CLOUD_SMALL_STEP = 70.0;   // 小步幅
 const int CLOUD_MAX_STEPS = 80;      // 最大步进次数
 const int CLOUD_EMPTY_STEPS = 4;      // 连续空样本阈值
-const float CLOUD_MAX_DISTANCE = 5600.0;  // 最大步进距离
+const float CLOUD_MAX_DISTANCE = 40000.0;  // 最大步进距离
 
 
 
@@ -319,9 +323,9 @@ const float ambientOcclusionLevel = 0.0;  // [0.0 0.05 0.2 0.4 0.6 0.8 1.0 1.2 1
 #define WAVE_TYPE 1                    // [0 1]
 #define WAVE_SPEED 1.5      // [0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0]
 #define WAVE_FREQUENCY 1.0 // [0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0]
-#define WAVE_HEIGHT 0.25     // [0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+#define WAVE_HEIGHT 0.2     // [0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 #define WAVE_PARALLAX
-#define WAVE_PARALLAX_HEIGHT 4.0    // [0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0 3.25 3.5 3.75 4.0 4.5 5.0]
+#define WAVE_PARALLAX_HEIGHT 2.0    // [0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0 3.25 3.5 3.75 4.0 4.5 5.0]
 #define WAVE_PARALLAX_MIN_SAMPLES 5.0   // [5.0 10.0 15.0 20.0 25.0 30.0 35.0 40.0 45.0 50.0]
 #define WAVE_PARALLAX_MAX_SAMPLES 15.0  // [5.0 10.0 15.0 20.0 25.0 30.0 35.0 40.0 45.0 50.0]
 #define WAVE_PARALLAX_ITERATIONS 10     // [0 5 10 15 20 25 30 35 40 45 50]
@@ -351,7 +355,7 @@ const vec3 waterFogColor = vec3(WATER_FOG_COLOR_RED, WATER_FOG_COLOR_GREEN, WATE
 
 #define UNDERWATER_ADD_BLOOM 0.035  // [0.005 0.0075 0.01 0.0125 0.015 0.0175 0.02 0.0225 0.025 0.0275 0.03 0.035 0.04 0.045 0.05]
 #define UNDERWATER_CANTRAST 1.5     // [0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
-#define UNDERWATER_BRI 1.2          // [1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.25 2.5 2.75 3.0 3.25 3.5 3.75 4.0]
+#define UNDERWATER_BRI 1.3          // [1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.25 2.5 2.75 3.0 3.25 3.5 3.75 4.0]
 
 
 
@@ -382,11 +386,11 @@ const vec3 waterFogColor = vec3(WATER_FOG_COLOR_RED, WATER_FOG_COLOR_GREEN, WATE
 
 
 #define CAUSTICS
-#define CAUSTICS_FREQ 0.11          // [0.01 0.03 0.05 0.06 0.07 0.09 0.11 0.13 0.15 0.17 0.19]
-#define CAUSTICS_SPEED 0.03         // [0.01 0.03 0.05 0.06 0.07 0.09 0.11 0.13 0.15 0.17 0.19]
-#define CAUSTICS_POWER 3.0          // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
+#define CAUSTICS_FREQ 0.1          // [0.01 0.03 0.05 0.06 0.07 0.09 0.11 0.13 0.15 0.17 0.19]
+#define CAUSTICS_SPEED 0.06         // [0.01 0.03 0.05 0.06 0.07 0.09 0.11 0.13 0.15 0.17 0.19]
+#define CAUSTICS_POWER 2.5          // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
 #define CAUSTICS_BRI_MIN 1.0        // [0.2 0.4 0.6 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0]
-#define CAUSTICS_BRI_MAX 2.5        // [0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0]
+#define CAUSTICS_BRI_MAX 3.5        // [0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 2.2 2.4 2.6 2.8 3.0 3.2 3.4 3.6 3.8 4.0]
 
 
 

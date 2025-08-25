@@ -1,4 +1,12 @@
 #define max3(x, y, z) max(x, max(y, z))
+
+vec2 rotate2D(vec2 point, float angle) {
+    float s = sin(angle);
+    float c = cos(angle);
+    mat2 rotationMatrix = mat2(c, -s, s, c);
+    return rotationMatrix * point;
+}
+
 #define min3(x, y, z) min(x, min(y, z))
 
 float fastExp(float x) {
@@ -222,6 +230,7 @@ float lerp(float a, float b, float f){
 vec3 lerp(vec3 a, vec3 b, float f){
     return a + f * (b - a);
 }
+
 
 
 

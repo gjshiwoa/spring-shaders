@@ -40,7 +40,7 @@ float getwaves(vec2 position, int iterations) {
         iter += 1232.399963;
     }
   // calculate and return
-    return mix(1.0, sumOfValues / sumOfWeights, 0.85);
+    return mix(1.0, sumOfValues / sumOfWeights, 1.0);
 }
 
 float waterFBM( in vec3 p , int iterations){

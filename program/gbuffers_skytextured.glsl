@@ -12,6 +12,7 @@
 #ifdef FSH
 
 void main() {
+	discard;
 	vec4 color = vec4(BLACK, 1.0);
 
 /* DRAWBUFFERS:0 */
