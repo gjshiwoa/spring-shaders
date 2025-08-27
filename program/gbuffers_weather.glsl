@@ -25,7 +25,7 @@ void main() {
 	vec2 lightmap = AdjustLightmap(lmcoord);
 	color.rgb = mix(vec3(getLuminance(color.rgb)), color.rgb, 0.5);
 	toLinear(color);
-	color.rgb *= lightmap.y * getLuminance(sunColor) * 0.5;
+	color.rgb *= lightmap.y * getLuminance(sunColor);
 	color.rgb += nightVision * texColor.rgb * NIGHT_VISION_BRIGHTNESS / PI;
 #endif
 	color = max(vec4(0.0), color);

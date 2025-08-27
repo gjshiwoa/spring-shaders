@@ -26,7 +26,6 @@ varying vec3 sunViewDir, moonViewDir, lightViewDir;
 #include "/lib/surface/PBR.glsl"
 #include "/lib/common/octahedralMapping.glsl"
 
-
 void main() {
 	vec4 color = texture(colortex0, texcoord);
 	float depth1 = texture(depthtex1, texcoord).r;

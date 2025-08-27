@@ -70,6 +70,7 @@ uniform vec3 sunPosition;
 uniform vec3 moonPosition;
 uniform vec3 shadowLightPosition;
 uniform vec3 upPosition;
+const vec3 upViewDir = normalize(upPosition);
 uniform vec3 upWorldDir;
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;

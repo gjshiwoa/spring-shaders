@@ -39,7 +39,7 @@ varying mat3 tbnMatrix;
 #include "/lib/water/translucentLighting.glsl"
 // #include "/lib/atmosphere/volumetricClouds.glsl"
 
-const bool colortex5MipmapEnabled = true;
+// const bool gaux1MipmapEnabled = true;
 
 flat in float isWater, isIce;
 

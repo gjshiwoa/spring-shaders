@@ -196,7 +196,7 @@ const vec3 IncomingLight_N = vec3(INCOMING_LIGHT_N_RED, INCOMING_LIGHT_N_GREEN, 
 #define MOON_BRIGHTNESS 3.5     // [1.5 2.5 3.5 4.5 5.5 6.5 7.5 8.5 9.5 10.5]
 #define STARS
 #define STARS_DENSITY 30.0      // [10.0 20.0 30.0 40.0 50.0 60.0 70.0 80.0 90.0 100.0]
-#define STARS_SIZE 0.075        // [0.025 0.05 0.075 0.1 0.125 0.15 0.175 0.2]
+#define STARS_SIZE 0.05        // [0.025 0.05 0.075 0.1 0.125 0.15 0.175 0.2]
 #define STARS_BRIGHTNESS 1.0    // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
 
 

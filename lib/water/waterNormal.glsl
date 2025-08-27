@@ -43,23 +43,19 @@ float getwaves(vec2 position, int iterations) {
     return mix(1.0, sumOfValues / sumOfWeights, 1.0);
 }
 
+// FishMan: Lake in highland
+// https://www.shadertoy.com/view/4sdfz8
 float waterFBM( in vec3 p , int iterations){
     float n = 0.0;
-    n += 0.50000*Get3DNoise( noisetex, noiseTextureResolution, p*1.0 );
-    n += 0.25000*Get3DNoise( noisetex, noiseTextureResolution, p*2.0 );
+    n += 0.50000*get3DNoise( noisetex, noiseTextureResolution, p*1.0 );
+    n += 0.25000*get3DNoise( noisetex, noiseTextureResolution, p*2.0 );
     if(iterations > 11){
-        n += 0.12500*Get3DNoise( noisetex, noiseTextureResolution, p*4.0 );
-        n += 0.06250*Get3DNoise( noisetex, noiseTextureResolution, p*8.0 );
-        // n += 0.03125*Get3DNoise( noisetex, noiseTextureResolution, p*16.0 );
+        n += 0.12500*get3DNoise( noisetex, noiseTextureResolution, p*4.0 );
+        n += 0.06250*get3DNoise( noisetex, noiseTextureResolution, p*8.0 );
+        // n += 0.03125*get3DNoise( noisetex, noiseTextureResolution, p*16.0 );
     }
     
     return n/0.984375;
-}
-
-void rot(inout vec2 p, float a) {
-    float c = cos(a);
-    float s = sin(a);
-    p = vec2(p.x*c + p.y*s, -p.x*s + p.y*c);
 }
 
 float getwaves1(vec2 position, int iterations) {
@@ -67,7 +63,7 @@ float getwaves1(vec2 position, int iterations) {
     float h = 10.0;
     
     position *= 0.2;
-    rot(position, -0.45);
+    position = rotate2D(position, -0.45);
     position.y *= 2.5;
     position += vec2(0, frameTimeCounter * WAVE_SPEED * 0.35);
 

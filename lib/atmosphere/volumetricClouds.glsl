@@ -44,7 +44,7 @@ float sampleCloudDensity(vec3 cameraPos, bool doCheaply){
     }
 
     final_cloud *= remapSaturate(height_fraction, 0.0, 0.1, 0.0, 1.0) * remapSaturate(height_fraction, 0.8, 1.0, 1.0, 0.0);
-    final_cloud *= 0.05;
+    final_cloud *= cloudSigmaE;
 
     return saturate(final_cloud > (0.003 + 0.007 * height_fraction) ? final_cloud : 0.0);
 }
@@ -186,8 +186,34 @@ void cloudRayMarching(vec3 startPos, vec3 worldPos, inout vec4 intScattTrans, in
     // }
 }
 
-#endif
+float computeCrepuscularLight(vec4 viewPos){
+    const float N_SAMPLES = 4.0;
 
+    vec2 uv = texcoord;
+    vec2 sunUv = viewPosToScreenPos(vec4(sunPosition, 1.0)).xy;
+
+    vec2 delta = (uv - sunUv) * (1.0 / float(N_SAMPLES));
+    vec2 sampleUv = uv;
+    sampleUv += temporalBayer64(gl_FragCoord.xy) * delta;
+
+    float sum = 0.0;
+    int c = 0;
+    float VoL = mix(1.0, dot(normalize(vec3(0.0, 0.0, -1.0)), sunViewDir), 0.5);
+    for (int i = 0; i < N_SAMPLES; ++i) {
+        sampleUv -= delta;
+        if (outScreen(sampleUv) || texture(depthtex1, sampleUv).r < 1.0)
+            break;
+
+        float transmit = texture(colortex1, sampleUv * 0.5 + vec2(0.5, 0.0)).a;
+        sum += transmit;
+        ++c;
+    }
+    sum /= N_SAMPLES;
+
+    return saturate(sum * VoL);
+}
+
+#endif
 
 vec4 temporal_CLOUD3D(vec4 color_c){
     vec2 uv = texcoord * 2 - vec2(1.0, 0.0);
@@ -215,7 +241,7 @@ vec4 temporal_CLOUD3D(vec4 color_c){
         vec4 pre = texelFetch(colortex6, ivec2(curUV + vec2(0.0, 0.5) * viewSize), 0);
 
         float zc = pre.a;
-        weight *= pre.a < 1.0 ? 0.3 : 1.0;
+        weight *= pre.a < 1.0 ? 0.0 : 1.0;
 
         c_s += cc * weight;
         w_s += weight;
@@ -227,6 +253,7 @@ vec4 temporal_CLOUD3D(vec4 color_c){
 
     return color_c;
 }
+
 
 
 

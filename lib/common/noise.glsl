@@ -122,7 +122,7 @@ vec3 textureN( sampler2D sam, vec2 uv ){
 }
 
 
-float Get3DNoise(sampler2D tex, float resolution, vec3 pos) {
+float get3DNoise(sampler2D tex, float resolution, vec3 pos) {
     pos.xyz += 0.5f;
 
 	vec3 p = floor(pos);

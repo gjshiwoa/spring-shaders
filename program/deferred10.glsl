@@ -19,6 +19,8 @@ varying vec3 sunViewDir, moonViewDir, lightViewDir;
 
 #include "/lib/water/waterReflectionRefraction.glsl"
 
+// const bool colortex4MipmapEnabled = true;
+
 
 void main() {
 	vec4 CT3 = texelFetch(colortex3, ivec2(gl_FragCoord.xy), 0);

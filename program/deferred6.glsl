@@ -216,17 +216,26 @@ void main() {
 		cloudScattering = max(cloudScattering, vec3(0.0));
 		color.rgb = color.rgb * cloudTransmittance + cloudScattering;
 
+		float VoL = saturate(dot(worldDir, sunWorldDir));
+		float phase = saturate(hgPhase1(VoL, 0.76 - 0.66 * rainStrength));
+		float crepuscularLight = 0.0;
+		if(phase > 0.01 && sunRiseSetS + rainStrength > 0.001) crepuscularLight = computeCrepuscularLight(viewPos1) * phase;
+
 		if(cloudTransmittance < 1.0){
+
 			color.rgb = 
-				mix(skyBaseColor + celestial, color.rgb, 
+				mix((skyBaseColor + celestial), color.rgb, 
 					saturate(
-						mix(saturate(pow(getLuminance(cloudScattering), 0.45)), 
-							exp(-cloudHitLength / (9000 * (1.0 + 0.5 * sunRiseSetS))) * 0.90, 
+						mix(saturate(pow(getLuminance(cloudScattering), 1.0 - 0.45 * phase * sunRiseSetS)), 
+							exp(-cloudHitLength / (9000 * (1.0 + 1.0 * phase * sunRiseSetS))) * 0.90, 
 							0.6)
 					)
 				);
+			
 		}
-		// color.rgb = vec3(cloudTransmittance);
+		color.rgb += pow(crepuscularLight, 1.0) * sunColor * (0.6 + 5.5 * rainStrength) * saturate(sunRiseSetS + rainStrength);
+		// color.rgb = vec3(computeCrepuscularLight(viewPos1));
+		// color.rgb = vec3(crepuscularLight);
 	}
 	
 	color.rgb = max(BLACK, color.rgb);
