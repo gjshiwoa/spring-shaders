@@ -227,8 +227,9 @@ void main() {
 				mix((skyBaseColor + celestial), color.rgb, 
 					saturate(
 						mix(saturate(pow(getLuminance(cloudScattering), 1.0 - 0.45 * phase * sunRiseSetS)), 
-							exp(-cloudHitLength / (9000 * (1.0 + 1.0 * phase * sunRiseSetS))) * 0.90, 
+							exp(-cloudHitLength / (9000 * (1.0 + 1.0 * phase * sunRiseSetS))) * 1.0, 
 							0.6)
+						// pow(exp(-cloudHitLength / (9000 * (1.0 + 1.0 * phase * sunRiseSetS))), mix(1.0, 1.0 - saturate(getLuminance(cloudScattering)), 0.25))
 					)
 				);
 			

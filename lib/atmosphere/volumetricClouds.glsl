@@ -100,12 +100,12 @@ float GetDirectScatterProbability(float CosTheta, float eccentricity, float silv
 
 vec3 sunLuminance(vec3 pos, float VoL, float iVoL, float opticalDepth, float extinction){
     float lightPathOpticalDepth = computeLightPathOpticalDepth(pos, lightWorldDir, 20.0, 6);
-    float attenuation = GetAttenuationProbability(lightPathOpticalDepth, VoL, 0.25, 0.1, 0.7);
+    float attenuation = GetAttenuationProbability(lightPathOpticalDepth, VoL, 0.2, 0.1, 0.7);
 
-    float upPathOpticalDepth = computeLightPathOpticalDepth(pos, upWorldDir, 30.0, 3);
+    float upPathOpticalDepth = computeLightPathOpticalDepth(pos, upWorldDir, 50.0, 2);
     float upPathAttenuation = GetAttenuationProbability(upPathOpticalDepth, VoL, 0.25, 0.1, 0.7);
 
-    float downPathOpticalDepth = computeLightPathOpticalDepth(pos, vec3(0.0, -1.0, 0.0), 30.0, 3);
+    float downPathOpticalDepth = computeLightPathOpticalDepth(pos, vec3(0.0, -1.0, 0.0), 50.0, 2);
     float downPathAttenuation = GetAttenuationProbability(downPathOpticalDepth, VoL, 0.25, 0.1, 0.7);
 
     float phase = GetDirectScatterProbability(VoL, 0.1, 0.6, 0.24);
