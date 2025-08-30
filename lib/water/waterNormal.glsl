@@ -12,34 +12,28 @@ vec2 wavedx(vec2 position, vec2 direction, float frequency, float timeshift) {
 
 float getwaves(vec2 position, int iterations) {
     position *= 0.85;
-    float iter = 0.5 * PI; // this will help generating well distributed wave directions
-    float frequency = 1.0; // frequency of the wave, this will change every iteration
-    float timeMultiplier = WAVE_SPEED; // time multiplier for the wave, this will change every iteration
-    float weight = 1.0;// weight in final sum for the wave, this will change every iteration
-    float sumOfValues = 0.0; // will store final sum of values
-    float sumOfWeights = 0.0; // will store final sum of weights
+    float iter = 0.5 * PI;
+    float frequency = 1.0;
+    float timeMultiplier = WAVE_SPEED;
+    float weight = 1.0;
+    float sumOfValues = 0.0;
+    float sumOfWeights = 0.0;
     for(int i=0; i < iterations; i++) {
-        // generate some wave direction that looks kind of random
         vec2 p = vec2(fastSin(iter), fastCos(iter));
-        // calculate wave data
+
         vec2 res = wavedx(position, p, frequency, frameTimeCounter * timeMultiplier);
 
-        // shift position around according to wave drag and derivative of the wave
         position += p * res.y * weight * DRAG_MULT;
 
-        // add the results to sums
         sumOfValues += res.x * weight;
         sumOfWeights += weight;
 
-        // modify next octave ;
         weight = mix(weight, 0.0, 0.2);
         frequency *= 1.18;
         timeMultiplier *= 1.07;
 
-        // add some kind of random value to make next wave look random too
         iter += 1232.399963;
     }
-  // calculate and return
     return mix(1.0, sumOfValues / sumOfWeights, 1.0);
 }
 
@@ -47,7 +41,7 @@ float getwaves(vec2 position, int iterations) {
 // https://www.shadertoy.com/view/4sdfz8
 float waterFBM( in vec3 p , int iterations){
     float n = 0.0;
-    n += 0.50000*get3DNoise( noisetex, noiseTextureResolution, p*1.0 );
+    n += 0.53125*get3DNoise( noisetex, noiseTextureResolution, p*1.0 );
     n += 0.25000*get3DNoise( noisetex, noiseTextureResolution, p*2.0 );
     if(iterations > 11){
         n += 0.12500*get3DNoise( noisetex, noiseTextureResolution, p*4.0 );
@@ -62,13 +56,13 @@ float getwaves1(vec2 position, int iterations) {
     float height = 0.0;
     float h = 10.0;
     
-    position *= 0.2;
+    position *= 0.175;
     position = rotate2D(position, -0.45);
-    position.y *= 2.5;
+    position.y *= 3.0;
     position += vec2(0, frameTimeCounter * WAVE_SPEED * 0.35);
 
-    height = waterFBM( vec3( position, frameTimeCounter * WAVE_SPEED * 0.3), iterations);
-    height = pow(height, 1.45);
+    height = waterFBM( vec3( position, frameTimeCounter * WAVE_SPEED * 0.4), iterations);
+    // height = pow(height, 1.45);
 
     height = mix(1.0, height, 1.0);
 
@@ -124,8 +118,9 @@ vec2 waveParallaxMapping(vec2 uv, vec3 viewDirTS, out float currHeight){
 vec3 getWaveNormal(vec2 uv){
     const float c = 1.0;
     const int iterations = WAVE_NORMAL_ITERATIONS;
-    vec2 du = vec2(0.05, 0.0);
-    vec2 dv = vec2(0.0, 0.05);
+    const float dx = 0.2;
+    vec2 du = vec2(dx, 0.0);
+    vec2 dv = vec2(0.0, dx);
     float p = getWaveHeight(uv, iterations);
     float p_u = getWaveHeight(uv + du, iterations);
     float p_v = getWaveHeight(uv + dv, iterations);

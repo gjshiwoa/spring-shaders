@@ -29,8 +29,13 @@ void main(){
     vec4 color = vec4(BLACK, 1.0);
     if(isWater > 0.5){
         #ifdef CAUSTICS
-            vec2 caustics = texture(gaux4, vMcPos.xyz * CAUSTICS_FREQ + frameTimeCounter * CAUSTICS_SPEED).gb;
-            float waterColor = 1.0 -  caustics.g;
+            vec3 sampleUV = vMcPos.xyz;
+            sampleUV.xyz *= CAUSTICS_FREQ;
+            sampleUV.xz = rotate2D(sampleUV.xz, -0.45);
+            sampleUV.z *= 2.5;
+            sampleUV.xyz += CAUSTICS_SPEED * vec3(0.0, frameTimeCounter * 0.8, frameTimeCounter);
+            vec2 caustics = texture(gaux4, sampleUV).rb;
+            float waterColor = (1.0 -  caustics.g) * mix(caustics.r, 1.0, 0.8);
             color.rgb = vec3(remap(pow(waterColor, CAUSTICS_POWER), 0.0, 1.0, CAUSTICS_BRI_MIN, CAUSTICS_BRI_MAX));
             color.a = 0.5;
         #else
