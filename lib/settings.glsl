@@ -215,6 +215,8 @@ const float cloudSigmaS = 0.05;
 const float cloudSigmaA = 0.01;
 const float cloudSigmaE = cloudSigmaS + cloudSigmaA;
 
+#define CLOUD_FADE_DISTANCE 6000.0
+
 const float CLOUD_LARGE_STEP = 280.0;  // 大步幅
 const float CLOUD_SMALL_STEP = 70.0;   // 小步幅
 const int CLOUD_MAX_STEPS = 80;      // 最大步进次数

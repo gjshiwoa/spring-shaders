@@ -73,7 +73,7 @@ void main() {
 
 		if(cloudTransmittance < 0.9999){
 			color.rgb = mix(skyBaseColor + celestial, color.rgb, 
-					mix(saturate(pow(getLuminance(cloudScattering), 1.0)), exp(-cloudHitLength / (9000)) * 0.90, 0.6));
+					mix(saturate(pow(getLuminance(cloudScattering), 1.0)), exp(-cloudHitLength / CLOUD_FADE_DISTANCE) * 0.90, 0.66));
 		}
 		
 		CT7.rgb = max(color.rgb, vec3(0.0));

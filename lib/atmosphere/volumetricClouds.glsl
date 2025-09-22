@@ -46,7 +46,7 @@ float sampleCloudDensity(vec3 cameraPos, bool doCheaply){
     final_cloud *= remapSaturate(height_fraction, 0.0, 0.1, 0.0, 1.0) * remapSaturate(height_fraction, 0.8, 1.0, 1.0, 0.0);
     final_cloud *= cloudSigmaE;
 
-    return saturate(final_cloud > (0.003 + 0.007 * height_fraction) ? final_cloud : 0.0);
+    return saturate(final_cloud > (0.003 + 0.002 * height_fraction) ? final_cloud : 0.0);
 }
 
 
@@ -87,7 +87,7 @@ float computeLightPathOpticalDepth(vec3 currentPos, vec3 lightWorldDir, float in
 
 float GetInScatterProbability(vec3 p, float ds_loded){
     float height_fraction = getHeightFractionForPoint(p.y, cloudHeight);
-    float depth_probability = 0.05 + pow(saturate(ds_loded), remapSaturate(height_fraction, 0.3, 0.85, 0.5, 2.0));
+    float depth_probability = 0.05 + pow(saturate(ds_loded), remapSaturate(height_fraction, 0.3, 0.85, 0.5, 2.5));
     float vertical_probability = pow(max(0.0, remap(height_fraction, 0.07, 0.14, 0.6, 1.0)), 0.8);
 
     float in_scatter_probability = depth_probability * vertical_probability;
