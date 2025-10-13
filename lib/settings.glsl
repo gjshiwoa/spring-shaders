@@ -286,7 +286,7 @@ const float shadowDistance = 120.0;    // [40.0 80.0 120.0 160.0 200.0 240.0 280
 #define SHADOW_SOFTNESS 1.0 // [0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 2.5 3.0 3.5 4.0 4.5 5.0 6.0 7.0 8.0 9.0 10.0]
 #define SHADOW_SAMPLES 6.0    // [3.0 5.0 6.0 7.0 8.0 9.0 12.0 15.0 18.0 21.0 24.0 27.0 30.0 33.0 36.0]
 #define COLOR_SHADOW_SAMPLES 5.0 // [3.0 5.0 7.0 9.0 12.0 15.0 18.0 21.0 24.0 27.0 30.0 33.0 36.0]
-#define SCREEN_SPACE_SHADOW_SAMPLES 5.0 // [3.0 5.0 7.0 9.0 12.0 15.0 18.0 21.0 24.0 27.0 30.0 33.0 36.0]
+#define SCREEN_SPACE_SHADOW_SAMPLES 7.0 // [3.0 5.0 7.0 9.0 12.0 15.0 18.0 21.0 24.0 27.0 30.0 33.0 36.0]
 
 float shadowMapScale = (120.0 / shadowDistance) * (shadowMapResolution / 2048.0);
 
@@ -402,8 +402,8 @@ const vec3 waterFogColor = vec3(WATER_FOG_COLOR_RED, WATER_FOG_COLOR_GREEN, WATE
 
 
 #define CAUSTICS
-#define CAUSTICS_FREQ 0.05          // [0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.09 0.11 0.13 0.15 0.17 0.19]
-#define CAUSTICS_SPEED 0.09         // [0.01 0.03 0.05 0.06 0.07 0.09 0.11 0.13 0.15 0.17 0.19]
+#define CAUSTICS_FREQ 0.09          // [0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.09 0.11 0.13 0.15 0.17 0.19]
+#define CAUSTICS_SPEED 0.19         // [0.01 0.03 0.05 0.06 0.07 0.09 0.11 0.13 0.15 0.17 0.19]
 #define CAUSTICS_POWER 3.0          // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
 #define CAUSTICS_BRI_MIN 1.0        // [0.2 0.4 0.6 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0]
 #define CAUSTICS_BRI_MAX 5.0        // [0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 2.2 2.4 2.6 2.8 3.0 3.2 3.4 3.6 3.8 4.0 4.2 4.4 4.6 4.8 5.0]

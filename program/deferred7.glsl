@@ -231,7 +231,7 @@ void main() {
 				);
 			
 		}
-		color.rgb += pow(crepuscularLight, 1.0) * sunColor * (0.6 + 5.5 * rainStrength) * saturate(sunRiseSetS + rainStrength + 0.2 * isNoonS)
+		color.rgb += pow(crepuscularLight, 1.0) * sunColor * max3(0.6 * sunRiseSetS, 5.0 * rainStrength, 0.15 * isNoonS) * saturate(1.0 - isNightS)
 					* remapSaturate(camera.y, 600.0, 1000.0, 1.0, 0.0);
 		// color.rgb = vec3(computeCrepuscularLight(viewPos1));
 		// color.rgb = vec3(crepuscularLight);

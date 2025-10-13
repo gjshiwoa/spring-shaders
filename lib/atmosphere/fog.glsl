@@ -255,7 +255,7 @@ vec4 volumtricFog(vec3 startPos, vec3 worldPos){
             pos += stepVec;
         }
     }
-    intScattTrans.rgb *= (1.0 - isNightS * 0.5);
+    intScattTrans.rgb *= (1.0 - isNightS * 0.75);
     return intScattTrans;
 }
 
@@ -293,7 +293,7 @@ vec4 temporal_fog(vec4 color_c){
         // float normalWeight = saturate(dot(normal_c, unpackNormal(pre.r)));
 
         if(isEyeInWater == 0){
-            depthWeight = mix(1.0, depthWeight, saturate(c.a * (1.0 - rainStrength)));
+            depthWeight = mix(1.0, depthWeight, mix(1.0, c.a, rainStrength));
             // normalWeight = mix(normalWeight, 1.0, c.a);
         }
 
