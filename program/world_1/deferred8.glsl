@@ -30,219 +30,212 @@ varying float isNoonS, isNightS, sunRiseSetS;
 // #include "/lib/atmosphere/fog.glsl"
 #include "/lib/common/materialIdMapper.glsl"
 
+const vec2 cloudHeightEnd = vec2(-600.0, 4800.0);
 
+float sampleCloudDensityLow(vec3 cameraPos, float height_fraction){
+    vec4 weatherData = texture(noisetex, cameraPos.xz * 0.00004 + vec2(0.17325, 0.17325));
+    float coverage = saturate(mix(weatherData.r, weatherData.g, 0.33));
+    coverage = pow(coverage, remapSaturate(height_fraction, 0.1, 0.75, 0.6, 1.45));
+    coverage = saturate(1.0 - 0.65 * coverage - 0.3 * rainStrength + 0.05);
 
-float sampleLowFrequencyNoise(vec3 p){
-    vec4 low_frequency_noises = texture(colortex8, p + vec3(0.0, 0.2, 0.0));
-    float low_freq_FBM = (low_frequency_noises.g * 0.625) + (low_frequency_noises.b * 0.25) + (low_frequency_noises.a * 0.125);
-    float base_cloud = remapSaturate(low_frequency_noises.r, -2.0 * (1.0 - low_freq_FBM), 1.0, 0.0, 1.0);
+    vec3 curl = vec3(0.0);
+    float curlNoise = weatherData.b * 2.0 - 1.0;
+    curl.xy = vec2(100.0 * curlNoise);
+    curl.z = 200.0 * curlNoise * height_fraction;
+    cameraPos += curl;
+
+    vec4 low_frequency_noise = texture(colortex8, cameraPos * 0.00025 + vec3(0.0, 0.9, 0.0));
+    float perlin3d = low_frequency_noise.r;
+    vec3 worley3d = low_frequency_noise.gba;
+    float worley3d_FBM = worley3d.g * 0.66 + worley3d.b * 0.33;
+    float base_cloud = remapSaturate(perlin3d, - worley3d_FBM, 1.0, 0.0, 1.0);
+    base_cloud = remapSaturate(base_cloud, coverage, 1.0, 0.0, 1.0);
+
     return base_cloud;
 }
 
-float sampleHighFrequencyNoise(vec3 p){
-    vec3 high_frequency_noises = texture(colortex2, p + vec3(0.13333, 0.8, 0.76666)).rgb;
-    float high_freq_FBM = (high_frequency_noises.r * 0.625) + (high_frequency_noises.g * 0.25) + (high_frequency_noises.b * 0.125);
-    return high_freq_FBM;
-}
+float sampleCloudDensityHigh(vec3 cameraPos, float base_cloud, float height_fraction, vec3 wind_direction){
+    float final_cloud = base_cloud;
 
-vec2 sampleWeather(vec2 p){
-    vec2 weatherData = texture(noisetex, p).rg;
-    return weatherData;
+    vec4 high_frequency_noises = texture(colortex2, cameraPos * 0.0075 - 0.045 * wind_direction * frameTimeCounter);
+    float high_freq_FBM = high_frequency_noises.g * 0.5 + high_frequency_noises.b * 0.25 + high_frequency_noises.a * 0.125;
+    float high_freq_noise_modifier = lerp(high_freq_FBM, 1.0 - high_freq_FBM, saturate(height_fraction * 10.0));    
+    final_cloud = remapSaturate(final_cloud, high_freq_noise_modifier * 0.5, 1.0, 0.0, 1.0);
+    
+    return final_cloud;
 }
-
-vec2 cloudHeight_End = cameraPosition.y + vec2(-1200, 1500);
 
 float sampleCloudDensity(vec3 cameraPos, bool doCheaply){
-    float height_fraction = getHeightFractionForPoint(cameraPos.y, cloudHeight_End);
+    float height_fraction = getHeightFractionForPoint(cameraPos.y, cloudHeightEnd);
     if(height_fraction < 0.0 || height_fraction > 1.0) return 0.0;
-    vec3 p = cameraPos;
 
     vec3 wind_direction = normalize(vec3(1.0, 0.0, 1.0));
-    float cloud_speed = 10.0;
-    p += wind_direction * frameTimeCounter * cloud_speed;
+    cameraPos += wind_direction * frameTimeCounter * 10.0;
+    cameraPos += wind_direction * height_fraction * 100.0;
 
-    float base_cloud = sampleLowFrequencyNoise(p * 0.00020);
-    // vec2 weatherData = sampleWeather(p.xz * 0.000015);
-    // float coverage = saturate(mix(weatherData.r, weatherData.g, 0.33) - 0.18);
-    base_cloud = remapSaturate(base_cloud, 0.75, 1.0, 0.0, 1.0);
-
+    float base_cloud = sampleCloudDensityLow(cameraPos, height_fraction);
     float final_cloud = base_cloud;
-	if(!doCheaply){
-        float high_freq_FBM = sampleHighFrequencyNoise(p * 0.0035 - 0.025 * wind_direction * frameTimeCounter);
-        float high_freq_noise_modifier = lerp(high_freq_FBM, 1.0 - high_freq_FBM, saturate(height_fraction * 10.0));
-        final_cloud = remapSaturate(final_cloud, saturate(high_freq_noise_modifier * 0.60), 1.0, 0.0, 1.0);
-        float coverage = remapSaturate(height_fraction, 0.0, 0.2, 0.0, 1.0) * 
-                         remapSaturate(height_fraction, 0.8, 1.0, 1.0, 0.0);
-        final_cloud *= coverage; 
+    if(!doCheaply){
+        final_cloud = sampleCloudDensityHigh(cameraPos, base_cloud, height_fraction, wind_direction);
     }
 
-    final_cloud *= 0.0045;
+    final_cloud *= remapSaturate(height_fraction, 0.0, 0.1, 0.0, 1.0) * remapSaturate(height_fraction, 0.8, 1.0, 1.0, 0.0);
+    final_cloud *= cloudSigmaE;
+
     return saturate(final_cloud);
 }
 
-float dualLobPhase(float g0, float g1, float w, float cosTheta, float attenuation){
-    return mix(hgPhase1(cosTheta, g0 * attenuation), hgPhase1(cosTheta, g1 * attenuation), w);
+
+
+float GetAttenuationProbability(float sampleDensity){
+    return exp(-sampleDensity);
 }
 
-float powderEffect(float sampleDensity, float cos_angle){
-    float powd = 1.0 - fastExp(-sampleDensity * 2.0);
-    return lerp(1.0, powd, saturate((-cos_angle * 0.5) + 0.5)); // [-1,1]->[0,1]
+float GetAttenuationProbability(float sampleDensity, float secondSpread, float secondIntensity){
+    return max(exp(-sampleDensity), (exp(-sampleDensity * secondSpread) * (secondIntensity)));
 }
 
-float powderEffectNew(vec3 p, float VoL, float stepCloudDensity){
-    float normalizeHeight = getHeightFractionForPoint(p.y, cloudHeight_End);
-    float depthProbability = pow(
-        clamp(stepCloudDensity * 10.0, 0.0, 1.0),       // clamp(stepCloudDensity * 10.0, 0.0, 1.0)
-        remap(normalizeHeight, 0.3, 0.85, 0.5, 2.0));   // remapSaturate(normalizeHeight, 0.3, 0.85, 0.5, 2.0))
-    depthProbability += 0.05;
-    
-    float verticalProbability = pow(remap(normalizeHeight, 0.0, 0.22, 0.1, 1.0), 0.8); // pow(remapSaturate(normalizeHeight, 0.07, 0.22, 0.1, 1.0), 0.8)
-    float r = VoL * 0.5 + 0.5;
-    r = r * r;
-    verticalProbability = verticalProbability * (1.0 - r) + r;
-    return depthProbability * verticalProbability;
+float GetAttenuationProbability(float sampleDensity, float VoL, 
+        float secondIntensityMin, float secondIntensityMax, float secondSpreadMin, float secondSpreadMax){
+    float secondIntensity = remapSaturate(VoL, 0.8, 1.0, secondIntensityMax, secondIntensityMin);
+    float secondSpread = remapSaturate(VoL, 0.8, 1.0, secondSpreadMin, secondSpreadMax);
+    return max(exp(-sampleDensity), (exp(-sampleDensity * secondSpread) * (secondIntensity)));
 }
 
-
-
-float GetDirectScatterProbability(float CosTheta, float eccentricity, float SilverIntensity, float SilverSpread){
-    return max(hgPhase1(CosTheta, eccentricity), SilverIntensity * hgPhase1(CosTheta, (0.99 - SilverSpread)));
-}
-
-float GetAttenuationProbability(float sampleDensity, float secondInensity, float secondSpread){
-    return max(fastExp(-sampleDensity), (fastExp(-sampleDensity * secondSpread) * secondInensity));
-}
-
-float GetInScatterProbability(vec3 p, float ds_loded, float ds_power){
-    float height_fraction = getHeightFractionForPoint(p.y, cloudHeight_End);
-    ds_loded = saturate(pow(ds_loded, ds_power));
-    float depth_probability = 0.05 + pow(ds_loded, remapSaturate(height_fraction, 0.3, 0.85, 0.5, 2.0));
-    float vertical_probability = pow(remapSaturate(height_fraction, 0.07, 0.22, 0.2, 1.0), 0.8);
-    float in_scatter_probability = depth_probability * vertical_probability;
-
-    return in_scatter_probability;
-}
-
-vec3 computeScatteringIntegral(vec3 stepScattering, float density, float transmittance, float stepTransmittance) {
-    float sigmaS = density;
-    const float sigmaA = 0.0;
-    vec3 sigmaE = max(vec3(1e-8f), sigmaA + sigmaS);
-    vec3 scatterLitStep = stepScattering * sigmaS;
-    scatterLitStep = transmittance * (scatterLitStep - scatterLitStep * stepTransmittance);
-    return scatterLitStep / sigmaE;
-}
-
-float computeLightPathOpticalDepth(vec3 p, float initialStepSize, vec3 lightWorldDir, int N_SAMPLES) {
+float computeLightPathOpticalDepth(vec3 currentPos, vec3 lightWorldDir, float initialStepSize, int N_SAMPLES) {
     float opticalDepth = 0.0;
-    vec3 currentPos = p;
-    float prevDensity = sampleCloudDensity(currentPos, false) * 0.66;
+    bool doCheaply = false;
+    float prevDensity = sampleCloudDensity(currentPos, doCheaply);
     float currentStepSize = initialStepSize;
 
     for (int i = 1; i <= N_SAMPLES; i++) {
         float t = float(i) / float(N_SAMPLES);
         currentStepSize = mix(initialStepSize, initialStepSize * 5.0, t);
         currentPos += lightWorldDir * currentStepSize;
-    
-        bool doCheaply = false;
+
+        if(i > 0.66 * N_SAMPLES) doCheaply = true;
         float currentDensity = sampleCloudDensity(currentPos, doCheaply);
         opticalDepth += 0.5 * (prevDensity + currentDensity) * currentStepSize;
-        
         prevDensity = currentDensity;
     }
-    
+
     return opticalDepth;
 }
 
-void cloudRayMarching(vec3 oriColor, vec3 startPos, vec3 worldPos, inout float transmittance, inout vec3 scattering, inout float cloudHitLength){
-    transmittance = 1.0;
-    scattering = vec3(0.0);
+float GetInScatterProbability(float height_fraction, float ds_loded, float attenuation, float VoL){
+    attenuation = saturate(attenuation);
+    ds_loded = saturate(ds_loded - 0.15 * attenuation);
+    
+    float height_factor = remapSaturate(height_fraction, 0.3, 0.85, 0.5, 2.0);
+    float attenuation_factor = remapSaturate(attenuation, 0.0, 1.0, 0.1, 1.0);
+    float angle_factor = remapSaturate(VoL, 0.6, 1.0, 1.0, 0.5);
+    float depth_probability = 0.05 + pow(ds_loded, attenuation_factor * height_factor * angle_factor);
+
+    float vertical_probability = pow(max(0.0, remap(height_fraction, 0.07, 0.14, 0.5, 1.0)), 0.8);
+
+    float in_scatter_probability = depth_probability * vertical_probability;
+    return in_scatter_probability;
+}
+
+float GetDirectScatterProbability(float CosTheta, float eccentricity, float silverIntensity, float silverSpread){
+    return max(hgPhase1(CosTheta, eccentricity), silverIntensity * hgPhase1(CosTheta, (0.99 - silverSpread)));
+}
+
+vec3 sunLuminance(vec3 pos, float VoL, float iVoL, float extinction){
+    float density = extinction / cloudSigmaS;
+    float height_fraction = getHeightFractionForPoint(pos.y, cloudHeightEnd);
+    
+    float lightPathOpticalDepth = computeLightPathOpticalDepth(pos, lightWorldDir, 60.0, 3);
+    float attenuation = GetAttenuationProbability(lightPathOpticalDepth, 0.25, 0.7);
+
+    float phase = GetDirectScatterProbability(VoL, 0.1, 0.5, 0.3);
+    float phase1 = GetDirectScatterProbability(iVoL, 0.3, 0.0, 0.0) * 0.6;
+    phase = max(phase, phase1);
+
+    float inScatter = GetInScatterProbability(height_fraction, density, attenuation, VoL);
+
+    vec3 direct = 20.0 * endColor * attenuation * inScatter * phase;
+
+    float height_factor = remapSaturate(pow(height_fraction, 0.8), 0.0, 1.0, 0.5, 1.0);
+    float depth_factor = pow(saturate(1.0 - density), 1.5);
+    vec3 ambient = 1.0 * endColor * depth_factor * height_factor;
+
+    vec3 luminance = direct;
+
+    luminance *= extinction;
+
+    return luminance;
+}
+
+#define VL_CLOUD_MODE 1
+#if VL_CLOUD_MODE == 1 && defined FSH
+void cloudRayMarching(vec3 startPos, vec3 worldPos, inout vec4 intScattTrans, inout float cloudHitLength){
+    intScattTrans = vec4(0.0, 0.0, 0.0, 1.0);
 
     vec3 worldDir = normalize(worldPos);
     float worldDis = length(worldPos);
+    float VoL = dot(worldDir, lightWorldDir);
+    float iVoL = dot(worldDir, -lightWorldDir);
 
-    vec2 dis = intersectHorizontalAABB(startPos, worldDir, cloudHeight_End);    // 与云层交点的距离, 返回 vec2(min max)
-    vec2 stepDis = calculateStepDistances(dis.x, dis.y, worldDis);    // 返回 到步进起点的距离，在起点后步进到终点的距离
-    if(stepDis.y < 0.0001 || stepDis.x > 20000){
-        // transmittance = 0.0;
+    vec2 dis = intersectHorizontalAABB(startPos, worldDir, cloudHeightEnd);
+    
+    const float CLOUD_MAX_DISTANCE_END = 1200.0;
+
+    vec2 stepDis = calculateStepDistances(dis.x, dis.y, CLOUD_MAX_DISTANCE_END);
+    stepDis.y = min(stepDis.y, CLOUD_MAX_DISTANCE_END);
+    if(stepDis.y < 0.0001 || stepDis.x > CLOUD_MAX_DISTANCE_END){
         return;
     }
-
-    float alpha = 0.0;
+    float verticalness = abs(dot(worldDir, upWorldDir));
+    int N_SAMPLES = int(remap(verticalness, 0.0, 1.0, 12, 8));
+    #ifdef SKY_BOX
+        N_SAMPLES = int(N_SAMPLES * 0.5);
+    #endif
 
     float rayLength = stepDis.y;
-    float stepSize = CLOUD_LARGE_STEP;
-    float t = 0.0;
-    int emptySteps = 0;
-    bool inCloud = false;
+    float stepSize = rayLength / float(N_SAMPLES);
 
     vec3 oriStartPos = startPos;
-    startPos += worldDir * stepDis.x;
-    startPos += worldDir * CLOUD_SMALL_STEP * temporalBayer64(gl_FragCoord.xy);
+    startPos += worldDir * max(stepDis.x, far);
+    startPos += worldDir * stepSize * temporalBayer64(gl_FragCoord.xy);
 
     vec3 hitPos = startPos;
     bool isHit = false;
 
-    for(int i = 0; i < CLOUD_MAX_STEPS; i++){
-        if(stepDis.x + t > 20000 || t >= rayLength + CLOUD_LARGE_STEP || t > CLOUD_MAX_DISTANCE || transmittance < 0.01){
+    for(int i = 0; i < N_SAMPLES; i++){
+        float t = float(i) * stepSize;
+        if(stepDis.x + t > CLOUD_MAX_DISTANCE_END || t >= rayLength || intScattTrans.a < 0.05){
             break;
         }
+        
         vec3 pos = startPos + t * worldDir;
-        float density;
-        if(!inCloud){
-            density = sampleCloudDensity(pos, true);
-            if (density > 0.00001){
-                t -= stepSize;
-                stepSize = CLOUD_SMALL_STEP;
-                inCloud = true;
-                emptySteps = 0;
-                continue;
+
+        float extinction = sampleCloudDensity(pos, false);
+        
+        if(extinction > 0.0001){
+            if(!isHit){
+                hitPos = pos;
+                isHit = true;
             }
-        }else{
-            density = sampleCloudDensity(pos, false);
-            if(density > 0.0000075){
-                if(!isHit){
-                    hitPos = pos;
-                    isHit = true;
-                }
 
+            float opticalDepth = stepSize * extinction;
+            float transmittance = GetAttenuationProbability(opticalDepth);
+            
+            vec3 luminance = sunLuminance(pos, VoL, iVoL, extinction);
 
-
-                float opticalDepth = stepSize * density;
-                float stepTransmittance = GetAttenuationProbability(opticalDepth, 0.6, 0.2);    // float sampleDensity, float secondInensity, float secondSpread
-                transmittance *= stepTransmittance;
-
-                float VoL = dot(worldDir, lightWorldDir);
-                float iVoL = dot(worldDir, -lightWorldDir);
-
-                // float lightPathOpticalDepth = computeLightPathOpticalDepth(pos, 50, lightWorldDir, 3);
-                // float attenuation = GetAttenuationProbability(lightPathOpticalDepth, 0.6, 0.2);
-				float attenuation = 1.0;
-
-                float inScatter = GetInScatterProbability(pos, opticalDepth, 1.5);
-
-                float phase = GetDirectScatterProbability(VoL, 0.2, 0.6, 0.4);  // float CosTheta, float eccentricity, float SilverIntensity, float SilverSpread
-                
-
-                vec3 stepScattering = attenuation * inScatter * phase * endColor;
-                float sigmaS = density;
-                scattering += computeScatteringIntegral(stepScattering, sigmaS, transmittance, stepTransmittance);
-
-
-
-                emptySteps = 0;
-            }else{
-                emptySteps++;
-                if(emptySteps >= CLOUD_EMPTY_STEPS){
-                    stepSize = CLOUD_LARGE_STEP;
-                    inCloud = false;
-                }
-            }
+            intScattTrans.rgb += intScattTrans.a * (luminance - luminance * transmittance) / max(extinction, 1e-5);
+            intScattTrans.a *= transmittance;
         }
-
-        t += stepSize;
     }
+    intScattTrans.rgb *= vec3(0.9, 0.45, 0.65) * 0.2;
     cloudHitLength = length(hitPos - oriStartPos);
+
+    // if(isHit){
+    //     intScattTrans.rgb *= Transmittance1(earthPos, earthPos + worldDir * cloudHitLength, 3.0);
+    // }
 }
+
+#endif
 
 
 vec3 drawStars(vec3 worldDir){
@@ -256,7 +249,7 @@ vec3 drawStars(vec3 worldDir){
     float size = STARS_SIZE;
     float isStar = 1.0 - step(size, dist);
 
-    return 0.45 * endColor * vec3(1.0, 0.9, 0.7) * isStar;
+    return 0.45 * endColor * vec3(0.9, 0.45, 0.65) * isStar;
 }
 
 float fakeCaustics(vec3 pos){
@@ -311,14 +304,14 @@ vec3 underWaterFog(vec3 color, vec3 worldDir, float worldDis){
     }
     density /= c + 0.01;
     // density = (density * min(worldDis, stepSum) + max(worldDis - stepSum, 0.0)) / worldDis;
-    float eyeBrightness = eyeBrightnessSmooth.y / 240.0;
-    density = mix(1.0, density * 20, 0.66);
+    // float eyeBrightness = eyeBrightnessSmooth.y / 240.0;
+    density = mix(1.0, density * 15.0, 0.66);
 
-    float phase0 = hgPhase1(dot(sunWorldDir, worldDir), 0.25);
-    float phase1 = hgPhase1(dot(sunWorldDir, worldDir), 0.55) * 0.4;
+    float phase0 = hgPhase1(dot(sunWorldDir, worldDir), 0.15);
+    float phase1 = hgPhase1(dot(sunWorldDir, worldDir), 0.55) * 0.5;
     float phase = phase0 + phase1;
 
-    vec3 underWaterFogColor = 0.095 * density * phase * endColor;
+    vec3 underWaterFogColor = 1.0 * density * phase * endColor;
     color.rgb = mix(color, underWaterFogColor, 0.5 * pow(saturate(worldDis / 60.0), 1.0));
 
     // color += rand2_1(texcoord + sin(frameTimeCounter)) / 102.0;
@@ -342,23 +335,24 @@ void main() {
 	vec3 viewDir = normalize(viewPos1.xyz);
 	vec3 worldDir = normalize(worldPos1.xyz);
 
-	vec3 fogColor = mix(endColor * 10.0, endColor, pow(abs(dot(upWorldDir, worldDir)), 0.45)) * 0.0012;
+	vec3 fogColor = mix(endColor * 10.0, endColor, pow(abs(dot(upWorldDir, worldDir)), 0.45)) * 0.004;
 	if(skyB > 0.5){
 		color.rgb = fogColor;
-		color.rgb += drawStars(worldDir);
+		color.rgb += 25.0 * drawStars(worldDir);
 
         float dist1 = min(20000.0, worldDis0);
 
         float cloudTransmittance = 1.0;
         vec3 cloudScattering = vec3(0.0);
         float cloudHitLength = 0.0;
+        vec4 intScattTrans = vec4(0.0, 0.0, 0.0, 1.0);
         #ifdef VOLUMETRIC_CLOUDS
-            cloudRayMarching(color.rgb, camera, worldDir * dist1, cloudTransmittance, cloudScattering, cloudHitLength);
+            cloudRayMarching(camera, worldPos0.xyz, intScattTrans, cloudHitLength);
         #endif
-        color.rgb = color.rgb * cloudTransmittance + cloudScattering * 2.;
+        color.rgb = color.rgb * intScattTrans.a + intScattTrans.rgb * 1.;
 	}
 	
-	color.rgb = underWaterFog(color.rgb, worldDir, worldDis0);
+	color.rgb = 1.0 * underWaterFog(color.rgb, worldDir, worldDis0);
 
 	// color.rgb = vec3(texture(colortex1, texcoord).rgb);
 	color.rgb = max(color.rgb, BLACK);

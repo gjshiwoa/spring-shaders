@@ -2,5 +2,6 @@
 
 #define FSH
 #define GBF
+#define NETHER
 
 #include "/program/gbuffers_block.glsl"

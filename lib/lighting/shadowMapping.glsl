@@ -145,7 +145,7 @@ float shadowMapping(vec4 worldPos, vec3 normal, float sssWrap){
     shadowPos.z -= 0.00005;
     penumbra *= saturate(saturate(1.0 - disFactor) + 0.1);
 
-    float shade = PCF(shadowtex0, shadowPos.xyz, (0.1 + penumbra + rainStrength) * shadowMapScale * SHADOW_SOFTNESS, SHADOW_SAMPLES);
+    float shade = PCF(shadowtex0, shadowPos.xyz, (0.25 + penumbra + rainStrength) * shadowMapScale * SHADOW_SOFTNESS, SHADOW_SAMPLES);
 
     return saturate(shade);
 }

@@ -55,14 +55,14 @@ void main() {
 	skyColor = texelFetch(gaux4, skyColorUV, 0).rgb;
 	lightColor = artificial_color;
 	#ifdef END
-		sunColor = mix(vec3(1.0), endColor, 0.8) * 10.0;
-		skyColor = endColor * 0.1;
-		lightColor *= 0.5;
+		sunColor = mix(vec3(1.0), endColor, 0.8) * 5.0;
+		skyColor = endColor * 0.0;
+		lightColor *= 2.0;
 	#endif
 	#ifdef NETHER
-		sunColor = mix(vec3(1.0), netherColor, 0.3) * 6.0;
-		skyColor = netherColor * 0.1;
-		lightColor = netherColor;
+		sunColor = mix(vec3(1.0), netherColor, 0.3) * 5.0;
+		skyColor = netherColor * 0.0;
+		lightColor = netherColor * 1.0;
 	#endif
 
 

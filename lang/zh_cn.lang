@@ -1,5 +1,6 @@
 option.Information = 光影信息
 profile.Balanced = 平衡
+profile.Bright = 明亮
 profile.Vivid = 鲜艳
 profile.Native = 原生
 
@@ -44,7 +45,8 @@ option.SCREEN_SPACE_SHADOW_SAMPLES = 屏幕空间阴影采样数
 
 option.RSM_ENABLED = 启用RSM
 option.RSM_BRIGHTNESS = RSM亮度
-option.RSM_GEOMETRY_MODE = RSM几何模式
+option.RSM_NORMAL_WEIGHT_TYPE = RSM法线权重类型
+option.RSM_DIST_WEIGHT_TYPE = RSM距离权重类型
 option.RSM_SEARCH_RADIUS = RSM搜索半径
 option.RSM_MAX_SAMPLES = RSM最大采样数
 option.RSM_MIN_SAMPLES = RSM最小采样数

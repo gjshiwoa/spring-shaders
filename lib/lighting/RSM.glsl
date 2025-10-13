@@ -10,7 +10,6 @@ vec3 RSM(vec4 p_worldPos, vec3 p_worldNormal, out vec3 mainDir){
     vec3 L = vec3(0.0); 
     int N_SAMPLES = int(remapSaturate(length(p_worldPos), 0.0, 120.0, RSM_MAX_SAMPLES, RSM_MIN_SAMPLES));
     const float radius = RSM_SEARCH_RADIUS * shadowMapScale / shadowMapResolution;
-    // float w = 0.0;
 
     float noise = temporalBayer64(gl_FragCoord.xy);
     float firstStep = noise;
@@ -32,7 +31,7 @@ vec3 RSM(vec4 p_worldPos, vec3 p_worldNormal, out vec3 mainDir){
         curStep += dStep;
 
         vec3 q_s_ndc = vec3(p_s_ndc.xy + offsetUV, 1.0);
-        vec2 sampleUV = shadowDistort1(q_s_ndc.xy) * 0.5 + 0.5;
+        vec2 sampleUV = shadowDistort(q_s_ndc.xy) * 0.5 + 0.5;
         vec2 sampleTexel = sampleUV * shadowMapResolution;
 
         q_s_ndc.z = texelFetch(shadowtex1, ivec2(sampleTexel), 0).r;
@@ -51,48 +50,53 @@ vec3 RSM(vec4 p_worldPos, vec3 p_worldNormal, out vec3 mainDir){
         vec3 pq = q_s_ndc - p_s_ndc;
         vec3 pq_dir = normalize(pq);
 
-        #if RSM_GEOMETRY_MODE == 0
+        #if RSM_NORMAL_WEIGHT_TYPE == 0
             float PQoPN = max(0.0, dot(pq_dir, p_s_normal));
         #else
-            float PQoPN = smoothstep(-0.4, 1.0, dot(pq_dir, p_s_normal));
+            float PQoPN = 0.7 * smoothstep(-0.4, 1.0, dot(pq_dir, p_s_normal));
         #endif
         if(PQoPN <= 0.01) continue;
 
-        #if RSM_GEOMETRY_MODE == 0
+        #if RSM_NORMAL_WEIGHT_TYPE == 0
             float QPoQN = max(0.0, dot(-pq_dir, q_s_normal));
         #else
-            float QPoQN = smoothstep(-0.4, 1.0, dot(-pq_dir, q_s_normal));
+            float QPoQN = 0.7 * smoothstep(-0.4, 1.0, dot(-pq_dir, q_s_normal));
         #endif
         if(QPoQN <= 0.01) continue;
 
         float q_lm_y = SC1.a;
         q_lm_y = smoothstep(0.0, 0.25, q_lm_y);
-        // q_lm_y = 1.0;
 
         float worldDis = saturate(length(p_worldPos.xyz) / shadowDistance);
-        float dist = length((shadowProjectionInverse * vec4(pq, 0.0)).xyz) + 0.05 + 2.0 * worldDis;
+        float dist = length((shadowProjectionInverse * vec4(pq, 0.0)).xyz) + 0.05;
 
         vec3 q_albedo = texelFetch(shadowcolor0, ivec2(sampleTexel), 0).rgb;
         toLinear(q_albedo);
 
-        float a = (i + 1) * dStep;
-        float a2 = a * a;
-        float b = i * dStep;
-        float b2 = b * b;
-        float w_cur = (a2 - b2) * PI;
-        w_cur = mix(PI / 256, w_cur, saturate(1.0 - worldDis));
+        #if RSM_DIST_WEIGHT_TYPE == 0
+            dist *= dist;
 
-        float weight = w_cur * q_lm_y * PQoPN * QPoQN / (dist * dist);
+            float a = (i + 1) * dStep;
+            float a2 = a * a;
+            float b = i * dStep;
+            float b2 = b * b;
+            float w_cur = (a2 - b2) * PI;
+            w_cur = mix(PI / (N_SAMPLES * N_SAMPLES), w_cur, saturate(1.0 - worldDis));
+        #else
+            dist = 0.05 + pow(dist, 1.3);
+            float w_cur = PI / 5.0 / N_SAMPLES;
+        #endif
+
+        float weight = w_cur * q_lm_y * PQoPN * QPoQN / dist;
         L += q_albedo * weight;
         mainDir += pq_dir * weight;
     }
 
     mainDir = normalize(mainDir);
-    #if RSM_GEOMETRY_MODE == 0
-        return L * 192.0 * 16 / N_SAMPLES * RSM_SEARCH_RADIUS * RSM_SEARCH_RADIUS / 57600.0;
-    #else
-        return L * 96.0 * 16 / N_SAMPLES * RSM_SEARCH_RADIUS * RSM_SEARCH_RADIUS / 57600.0;
-    #endif
+    vec3 rsmColor =  L * 384.0;
+    rsmColor *= RSM_SEARCH_RADIUS * RSM_SEARCH_RADIUS / 57600.0;
+
+    return rsmColor;
 }
 
 float estimateRsmLeakAO(vec3 mainDir, vec3 hrrViewPos){
@@ -202,7 +206,7 @@ vec4 temporal_RSM(vec4 color_c){
 }
 
 vec4 JointBilateralFiltering_RSM_Horizontal(){
-    // return texelFetch(colortex1, ivec2(gl_FragCoord.xy), 0);
+    // return texelFetch(colortex3, ivec2(gl_FragCoord.xy), 0);
     
     ivec2 pix = ivec2(gl_FragCoord.xy);
     vec4 curGD = texelFetch(colortex6, pix, 0);
@@ -231,7 +235,7 @@ vec4 JointBilateralFiltering_RSM_Horizontal(){
         vec4 w  = vec4(wN * wZ);
         w.a = abs(dx) < 3.0 ? w.a : 0.0;
 
-        vec4 col = texelFetch(colortex1, p, 0);
+        vec4 col = texelFetch(colortex3, p, 0);
         cSum += col * w;
         wSum += w;
     }
@@ -240,7 +244,7 @@ vec4 JointBilateralFiltering_RSM_Horizontal(){
 }
 
 vec4 JointBilateralFiltering_RSM_Vertical(){
-    // return texelFetch(colortex1, ivec2(gl_FragCoord.xy), 0);
+    // return texelFetch(colortex3, ivec2(gl_FragCoord.xy), 0);
 
     ivec2 pix = ivec2(gl_FragCoord.xy);
     vec4 curGD = texelFetch(colortex6, pix, 0);
@@ -258,7 +262,7 @@ vec4 JointBilateralFiltering_RSM_Vertical(){
         ivec2 offset = ivec2(0.0, dy);
         ivec2 p = pix + offset;
 
-        if (outScreen(vec2(p) * 2.0 * invViewSize)) continue;
+        if (outScreen(vec2(p) * 2.0 * invViewSize + vec2(1.0, 1.0) * invViewSize)) continue;
 
         vec4 gd = texelFetch(colortex6, p, 0);
         vec3  n  = unpackNormal(gd.r);

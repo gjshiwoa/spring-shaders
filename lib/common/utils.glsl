@@ -211,6 +211,13 @@ bool outScreen(vec3 uv){
     }
 }
 
+bool isOutsideRange(vec2 uv, vec2 minBound, vec2 maxBound) {
+    return any(lessThan(uv, minBound)) || any(greaterThan(uv, maxBound));
+}
+
+bool isOutsideRange(vec3 uvw, vec3 minBound, vec3 maxBound) {
+    return any(lessThan(uvw, minBound)) || any(greaterThan(uvw, maxBound));
+}
 
 
 float checkInRange(float value, float targetValue, float range) {

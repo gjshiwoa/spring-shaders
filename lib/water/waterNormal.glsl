@@ -41,12 +41,12 @@ float getwaves(vec2 position, int iterations) {
 // https://www.shadertoy.com/view/4sdfz8
 float waterFBM( in vec3 p , int iterations){
     float n = 0.0;
-    n += 0.53125*get3DNoise( noisetex, noiseTextureResolution, p*1.0 );
-    n += 0.25000*get3DNoise( noisetex, noiseTextureResolution, p*2.0 );
+    n += 0.53125*noise3DFrom2D( noisetex, noiseTextureResolution, p*1.0 );
+    n += 0.25000*noise3DFrom2D( noisetex, noiseTextureResolution, p*2.0 );
     if(iterations > 11){
-        n += 0.12500*get3DNoise( noisetex, noiseTextureResolution, p*4.0 );
-        n += 0.06250*get3DNoise( noisetex, noiseTextureResolution, p*8.0 );
-        // n += 0.03125*get3DNoise( noisetex, noiseTextureResolution, p*16.0 );
+        n += 0.12500*noise3DFrom2D( noisetex, noiseTextureResolution, p*4.0 );
+        n += 0.06250*noise3DFrom2D( noisetex, noiseTextureResolution, p*8.0 );
+        // n += 0.03125*noise3DFrom2D( noisetex, noiseTextureResolution, p*16.0 );
     }
     
     return n/0.984375;
@@ -61,7 +61,7 @@ float getwaves1(vec2 position, int iterations) {
     position.y *= 3.0;
     position += vec2(0, frameTimeCounter * WAVE_SPEED * 0.35);
 
-    height = waterFBM( vec3( position, frameTimeCounter * WAVE_SPEED * 0.4), iterations);
+    height = waterFBM(vec3(position, frameTimeCounter * WAVE_SPEED * 0.4), iterations);
     // height = pow(height, 1.45);
 
     height = mix(1.0, height, 1.0);
@@ -74,12 +74,12 @@ float getWaveHeight(vec2 pos, const int quality){
     float waveHeight;
     #if WAVE_TYPE == 0
         waveHeight = getwaves(pos, quality);
+        if(isEyeInWater == 1) waveHeight = 1.0 - waveHeight;
     #else
         waveHeight = getwaves1(pos, quality);
     #endif
     waveHeight = saturate(waveHeight);
-    if(isEyeInWater == 1) waveHeight = 1.0 - waveHeight;
-
+    
     return saturate(mix(1.0, waveHeight, WAVE_HEIGHT));
 }
 
@@ -131,3 +131,4 @@ vec3 getWaveNormal(vec2 uv){
 
     return normal;
 }
+

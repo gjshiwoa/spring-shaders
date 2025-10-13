@@ -14,10 +14,14 @@ varying vec4 vMcPos;
 #include "/lib/common/utils.glsl"
 #include "/lib/common/normal.glsl"
 #include "/lib/common/position.glsl"
+#include "/lib/common/noise.glsl"
+#include "/lib/water/waterNormal.glsl"
+#include "/lib/water/waterCaustics.glsl"
 
 #ifdef FSH
 
 flat in float isWater;
+
 
 void main(){
     #ifdef DH
@@ -29,14 +33,7 @@ void main(){
     vec4 color = vec4(BLACK, 1.0);
     if(isWater > 0.5){
         #ifdef CAUSTICS
-            vec3 sampleUV = vMcPos.xyz;
-            sampleUV.xyz *= CAUSTICS_FREQ;
-            sampleUV.xz = rotate2D(sampleUV.xz, -0.45);
-            sampleUV.z *= 2.5;
-            sampleUV.xyz += CAUSTICS_SPEED * vec3(0.0, frameTimeCounter * 0.8, frameTimeCounter);
-            vec2 caustics = texture(gaux4, sampleUV).rb;
-            float waterColor = (1.0 -  caustics.g) * mix(caustics.r, 1.0, 0.8);
-            color.rgb = vec3(remap(pow(waterColor, CAUSTICS_POWER), 0.0, 1.0, CAUSTICS_BRI_MIN, CAUSTICS_BRI_MAX));
+            color.rgb = computeCausticsWithDispersion(vMcPos.xyz);
             color.a = 0.5;
         #else
             color.rgb = vec3(1.0);
@@ -106,7 +103,7 @@ void main(){
     vec4 sClipPos = shadowProjection * sViewPos;
     vec4 sNDCPos = vec4(sClipPos.xyz / sClipPos.w, 1.0);
     gl_Position = sNDCPos;
-    gl_Position.xy = shadowDistort1(gl_Position.xy);
+    gl_Position.xy = shadowDistort(gl_Position.xy);
     gl_Position.z = mix(gl_Position.z, 0.5, 0.8);
 
     texcoord = gl_TextureMatrix[0] * gl_MultiTexCoord0;

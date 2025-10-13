@@ -31,8 +31,6 @@ void main() {
 
 	toGamma(color);
 
-	color.rgb += vec3(1.0 * temporalWhiteNoise(gl_FragCoord.xy) / 255.0);
-
 	#ifdef LETTER_BOX
 		color.rgb = applyLetterbox(color.rgb, LETTER_BOX_SIZE);
 	#endif
@@ -44,7 +42,7 @@ void main() {
 	// color.rgb = textureORB(depthtex2, texcoord).rgb;
 	// color.rgb = getNormal(texcoord);
 	// color.rgb = normalize(viewPosToWorldPos(vec4(color.rgb, 0.0)).xyz);
-	// color.rgb = texture(colortex7, texcoord).rgb;
+	// color.rgb = texture(colortex6, texcoord).rgb;
 	// color.rgb = textureLod(shadowcolor0, texcoord, 0.0).rgb;
 	// color.rgb = vec3(textureLod(shadowcolor1, texcoord, 0.0));
 	// color.rgb = normalize((shadowProjection * vec4(color.rgb, 0.0)).xyz);

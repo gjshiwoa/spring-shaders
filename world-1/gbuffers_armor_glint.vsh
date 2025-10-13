@@ -2,5 +2,6 @@
 
 #define VSH
 #define GBF
+#define NETHER
 
 #include "/program/gbuffers_armor_glint.glsl"

@@ -30,52 +30,47 @@ const bool colortex7Clear = false;
 1: hrr data
 2: rgb:TAA          		a:temporal data
 3: rgba:hrr temporal data(rsm/ao/cloud/ssr/fog)
-4: r:parallax shadow/ao		g:blockID/gbufferID		ba:specular		(df6)rg:albedo/ao	(df11)rgba:color
-5: rg:normal				ba:lmcoord													(df11)rgba:pre color
+4: r:parallax shadow/ao		g:blockID/gbufferID		ba:specular		(df7)rg:albedo/ao	(df11)rgba:color
+5: rg:normal				ba:lmcoord													
 6: hrr normal/depth (pre/cur)
-7: sky box/T1/MS/avgLum/sunColor/skyColor
-8: custom texture(MS/noise3d low)
+7: sky box/T1/MS/sunColor/skyColor
+8: custom texture(MS/noise3d low)														(df11)rgba:TAA pre color
 9: rg:velocity
 */
+#define CPS
 
 varying vec2 texcoord;
 
-varying vec3 sunWorldDir, moonWorldDir, lightWorldDir;
-varying vec3 sunViewDir, moonViewDir, lightViewDir;
-
-varying vec3 sunColor, skyColor;
 
 
 #include "/lib/uniform.glsl"
 #include "/lib/settings.glsl"
 #include "/lib/common/utils.glsl"
 #include "/lib/common/noise.glsl"
+#include "/lib/common/normal.glsl"
 #include "/lib/camera/colorToolkit.glsl"
-// #include "/lib/camera/filter.glsl"
+#include "/lib/camera/filter.glsl"
 #include "/lib/common/position.glsl"
-#include "/lib/atmosphere/atmosphericScattering.glsl"
-#include "/lib/water/waterFog.glsl"
+// #include "/lib/atmosphere/atmosphericScattering.glsl"
+
 
 #ifdef FSH
-
 void main() {
-	vec4 color = texture(colortex0, texcoord);
-	float depth = texture(depthtex0, texcoord).r;
-	vec4 viewPos = screenPosToViewPos(vec4(unTAAJitter(texcoord), depth, 1.0));
-	vec4 worldPos = viewPosToWorldPos(viewPos);
-	float worldDis = length(worldPos);
-	vec3 worldDir = normalize(worldPos.xyz);
+	vec4 CT6 = texelFetch(colortex6, ivec2(gl_FragCoord.xy), 0);
+	vec2 uv = texcoord * 2.0 - vec2(0.0, 1.0);
+	float curZ = 0.0;
+	vec3 curNormalW = vec3(0.0);
+	if(!outScreen(uv)){
+		curZ = texelFetch(depthtex0, ivec2(uv * viewSize), 0).r;
+		vec3 curNormalV = normalDecode(texelFetch(colortex5, ivec2(uv * viewSize), 0).rg);
+		curNormalW = mat3(gbufferModelViewInverse) * curNormalV;
+		CT6 = vec4(packNormal(curNormalW), curZ, 0.0, 0.0);
+	}
 
-	#ifdef UNDERWATER_FOG
-		if(isEyeInWater == 1){
-			color.rgb = underWaterFog(color.rgb, worldDir, worldDis);
-		}
-	#endif
-
-	// color.rgb = texture(colortex9, texcoord).rgb;
 	
-/* DRAWBUFFERS:0 */
-	gl_FragData[0] = color;
+
+/* DRAWBUFFERS:6 */
+	gl_FragData[0] = CT6;
 }
 
 #endif
@@ -85,17 +80,6 @@ void main() {
 #ifdef VSH
 
 void main() {
-	sunViewDir = normalize(sunPosition);
-	moonViewDir = normalize(moonPosition);
-	lightViewDir = normalize(shadowLightPosition);
-
-	sunWorldDir = normalize(viewPosToWorldPos(vec4(sunPosition, 0.0)).xyz);
-    moonWorldDir = normalize(viewPosToWorldPos(vec4(moonPosition, 0.0)).xyz);
-    lightWorldDir = normalize(viewPosToWorldPos(vec4(shadowLightPosition, 0.0)).xyz);
-
-	sunColor = getSunColor();
-	skyColor = getSkyColor();
-
 	gl_Position = ftransform();
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 }

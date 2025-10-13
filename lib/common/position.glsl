@@ -50,7 +50,7 @@ vec2 shadowDistort1(vec2 ndcPos) {
 vec4 getShadowPos(vec4 worldPos){
     vec4 sClipPos = shadowMVP * worldPos;
     vec4 sNDCPos = vec4(sClipPos.xyz / sClipPos.w, 1.0);
-        sNDCPos.xy = shadowDistort1(sNDCPos.xy);
+        sNDCPos.xy = shadowDistort(sNDCPos.xy);
         sNDCPos.z = mix(sNDCPos.z, 0.5, 0.8);
     vec4 sScreenPos = sNDCPos * 0.5 + 0.5;
 

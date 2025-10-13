@@ -1,5 +1,6 @@
 #version 450 compatibility  
 
 #define VSH
+#define NETHER
 
-#include "/program/composite9.glsl"
+#include "/program/composite8.glsl"

@@ -105,7 +105,7 @@ void main() {
 		#endif
 
 		float noRSM = entities + block + hand > 0.5 ? 1.0 : 0.0;
-		vec3 skyLight = 0.0025 * endColor * albedo;
+		vec3 skyLight = 0.0625 * endColor * albedo;
 		
 		vec4 gi = getGI(depth1, normalW);
 		if(noRSM < 0.5) {
@@ -113,16 +113,16 @@ void main() {
 		}
 
 		float shade = shadowMappingTranslucent(worldPos1, normalW, 0.5, 5.0);
-		vec3 direct = BRDF * endColor * shade * pow(fakeCaustics(worldPos1.xyz + cameraPosition), 1.0) * 0.045 * saturate(dot(lightViewDir, normalV));
+		vec3 direct = 2.0 * BRDF * endColor * shade * pow(fakeCaustics(worldPos1.xyz + cameraPosition), 1.0)* saturate(dot(lightViewDir, normalV));
 
 		// diffuse = mix(diffuse, vec3(getLuminance(diffuse)), 0.5);
 		vec3 artificial = lightmap.x * artificial_color * diffuse;
 		artificial += saturate(materialParams.emissiveness - lightmap.x) * diffuse * EMISSIVENESS_BRIGHTNESS;
-		artificial *= 0.5;
+		artificial *= 5.0;
 
 		
 		
-		color.rgb = (endColor * 0.333333 + albedo) * 0.005;
+		color.rgb = (endColor * 0.33333 + albedo) * 0.05;
 		color.rgb += skyLight * SKY_LIGHT_BRIGHTNESS;
 		color.rgb *= ao /*+ aoMultiBounce * 0.2*/;
 		color.rgb += direct;
@@ -138,6 +138,8 @@ void main() {
 	vec4 worldPos1R = viewPosToWorldPos(viewPos1R);
 	vec2 prePos = getPrePos(worldPos1R).xy;
 	vec2 velocity = texcoord - prePos;
+
+	// color.rgb = texture(colortex1, texcoord).rgb;
 
 /* DRAWBUFFERS:049 */
 	gl_FragData[0] = color;

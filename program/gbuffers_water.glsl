@@ -153,7 +153,7 @@ void main() {
 
 		#ifdef WATER_REFLECTION
 			vec3 reflectColor = reflection(
-				gaux2, 
+				colortex8, 
 				vViewPos.xyz, 
 				reflectWorldDir, 
 				reflectViewDir, 
@@ -263,7 +263,7 @@ void main() {
 			float NdotU = dot(upWorldDir, reflectWorldDir);
 			float upDirFactor = smoothstep(-1.0, 0.0, NdotU);
 			bool ssrTargetSampled = false;	
-			vec3 reflectColor = reflection(gaux1, vViewPos.xyz, reflectWorldDir, reflectViewDir, 
+			vec3 reflectColor = reflection(colortex8, vViewPos.xyz, reflectWorldDir, reflectViewDir, 
 											lightmap.y * upDirFactor, normalTexV, COLOR_UI_SCALE, ssrTargetSampled)
 											+ drawCelestial(reflectWorldDir, 1.0, false) * shade;
 			float NdotV = saturate(dot(normalTexV, -viewDir));
@@ -291,6 +291,7 @@ void main() {
 	}
 
 	// color.rgb = texture(colortex8, fragCoord.xy).rgb;
+
 
 /* DRAWBUFFERS:0 */
 	gl_FragData[0] = color;
@@ -335,7 +336,7 @@ void main() {
 	// T_tbnMatrix = transpose(tbnMatrix);
 
 	normalVO = N;
-	normalWO = viewPosToWorldPos(vec4(N, 0.0)).xyz;
+	normalWO = normalize(viewPosToWorldPos(vec4(N, 0.0)).xyz);
 
 	sunViewDir = normalize(sunPosition);
 	moonViewDir = normalize(moonPosition);

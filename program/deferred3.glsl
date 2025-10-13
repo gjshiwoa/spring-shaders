@@ -1,4 +1,4 @@
-#define CLOUD3D
+
 
 varying vec2 texcoord;
 
@@ -20,7 +20,7 @@ varying vec3 sunColor, skyColor;
 #include "/lib/common/normal.glsl"
 #include "/lib/common/noise.glsl"
 #include "/lib/atmosphere/atmosphericScattering.glsl"
-#include "/lib/atmosphere/volumetricClouds.glsl"
+// #include "/lib/atmosphere/volumetricClouds.glsl"
 
 #ifdef FSH
 // const bool shadowtex1Mipmap = true;
@@ -63,38 +63,8 @@ void main() {
 			d = max(d, 0.0);
 
 			mat2x3 atmosphericScattering = AtmosphericScattering(hrrWorldDir * d, hrrWorldDirO, sunWorldDir, IncomingLight * (1.0 - 0.3 * rainStrength), 1.0, ATMOSPHERE_SCATTERING_SAMPLES);
-			atmosphericScattering += AtmosphericScattering(hrrWorldDir * d, hrrWorldDirO, moonWorldDir, IncomingLight * getLuminance(IncomingLight), 1.0, int(ATMOSPHERE_SCATTERING_SAMPLES * 0.5)) * 0.0002 * SKY_BASE_COLOR_BRIGHTNESS_N;
+			atmosphericScattering += AtmosphericScattering(hrrWorldDir * d, hrrWorldDirO, moonWorldDir, IncomingLight_N, 1.0, int(ATMOSPHERE_SCATTERING_SAMPLES * 0.5)) * 0.2 * SKY_BASE_COLOR_BRIGHTNESS_N;
 			CT1.rgb = atmosphericScattering[0] + atmosphericScattering[1];
-		}
-	}
-
-	vec2 hrrUV_c = texcoord * 2.0 - vec2(1.0, 0.0);
-	if(!outScreen(hrrUV_c)){
-		float hrrZ = texture(depthtex1, hrrUV_c).x;
-		vec4 hrrScreenPos = vec4(unTAAJitter(hrrUV_c), hrrZ, 1.0);
-		vec4 hrrViewPos = screenPosToViewPos(hrrScreenPos);
-		vec4 hrrWorldPos = viewPosToWorldPos(hrrViewPos);
-		float hrrWorldDis1 = length(hrrWorldPos.xyz);
-		vec3 hrrWorldDirO = normalize(hrrWorldPos.xyz);
-		vec3 hrrWorldDir = normalize(vec3(hrrWorldPos.x, max(hrrWorldPos.y, 0.0), hrrWorldPos.z));
-
-		if(isSkyHRR1() > 0.5 && camera.y < 5000.0) {
-			float d_p2a = RaySphereIntersection(earthPos, hrrWorldDir, vec3(0.0), earth_r + atmosphere_h).y;
-			float d_p2e = RaySphereIntersection(earthPos, hrrWorldDirO, vec3(0.0), earth_r).x;
-			float d = d_p2e > 0.0 ? d_p2e : d_p2a;
-			float dist1 = hrrZ == 1.0 ? d : hrrWorldDis1;
-
-			vec4 intScattTrans = vec4(vec3(0.0), 1.0);
-			float cloudHitLength = 0.0;
-			#ifdef VOLUMETRIC_CLOUDS
-				cloudRayMarching(camera, hrrWorldDirO * dist1, intScattTrans, cloudHitLength);
-			#endif
-			intScattTrans = temporal_CLOUD3D(intScattTrans);
-			intScattTrans.rgb = max(vec3(0.0), intScattTrans.rgb);
-			intScattTrans.a = min(intScattTrans.a, 1.0);
-
-			CT1 = intScattTrans;
-			CT3 = intScattTrans;
 		}
 	}
 
@@ -134,7 +104,7 @@ void main() {
 		#if defined RSM_ENABLED || defined AO_ENABLED
 			gi = temporal_RSM(gi);
 			gi = max(vec4(0.0), gi);
-			CT1 = gi;
+			// CT1 = gi;
 			CT3 = gi;
 		#endif
 	}

@@ -17,6 +17,8 @@ vec2 unTAAJitter(vec2 uv){
     return newUV;
 }
 
+// robobo1221: Real time PBR Volumetric Clouds 
+// https://www.shadertoy.com/view/MstBWs
 float bayer2(vec2 a){
     a = floor(a);
     return fract(dot(a, vec2(.5, a.y * .75)));
@@ -82,10 +84,10 @@ vec3 temporalBayer64_3D(vec2 fragCoord){
 }
 
 // #ifndef CLOUD3D
-// float temporalBlueNoise(vec2 fragCoord) {
-//     float blueNoise = texelFetch(noisetex, ivec2(fragCoord) % noiseTextureResolution, 0).r;
-//     return fract(blueNoise + float(frameCounter) * GOLDEN_RATIO);
-// }
+float temporalBlueNoise(vec2 fragCoord) {
+    float blueNoise = texelFetch(noisetex, ivec2(fragCoord) % noiseTextureResolution, 0).r;
+    return fract(blueNoise + float(frameCounter) * GOLDEN_RATIO);
+}
 // #endif
 
 float rand2_1(vec2 p) {
@@ -111,7 +113,8 @@ vec3 rand3_3(vec3 p) {
 }
 
 
-
+// iq: Texture - Better Filtering  
+// https://www.shadertoy.com/view/XsfGDn
 vec3 textureN( sampler2D sam, vec2 uv, float resolution ){
     uv = uv*resolution + 0.5;
     vec2 iuv = floor( uv );
@@ -130,38 +133,32 @@ vec3 textureN(sampler3D sam, vec3 uv, float resolution) {
     return texture(sam, uv).rgb;
 }
 
+// From SEUS
+float noise3DFrom2D(sampler2D noiseTexture, float repeatScale, vec3 position) {
+    vec3 shiftedPos = position + vec3(0.5);
+    vec3 voxelIndex = floor(shiftedPos);
 
-float get3DNoise(sampler2D tex, float resolution, vec3 pos) {
-    pos.xyz += 0.5f;
+    vec3 localFrac = shiftedPos - voxelIndex;
+    vec2 uvLower = (voxelIndex.xy + voxelIndex.z * vec2(17.0)) + localFrac.xy;
+    vec2 uvUpper = uvLower + vec2(17.0);
 
-	vec3 p = floor(pos);
-	vec3 f = fract(pos);
+    float sampleLower = textureN(noiseTexture, (uvLower + vec2(0.5)) / repeatScale, repeatScale).x;
+    float sampleUpper = textureN(noiseTexture, (uvUpper + vec2(0.5)) / repeatScale, repeatScale).x;
 
-	vec2 uv =  (p.xy + p.z * vec2(17.0f)) + f.xy;
-	vec2 uv2 = (p.xy + (p.z + 1.0f) * vec2(17.0f)) + f.xy;
-
-	vec2 coord =  (uv  + 0.5f) / resolution;
-	vec2 coord2 = (uv2 + 0.5f) / resolution;
-	float xy1 = textureN(tex, coord, resolution).x;
-	float xy2 = textureN(tex, coord2, resolution).x;
-	float n = mix(xy1, xy2, f.z);
-    
-    return n;
+    return mix(sampleLower, sampleUpper, localFrac.z);
 }
 
 
 // Loka: 【shader】超级噪声库，附代码（fbm、Perlin、Simplex、Worley、Tiling、Curl等，很全很全）
 // https://zhuanlan.zhihu.com/p/560229938
- /* discontinuous pseudorandom uniformly distributed in [-0.5, +0.5]^3 */
-vec2 hash22(vec2 p)
-{
+vec2 hash22(vec2 p){
     p = vec2( dot(p,vec2(127.1,311.7)),
               dot(p,vec2(269.5,183.3)));
 
     return -1.0 + 2.0 * fract(sin(p)*43758.5453123);
 }
-vec2 hash(vec2 p)//不用sin的更好
-{
+
+vec2 hash(vec2 p){
     vec3 p3 = fract(vec3(p.xyx) * vec3(.1031, .1030, .0973));
     p3 += dot(p3, p3.yzx+19.19);
     return -1. + 2.*fract((p3.xx+p3.yz)*p3.zy);
@@ -169,23 +166,16 @@ vec2 hash(vec2 p)//不用sin的更好
 
 float simplex2d(vec2 p)
 {
-    const float K1 = 0.366025404; // (sqrt(3)-1)/2;
-    const float K2 = 0.211324865; // (3-sqrt(3))/6;
+    const float K1 = 0.366025404;
+    const float K2 = 0.211324865;
 
-    //将输入点进行坐标偏移，向下取整得到原点，转换到超立方体空间
     vec2 i = floor(p + (p.x + p.y) * K1);
-    //得到转换前输入点到原点距离向量（单形空间下）
     vec2 a = p - (i - (i.x + i.y) * K2);
-    //确定顶点在哪个三角形内
     vec2 o = (a.x < a.y) ? vec2(0.0, 1.0) : vec2(1.0, 0.0);
-    //得到转换前输入点到第二个顶点的距离向量
     vec2 b = a - o + K2;
-    //得到转换前输入点到第三个顶点的距离向量
     vec2 c = a - 1.0 + 2.0 * K2;
-    //根据权重计算每个顶点的贡献度
     vec3 h = max(0.5 - vec3(dot(a, a), dot(b, b), dot(c, c)), 0.0);
     vec3 n = h * h * h * h * vec3(dot(a, hash22(i)), dot(b, hash22(i + o)), dot(c, hash22(i + 1.0)));
-    //乘以系数，做归一化处理
     return dot(vec3(70.0, 70.0, 70.0), n);
 }
 
@@ -200,54 +190,39 @@ vec3 random3(vec3 c) {
     return r-0.5;
 }
 
-/* skew constants for 3d simplex functions */
 const float F3 =  0.3333333;
 const float G3 =  0.1666667;
 
-/* 3d simplex noise */
 float simplex3d(vec3 p) {
-    /* 1. find current tetrahedron T and it's four vertices */
-    /* s, s+i1, s+i2, s+1.0 - absolute skewed (integer) coordinates of T vertices */
-    /* x, x1, x2, x3 - unskewed coordinates of p relative to each of T vertices*/
-    
-    /* calculate s and x */
     vec3 s = floor(p + dot(p, vec3(F3, F3, F3)));
     vec3 x = p - s + dot(s, vec3(G3, G3, G3));
     
-    /* calculate i1 and i2 */
     vec3 e = step(vec3(0,0,0), x - x.yzx);
     vec3 i1 = e*(1.0 - e.zxy);
     vec3 i2 = 1.0 - e.zxy*(1.0 - e);
     
-    /* x1, x2, x3 */
     vec3 x1 = x - i1 + G3;
     vec3 x2 = x - i2 + 2.0*G3;
     vec3 x3 = x - 1.0 + 3.0*G3;
     
-    /* 2. find four surflets and store them in d */
     vec4 w, d;
     
-    /* calculate surflet weights */
     w.x = dot(x, x);
     w.y = dot(x1, x1);
     w.z = dot(x2, x2);
     w.w = dot(x3, x3);
     
-    /* w fades from 0.6 at the center of the surflet to 0.0 at the margin */
     w = max(0.6 - w, 0.0);
     
-    /* calculate surflet components */
     d.x = dot(random3(s), x);
     d.y = dot(random3(s + i1), x1);
     d.z = dot(random3(s + i2), x2);
     d.w = dot(random3(s + 1.0), x3);
     
-    /* multiply d by w^4 */
     w *= w;
     w *= w;
     d *= w;
     
-    /* 3. return the sum of the four surflets */
     return dot(d, vec4(52.0, 52.0, 52.0, 52.0));
 }
 

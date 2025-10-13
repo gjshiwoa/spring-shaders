@@ -2,4 +2,4 @@
 
 #define VSH
 
-#include "/program/composite9.glsl"
+#include "/program/composite8.glsl"

@@ -5,28 +5,27 @@ varying vec2 texcoord;
 #include "/lib/uniform.glsl"
 #include "/lib/settings.glsl"
 #include "/lib/common/utils.glsl"
+#include "/lib/common/position.glsl"
 
-// #include "/lib/camera/colorToolkit.glsl"
+#include "/lib/camera/colorToolkit.glsl"
+#include "/lib/camera/toneMapping.glsl"
 #include "/lib/camera/filter.glsl"
 
+#include "/lib/antialiasing/TAA.glsl"
 
 #ifdef FSH
-// #include "/lib/camera/bloom.glsl"
-
-const bool colortex1MipmapEnabled = true;
 
 void main() {
-	vec4 CT1 = texelFetch(colortex1, ivec2(gl_FragCoord.xy), 0);
-	
-	vec3 blur = BLACK;
-	#ifdef BLOOM
-		blur = gaussianBlur1x6(colortex1, texcoord, 1.0, 0.0);
-	#endif
-	blur = max(blur, BLACK);
-	CT1.rgb = blur;
+	vec3 nowColor = texture(colortex0, texcoord).rgb;
+	TAA(nowColor);
+	nowColor = max(nowColor, BLACK);
 
-/* DRAWBUFFERS:1 */
-	gl_FragData[0] = CT1;
+	vec4 CT2 = texelFetch(colortex2, ivec2(gl_FragCoord.xy), 0);
+	CT2.rgb = nowColor;
+
+/* DRAWBUFFERS:02 */
+	gl_FragData[0] = vec4(nowColor, 1.0);
+	gl_FragData[1] = CT2;
 }
 
 #endif

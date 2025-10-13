@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(while read file)",
+      "Bash(do if ! grep -q \"#define\\s*END\" \"$file\")",
+      "Bash(then echo \"$file\")",
+      "Bash(fi:*)",
+      "Bash(done)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

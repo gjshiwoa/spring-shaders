@@ -87,6 +87,29 @@ vec3 gaussianBlur6x6(sampler2D tex, vec2 uv, float blurScale, float lodLevel) {
     return color;
 }
 
+vec4 gaussianBlur5x5(sampler2D tex, vec2 uv, float scale) {
+    const float kernel[25] = float[](
+        0.00072, 0.00628, 0.01290, 0.00628, 0.00072,
+        0.00628, 0.05446, 0.11189, 0.05446, 0.00628,
+        0.01290, 0.11189, 0.22986, 0.11189, 0.01290,
+        0.00628, 0.05446, 0.11189, 0.05446, 0.00628,
+        0.00072, 0.00628, 0.01290, 0.00628, 0.00072
+    );
+    
+    vec2 scaledTexelSize = invViewSize * scale;
+    vec4 result = vec4(0.0);
+    
+    for (int y = 0; y < 5; y++) {
+    for (int x = 0; x < 5; x++) {
+        vec2 offset = vec2(float(x - 2), float(y - 2)) * scaledTexelSize;
+        vec2 currUV = uv + offset;
+        result += texture(tex, currUV) * kernel[y * 5 + x];
+    }
+    }
+    
+    return result;
+}
+
 const float kernel6[6] = float[](0.054488, 0.244201, 0.402620, 0.402620, 0.244201, 0.054488);
 
 vec3 gaussianBlur6x1(sampler2D tex, vec2 uv, float blurScale, float lodLevel) {

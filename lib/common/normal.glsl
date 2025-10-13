@@ -1,3 +1,6 @@
+#ifndef COMMON_NORMAL_GLSL
+#define COMMON_NORMAL_GLSL
+
 //A Survey of Efficient Representations for Independent Unit Vectors
 //Journal of Computer Graphics Techniques Vol. 3, No. 2, 2014 
 vec2 OctWrap( vec2 v ){
@@ -59,3 +62,5 @@ vec3 getNormalH(vec2 uv){
     return normalize(normalDecode(texelFetch(colortex5, ivec2(uv * viewSize), 0).rg));
 }
 #endif
+
+#endif // COMMON_NORMAL_GLSL

@@ -1,5 +1,6 @@
-#version 450 compatibility  
+#version 450 compatibility
 
 #define VSH
+#define END
 
-#include "/program/composite9.glsl"
+#include "/program/composite8.glsl"

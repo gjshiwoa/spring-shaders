@@ -2,5 +2,6 @@
 
 #define FSH
 #define GBF
+#define END
 
 #include "/program/gbuffers_armor_glint.glsl"

@@ -9,7 +9,7 @@ uniform sampler2D depthtex2;
 
 // 感谢 樱雪 大佬在兼容性方面提供的帮助
 
-#if defined CLOUD3D || defined SKY_BOX
+#if defined CLOUD3D || defined SKY_BOX || defined SHD || defined PROGRAM_VLF
 uniform sampler3D colortex2;
 uniform sampler3D colortex8;
 #else
@@ -22,12 +22,7 @@ uniform sampler2D colortex0;
 uniform sampler2D colortex1;
 uniform sampler2D colortex3;
 
-#ifdef SHD
-uniform sampler2D gaux1;
-uniform sampler2D gaux2;
-uniform sampler2D gaux3;
-uniform sampler3D gaux4;
-#elif defined GBF
+#ifdef GBF
 uniform sampler2D gaux1;
 uniform sampler2D gaux2;
 uniform sampler2D gaux3;
@@ -73,7 +68,7 @@ uniform vec3 sunPosition;
 uniform vec3 moonPosition;
 uniform vec3 shadowLightPosition;
 uniform vec3 upPosition;
-const vec3 upViewDir = normalize(upPosition);
+vec3 upViewDir = normalize(upPosition);
 uniform vec3 upWorldDir;
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;

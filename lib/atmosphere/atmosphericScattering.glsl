@@ -358,6 +358,7 @@ mat2x3 AtmosphericScattering(vec3 worldPos, vec3 worldDirO, vec3 lightDir, vec3 
     float cos_theta = dot(worldDirO, lightDir);
     vec3 inScattering    = inScatteringR * RayleighSigma * RayleiPhase(cos_theta)
                         + inScatteringM * MieSigma      * MiePhase(cos_theta);
+                        // inScattering *= vec3(0.9,0.7,0.75);
     vec3 multiScattering = multiScatteringR * RayleighSigma
                         + multiScatteringM * MieSigma * mieAmount * MIE_STRENGTHNESS;
 

@@ -2,5 +2,6 @@
 
 #define FSH
 #define GBF
+#define NETHER
 
 #include "/program/gbuffers_hand_water.glsl"

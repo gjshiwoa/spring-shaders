@@ -1,5 +1,4 @@
-#version 450 compatibility  
-
+#version 450 compatibility
 #define FSH
-
+#define END
 #include "/program/composite5.glsl"

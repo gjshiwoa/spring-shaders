@@ -22,15 +22,15 @@ varying vec3 sunViewDir, moonViewDir, lightViewDir;
 
 void main() {
 	vec4 CT3 = texelFetch(colortex3, ivec2(gl_FragCoord.xy), 0);
-	vec4 CT6 = texelFetch(colortex6, ivec2(gl_FragCoord.xy - 0.5 * viewSize), 0);
+	
 #ifdef PBR_REFLECTIVITY
 	vec2 hrrUV = texcoord * 2.0 - 1.0;
 	vec3 reflectColor = BLACK;
-
 	if(!outScreen(hrrUV)){
 		vec4 hrrSpecularMap = unpack2x16To4x8(texelFetch(colortex4, ivec2(gl_FragCoord.xy * 2 - viewSize), 0).ba);
 		MaterialParams params = MapMaterialParams(hrrSpecularMap);
 		if(hrrSpecularMap.r + rainStrength > 0.001){
+			vec4 CT6 = texelFetch(colortex6, ivec2(gl_FragCoord.xy - 0.5 * viewSize), 0);
 			float hrrZ = CT6.g;
 			vec4 hrrViewPos = screenPosToViewPos(vec4(unTAAJitter(hrrUV), hrrZ, 1.0));
 			vec3 hrrViewDir = normalize(hrrViewPos.xyz);

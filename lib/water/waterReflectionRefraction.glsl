@@ -254,7 +254,7 @@ vec3 getReflectColor(float depth, vec3 normal){
         float weight = 1.0;
         vec2 offset = offsetUV5[i] * invViewSize;
         vec2 curUV = uv + offset;
-        if(outScreen(curUV * 2 - 1.0)) weight = 0.0;
+        if(outScreen(curUV * 2 - 1.0 + vec2(-1.0) * invViewSize)) weight = 0.0;
 
         vec4 curData = textureLod(colortex6, curUV - 0.5, 0);
         weight *= max(0.0f, mix(1.0, dot(unpackNormal(curData.r), normal), 2.0));

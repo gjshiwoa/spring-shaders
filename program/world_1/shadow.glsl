@@ -18,7 +18,7 @@ flat in float isWater;
 void main(){
     vec4 color = texture(tex, texcoord.st) * glColor;
 
-    float waterColor = texture(gaux4, vec3(gl_FragCoord.xy * 0.001, 0.0) + vec3(frameTimeCounter * 0.03)).g;
+    float waterColor = texture(colortex8, vec3(gl_FragCoord.xy * 0.001, 0.0) + vec3(frameTimeCounter * 0.03)).g;
     // color.rgb = vec3(remapSaturate(pow(waterColor, 3.0), 0.0, 1.0, 0.5, 1.5));
 
 
@@ -82,7 +82,7 @@ void main(){
     vec4 sNDCPos = vec4(sClipPos.xyz / sClipPos.w, 1.0);
     gl_Position = sNDCPos;
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
-    gl_Position.xy = shadowDistort1(gl_Position.xy);
+    gl_Position.xy = shadowDistort(gl_Position.xy);
     gl_Position.z = mix(gl_Position.z, 0.5, 0.8);
 
     texcoord = gl_TextureMatrix[0] * gl_MultiTexCoord0;
