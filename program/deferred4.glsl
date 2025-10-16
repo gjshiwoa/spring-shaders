@@ -32,10 +32,20 @@ void main() {
 
 	vec4 gi = vec4(BLACK, 1.0);
 	vec2 uv = texcoord * 2;
-	float hrrZ = texelFetch(colortex6, ivec2(gl_FragCoord.xy), 0).g;
+
+	float dhTerrain = 0.0;
+	#ifdef DISTANT_HORIZONS
+		vec4 CT4Hrr = texelFetch(colortex4, ivec2(uv * viewSize), 0);
+		vec2 CT4GHrr = unpack16To2x8(CT4Hrr.g);
+		float blockIDHrr = CT4GHrr.x * ID_SCALE;
+		dhTerrain = blockIDHrr > DH_TERRAIN - 0.5 ? 1.0 : 0.0;
+	#endif
+
+	float isTerrainHrr = texelFetch(depthtex1, ivec2(uv * viewSize), 0).r < 1.0
+						|| dhTerrain > 0.5 ? 1.0 : 0.0;
 
 	#if defined RSM_ENABLED || defined AO_ENABLED
-		if(!outScreen(uv) && hrrZ < 1.0){
+		if(!outScreen(uv) && isTerrainHrr > 0.5){
 			gi = JointBilateralFiltering_RSM_Horizontal();
 			CT1 = gi;
 		}
@@ -52,7 +62,7 @@ void main() {
 		vec3 hrrWorldDir = normalize(vec3(hrrWorldPos.x, max(hrrWorldPos.y, 0.0), hrrWorldPos.z));
 
 		vec4 intScattTrans = vec4(vec3(0.0), 1.0);
-		if(isSkyHRR1() > 0.5 && camera.y < 5000.0) {
+		if(isSkyHRR(texcoord * 2 - vec2(1.0, 0.0)) > 0.5 && camera.y < 5000.0) {
 			float d_p2a = RaySphereIntersection(earthPos, hrrWorldDir, vec3(0.0), earth_r + atmosphere_h).y;
 			float d_p2e = RaySphereIntersection(earthPos, hrrWorldDirO, vec3(0.0), earth_r).x;
 			float d = d_p2e > 0.0 ? d_p2e : d_p2a;
@@ -67,8 +77,9 @@ void main() {
 			intScattTrans.rgb = max(vec3(0.0), intScattTrans.rgb);
 			intScattTrans.a = saturate(intScattTrans.a);
 
+			CT3 = intScattTrans;
+
 		}
-		CT3 = intScattTrans;
 	}
 	
 /* DRAWBUFFERS:13 */

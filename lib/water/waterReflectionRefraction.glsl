@@ -107,10 +107,12 @@ vec3 reflection(sampler2D tex, vec3 viewPos, vec3 reflectWorldDir, vec3 reflectV
 
     vec2 testScreenPos = SSRT(viewPos, reflectViewDir, normalTex);
 
+    vec2 velocity = texture(colortex9, testScreenPos.xy).xy;
+    testScreenPos.xy = testScreenPos.xy - velocity;
+
     if(testScreenPos.x >= 0.0){
         ssrTargetSampled = true;
-        vec2 velocity = texture(colortex9, testScreenPos.xy).xy;
-        testScreenPos.xy = saturate(testScreenPos.xy - velocity);
+        
         reflectColor = texture(tex, testScreenPos.xy).rgb * colorScale;
     }else{
         if(isEyeInWater == 0){

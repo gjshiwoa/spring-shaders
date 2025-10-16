@@ -84,7 +84,7 @@ float HBAO(vec3 viewPos, vec3 normal){
 
 // Practical Real-Time Strategies for Accurate Indirect Occlusion
 // https://www.activision.com/cdn/research/Practical_Real_Time_Strategies_for_Accurate_Indirect_Occlusion_NEW%20VERSION_COLOR.pdf
-float GTAO(vec3 viewPos, vec3 normal){
+float GTAO(vec3 viewPos, vec3 normal, float dhTerrain){
     float rand = temporalBayer64(gl_FragCoord.xy);
     float dist = length(viewPos);
     const int sliceCount = GTAO_SLICE_COUNT;
@@ -122,6 +122,13 @@ float GTAO(vec3 viewPos, vec3 normal){
                 float sampleDepth = texture(depthtex2, sampleUV).r;
                 vec4 sampleScreenPos = vec4(sampleUV, sampleDepth, 1.0);
                 vec3 sPosV = screenPosToViewPos(sampleScreenPos).xyz;
+
+                #ifdef DISTANT_HORIZONS
+                    if(dhTerrain > 0.5){
+                        float dhSampleDepth = texture(dhDepthTex1, sampleUV).r;
+                        sPosV = screenPosToViewPosDH(vec4(sampleUV, dhSampleDepth, 1.0)).xyz;
+                    }
+                #endif
                 
                 vec3 sHorizonV = normalize(sPosV - viewPos);
                 float horizonCos = dot(sHorizonV, viewV);

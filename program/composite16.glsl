@@ -3,6 +3,11 @@
 varying vec2 texcoord;
 varying float curLum, preLum;
 
+varying vec3 sunWorldDir, moonWorldDir, lightWorldDir;
+varying vec3 sunViewDir, moonViewDir, lightViewDir;
+
+varying float isNoon, isNight, sunRiseSet;
+// varying float isNoonS, isNightS, sunRiseSetS;
 
 #include "/lib/uniform.glsl"
 #include "/lib/settings.glsl"
@@ -22,19 +27,19 @@ void main() {
 	vec4 color = texture(colortex0, texcoord);
 
 	#define BLOOM_UPSAMPLE
+	vec3 blur = vec3(0.0);
 	#ifdef BLOOM
 		#include "/lib/camera/bloom1.glsl"
 	#endif
 
+	float bloomAmount = BLOOM_AMOUNT;
 	#if defined NETHER
-		float bloomAmount = BLOOM_AMOUNT;
-		bloomAmount += 0.075;
+		bloomAmount += 0.25;
 	#elif defined END
-		float bloomAmount = BLOOM_AMOUNT;
-		bloomAmount += 0.0120;
+		bloomAmount += 0.1;
 	#else
-		float bloomAmount = BLOOM_AMOUNT;
 		bloomAmount += rainStrength * RAIN_ADDITIONAL_BLOOM;
+		bloomAmount += isNight * 0.05;
 
 		if(isEyeInWater == 1){
 			bloomAmount += UNDERWATER_ADD_BLOOM;
@@ -42,10 +47,6 @@ void main() {
 	#endif
 
 	color.rgb += blur * bloomAmount;
-
-	if(isEyeInWater == 1){
-		color.rgb = pow(color.rgb, vec3(UNDERWATER_CANTRAST)) * UNDERWATER_BRI;
-	}
 
 	color.rgb = max(color.rgb, BLACK);
 	
@@ -90,6 +91,22 @@ void main() {
 		curLum = calculateAverageLuminance1();
 	#endif
 	preLum = texelFetch(colortex2, averageLumUV, 0).a;
+
+	sunViewDir = normalize(sunPosition);
+	moonViewDir = normalize(moonPosition);
+	lightViewDir = normalize(shadowLightPosition);
+
+	sunWorldDir = normalize(viewPosToWorldPos(vec4(sunPosition, 0.0)).xyz);
+    moonWorldDir = normalize(viewPosToWorldPos(vec4(moonPosition, 0.0)).xyz);
+    lightWorldDir = normalize(viewPosToWorldPos(vec4(shadowLightPosition, 0.0)).xyz);
+
+	isNoon = saturate(dot(sunWorldDir, upWorldDir) * NOON_DURATION);
+	isNight = saturate(dot(moonWorldDir, upWorldDir) * NIGHT_DURATION);
+	sunRiseSet = saturate(1 - isNoon - isNight);
+
+	// isNoonS = saturate(dot(sunWorldDir, upWorldDir) * NOON_DURATION_SLOW);
+	// isNightS = saturate(dot(moonWorldDir, upWorldDir) * NIGHT_DURATION_SLOW);
+	// sunRiseSetS = saturate(1 - isNoonS - isNightS);
 
 	gl_Position = ftransform();
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;

@@ -120,7 +120,7 @@ vec2 getVelocity(){
     return texture(colortex9, getClosestOffset(texcoord.st, 1.0).st).rg;
 }
 
-vec2 getVelocity_R(vec2 uv){
-    return texture(colortex9, uv).rg;
+vec2 getVelocity_R(){
+    return texture(colortex9, texcoord).rg;
 }
 #endif

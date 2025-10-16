@@ -44,7 +44,7 @@ float sampleCloudDensityLow(vec3 cameraPos, float height_fraction){
     curl.z = 200.0 * curlNoise * height_fraction;
     cameraPos += curl;
 
-    vec4 low_frequency_noise = texture(colortex8, cameraPos * 0.00025 + vec3(0.0, 0.9, 0.0));
+    vec4 low_frequency_noise = texture(colortex8, cameraPos * 0.001 + vec3(0.0, 0.9, 0.0));
     float perlin3d = low_frequency_noise.r;
     vec3 worley3d = low_frequency_noise.gba;
     float worley3d_FBM = worley3d.g * 0.66 + worley3d.b * 0.33;
@@ -80,7 +80,7 @@ float sampleCloudDensity(vec3 cameraPos, bool doCheaply){
     }
 
     final_cloud *= remapSaturate(height_fraction, 0.0, 0.1, 0.0, 1.0) * remapSaturate(height_fraction, 0.8, 1.0, 1.0, 0.0);
-    final_cloud *= cloudSigmaE;
+    final_cloud *= 0.05;
 
     return saturate(final_cloud);
 }
@@ -142,11 +142,11 @@ float GetDirectScatterProbability(float CosTheta, float eccentricity, float silv
 }
 
 vec3 sunLuminance(vec3 pos, float VoL, float iVoL, float extinction){
-    float density = extinction / cloudSigmaS;
+    float density = extinction / 0.05;
     float height_fraction = getHeightFractionForPoint(pos.y, cloudHeightEnd);
     
     float lightPathOpticalDepth = computeLightPathOpticalDepth(pos, lightWorldDir, 60.0, 3);
-    float attenuation = GetAttenuationProbability(lightPathOpticalDepth, 0.25, 0.7);
+    float attenuation = GetAttenuationProbability(lightPathOpticalDepth, 0.15, 0.7);
 
     float phase = GetDirectScatterProbability(VoL, 0.1, 0.5, 0.3);
     float phase1 = GetDirectScatterProbability(iVoL, 0.3, 0.0, 0.0) * 0.6;
@@ -275,7 +275,7 @@ float fakeCaustics(vec3 pos){
     }
 
     // worley 伪造焦散，最后用pow值调整曲线
-    float caustics  = texture(colortex8, vec3(waveUV * 0.015, 0.0) + frameTimeCounter * 0.025).g;
+    float caustics  = texture(colortex8, vec3(waveUV * 0.03, 0.0) + frameTimeCounter * 0.025).g;
 
 
     return caustics;
@@ -352,7 +352,7 @@ void main() {
         color.rgb = color.rgb * intScattTrans.a + intScattTrans.rgb * 1.;
 	}
 	
-	color.rgb = 1.0 * underWaterFog(color.rgb, worldDir, worldDis0);
+	color.rgb = underWaterFog(color.rgb, worldDir, worldDis0);
 
 	// color.rgb = vec3(texture(colortex1, texcoord).rgb);
 	color.rgb = max(color.rgb, BLACK);

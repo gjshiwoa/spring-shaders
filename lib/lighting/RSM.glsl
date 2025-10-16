@@ -244,7 +244,7 @@ vec4 JointBilateralFiltering_RSM_Horizontal(){
 }
 
 vec4 JointBilateralFiltering_RSM_Vertical(){
-    // return texelFetch(colortex3, ivec2(gl_FragCoord.xy), 0);
+    // return texelFetch(colortex1, ivec2(gl_FragCoord.xy), 0);
 
     ivec2 pix = ivec2(gl_FragCoord.xy);
     vec4 curGD = texelFetch(colortex6, pix, 0);

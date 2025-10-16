@@ -51,7 +51,7 @@ void main() {
 		vec3 hrrNormalW = normalize(viewPosToWorldPos(vec4(hrrNormal, 0.0)).xyz);
 
 		#ifdef AO_ENABLED
-			ao = AO_TYPE(hrrViewPos.xyz, hrrNormal);
+			ao = AO_TYPE(hrrViewPos.xyz, hrrNormal, 0.0);
 		#endif
 
 		vec4 gi = vec4(rsm, ao);

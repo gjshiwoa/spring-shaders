@@ -1,6 +1,9 @@
 varying vec2 texcoord;
 
+varying vec3 sunWorldDir, moonWorldDir, lightWorldDir;
+varying vec3 sunViewDir, moonViewDir, lightViewDir;
 
+varying float isNoon, isNight, sunRiseSet;
 
 #include "/lib/uniform.glsl"
 #include "/lib/settings.glsl"
@@ -23,6 +26,21 @@ void main() {
 	vec4 CT2 = texelFetch(colortex2, ivec2(gl_FragCoord.xy), 0);
 	CT2.rgb = nowColor;
 
+	
+
+	#ifdef NETHER
+		nowColor = pow(nowColor, vec3(1.0)) * 1.1;
+	#elif defined END
+		nowColor = pow(nowColor, vec3(1.25)) * 0.6;
+	#else
+		nowColor = nowColor * (1.0 - 0.15 * isNight);
+
+		if(isEyeInWater == 1){
+			nowColor.rgb = pow(nowColor.rgb, vec3(UNDERWATER_CANTRAST)) * UNDERWATER_BRI;
+		}
+
+	#endif
+
 /* DRAWBUFFERS:02 */
 	gl_FragData[0] = vec4(nowColor, 1.0);
 	gl_FragData[1] = CT2;
@@ -35,6 +53,18 @@ void main() {
 #ifdef VSH
 
 void main() {
+	sunViewDir = normalize(sunPosition);
+	moonViewDir = normalize(moonPosition);
+	lightViewDir = normalize(shadowLightPosition);
+
+	sunWorldDir = normalize(viewPosToWorldPos(vec4(sunPosition, 0.0)).xyz);
+    moonWorldDir = normalize(viewPosToWorldPos(vec4(moonPosition, 0.0)).xyz);
+    lightWorldDir = normalize(viewPosToWorldPos(vec4(shadowLightPosition, 0.0)).xyz);
+
+	isNoon = saturate(dot(sunWorldDir, upWorldDir) * NOON_DURATION);
+	isNight = saturate(dot(moonWorldDir, upWorldDir) * NIGHT_DURATION);
+	sunRiseSet = saturate(1 - isNoon - isNight);
+
 	gl_Position = ftransform();
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 }

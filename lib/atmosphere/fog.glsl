@@ -82,9 +82,9 @@ float sampleFogDensityLow(vec3 cameraPos, float height_fraction){
     vec4 weatherData = texture(noisetex, cameraPos.xz * 0.00085 + vec2(0.17325, 0.17325));
     float coverage = saturate(mix(weatherData.r, weatherData.g, 1.0));
     coverage = pow(coverage, remapSaturate(height_fraction, 0.1, 0.75, 0.6, 1.2));
-    coverage = saturate(1.0 - 0.6 * coverage 
-                        - 0.35 * saturate(rainStrength + 0.75 * isNightS + 0.75 * sunRiseSetS) 
-                        + 0.25 * remapSaturate(pow(height_fraction, 0.8), 0.45, 1.0, 0.0, 1.0));
+    coverage = saturate(1.0 - 0.65 * coverage 
+                        - 0.4 * saturate(rainStrength + 0.66 * isNightS + 0.66 * sunRiseSetS) 
+                        + 0.25 * remapSaturate(pow(height_fraction, 0.8), 0.5, 1.0, 0.0, 1.0));
 
     cameraPos.y *= 1.33;
 
@@ -106,7 +106,7 @@ float sampleFogDensityHigh(vec3 cameraPos, float base, float height_fraction, ve
     vec4 high_frequency_noises = texture(colortex2, cameraPos * 0.055 + 0.025 * wind_direction * frameTimeCounter);
     float high_freq_FBM = high_frequency_noises.r * 0.5 + high_frequency_noises.g * 0.25 + high_frequency_noises.b * 0.125;
     float high_freq_noise_modifier = lerp(high_freq_FBM, 1.0 - high_freq_FBM, saturate(height_fraction * 10.0));    
-    final = remapSaturate(final, high_freq_noise_modifier * 0.5, 1.0, 0.0, 1.0);
+    final = remapSaturate(final, high_freq_noise_modifier * 0.6, 1.0, 0.0, 1.0);
     
     return final;
 }
@@ -130,6 +130,30 @@ float sampleFogDensity(vec3 cameraPos, bool doCheaply){
     return final;
 }
 
+float computeLightPathOpticalDepth_Fog(vec3 currentPos, vec3 lightWorldDir, float initialStepSize, int N_SAMPLES) {
+    float opticalDepth = 0.0;
+    bool doCheaply = false;
+    float prevDensity = sampleFogDensity(currentPos, doCheaply);
+    float currentStepSize = initialStepSize;
+
+    for (int i = 1; i <= N_SAMPLES; i++) {
+        float t = float(i) / float(N_SAMPLES);
+        currentStepSize = mix(initialStepSize, initialStepSize * 5.0, t);
+        currentPos += lightWorldDir * currentStepSize;
+
+        if(i > 0.5 * N_SAMPLES) doCheaply = true;
+        float currentDensity = sampleFogDensity(currentPos, doCheaply);
+        opticalDepth += 0.5 * (prevDensity + currentDensity) * currentStepSize;
+        prevDensity = currentDensity;
+    }
+
+    return opticalDepth;
+}
+
+float GetAttenuationProbability_Fog(float sampleDensity, float secondSpread, float secondIntensity){
+    return max(exp(-sampleDensity), (exp(-sampleDensity * secondSpread) * (secondIntensity)));
+}
+
 float GetInScatterProbability(float height_fraction, float density){
     float height_factor = remapSaturate(height_fraction, 0.3, 0.85, 0.5, 2.0);
     float depth_probability = 0.05 + pow(density, height_factor);
@@ -150,6 +174,9 @@ vec4 fogLuminance(inout vec4 intScattTrans, vec3 pos, vec3 oriStartPos, float st
             if(length(worldPos.xyz) < shadowDistance) shade = texture(shadowtex0, shadowPos.xyz).r;
             attenuation = mix(attenuation, shade, 1.0);
         }
+        // float lightPathOpticalDepth = computeLightPathOpticalDepth_Fog(pos, lightWorldDir, 40, 2);
+        // float attenuation_lightPath = GetAttenuationProbability_Fog(lightPathOpticalDepth * fogSigmaE, 0.3, 0.7);
+        // attenuation = min(attenuation, attenuation_lightPath);
     #endif
 
     float height_fraction = getHeightFractionForPoint(pos.y, fogHeight);
@@ -255,7 +282,7 @@ vec4 volumtricFog(vec3 startPos, vec3 worldPos){
             pos += stepVec;
         }
     }
-    intScattTrans.rgb *= (1.0 - isNightS * 0.75);
+    intScattTrans.rgb *= (1.0 - isNightS * 0.65);
     return intScattTrans;
 }
 

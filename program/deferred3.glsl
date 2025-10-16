@@ -20,16 +20,8 @@ varying vec3 sunColor, skyColor;
 #include "/lib/common/normal.glsl"
 #include "/lib/common/noise.glsl"
 #include "/lib/atmosphere/atmosphericScattering.glsl"
-// #include "/lib/atmosphere/volumetricClouds.glsl"
 
 #ifdef FSH
-// const bool shadowtex1Mipmap = true;
-// const bool shadowtex1Nearest = false;
-
-// const bool shadowcolor0Mipmap = true;
-// const bool shadowcolor0Nearest = false;
-// const bool shadowcolor1Mipmap = true;
-// const bool shadowcolor1Nearest = false;
 
 #include "/lib/common/gbufferData.glsl"
 #include "/lib/common/materialIdMapper.glsl"
@@ -53,9 +45,8 @@ void main() {
 
 		float dirMixFactor = remapSaturate(camera.y, 10000.0, 10002.0, 0.0, 1.0);
 		hrrWorldDir = normalize(mix(hrrWorldDir, hrrWorldDirO, dirMixFactor));
-		// vec2 prePos = getPrePos(viewPosToWorldPos(screenPosToViewPos(vec4(hrrUV_a, hrrZ, 1.0)))).xy * 0.5 + 0.5;
 
-		if(isSkyHRR() > 0.5) {
+		if(isSkyHRR(hrrUV_a) > 0.5) {
 			float d_p2a = RaySphereIntersection(earthPos, hrrWorldDir, vec3(0.0), earth_r + atmosphere_h).y;
 			float d_p2e = RaySphereIntersection(earthPos, hrrWorldDir, vec3(0.0), earth_r).x;
 			float d = d_p2a;
@@ -73,7 +64,19 @@ void main() {
 	float hrrZ = CT6.g;
 	vec3 rsm = BLACK;
 	float ao = 1.0;
-	if(!outScreen(hrrUV) && hrrZ < 1.0){
+
+	float dhTerrain = 0.0;
+	#ifdef DISTANT_HORIZONS
+		vec4 CT4Hrr = texelFetch(colortex4, ivec2(hrrUV * viewSize), 0);
+		vec2 CT4GHrr = unpack16To2x8(CT4Hrr.g);
+		float blockIDHrr = CT4GHrr.x * ID_SCALE;
+		dhTerrain = blockIDHrr > DH_TERRAIN - 0.5 ? 1.0 : 0.0;
+	#endif
+
+	float isTerrainHrr = texelFetch(depthtex1, ivec2(hrrUV * viewSize), 0).r < 1.0
+						|| dhTerrain > 0.5 ? 1.0 : 0.0;
+
+	if(!outScreen(hrrUV) && isTerrainHrr > 0.5){
 		vec4 hrrScreenPos = vec4(unTAAJitter(hrrUV), hrrZ, 1.0);
 		vec4 hrrViewPos = screenPosToViewPos(hrrScreenPos);
 		vec4 hrrWorldPos = viewPosToWorldPos(hrrViewPos);
@@ -97,7 +100,8 @@ void main() {
 		#endif
 
 		#ifdef AO_ENABLED
-			ao = saturate(1.0 - AO_TYPE(hrrViewPos.xyz, hrrNormal));
+			ao = saturate(1.0 - GTAO(hrrViewPos.xyz, hrrNormal, dhTerrain));
+			// ao = 0.0;
 		#endif
 
 		vec4 gi = vec4(rsm, ao);

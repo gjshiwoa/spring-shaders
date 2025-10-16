@@ -107,7 +107,7 @@ float computeLightPathOpticalDepth(vec3 currentPos, vec3 lightWorldDir, float in
 }
 
 float GetInScatterProbability(float height_fraction, float ds_loded, float attenuation, float VoL){
-    attenuation = saturate(attenuation);
+    attenuation = saturate(mix(attenuation, 1.0, sunRiseSet));
     ds_loded = saturate(ds_loded);
     
     float height_factor = remapSaturate(pow(height_fraction, 1.0), 0.0, 1.0, 0.7, 1.0);
@@ -115,7 +115,7 @@ float GetInScatterProbability(float height_fraction, float ds_loded, float atten
     // float angle_factor = remapSaturate(VoL, 0.6, 1.0, 1.0, 0.5);
     float depth_probability = 0.05 + pow(ds_loded, attenuation_factor * height_factor * (1.25 - 0.0 * sunRiseSetS));
 
-    // float vertical_probability = pow(max(0.0, remap(height_fraction, 0.07, 0.14, 0.5, 1.0)), 0.8);
+    // float vertical_probability = pow(remapSaturate(height_fraction, 0.07, 0.14, 0.8, 1.0), 0.8);
 
     float in_scatter_probability = depth_probability;
     return in_scatter_probability;
@@ -136,7 +136,7 @@ vec3 sunLuminance(vec3 pos, float VoL, float iVoL, float extinction){
     float upAttenuation = GetAttenuationProbability(upPathOpticalDepth, 0.15, 0.7);
     attenuation += 0.15 * upAttenuation * isNoonS;
 
-    float phase = GetDirectScatterProbability(VoL, 0.25, 0.7, 0.3);
+    float phase = GetDirectScatterProbability(VoL, 0.2, 0.75, 0.25);
     float phase1 = GetDirectScatterProbability(iVoL, 0.3, 0.0, 0.0) * 0.6;
     phase = max(phase, phase1);
 
@@ -176,12 +176,12 @@ void cloudRayMarching(vec3 startPos, vec3 worldPos, inout vec4 intScattTrans, in
     float verticalness = abs(dot(worldDir, upWorldDir));
     int N_COARSE = int(remap(verticalness, 0.0, 1.0, 18, 9));
     #ifdef SKY_BOX
-        N_COARSE = int(N_COARSE * 0.2);
+        N_COARSE = int(N_COARSE * 0.35);
     #endif
 
     float rayLength = stepDis.y;
     float coarseStep = rayLength / float(max(N_COARSE, 1));
-    const float SMALL_STEP = 4.0;
+    const float SMALL_STEP = 2.0;
     const float SMALL_STEP_FACTOR = 1.0 / SMALL_STEP;
     float smallStep = coarseStep * SMALL_STEP_FACTOR;
 
@@ -204,7 +204,7 @@ void cloudRayMarching(vec3 startPos, vec3 worldPos, inout vec4 intScattTrans, in
 
     while(traveled < rayLength){
         if(stepDis.x + traveled > CLOUD_MAX_DISTANCE) break;
-        if(intScattTrans.a < 0.05) break;
+        if(intScattTrans.a < 0.01) break;
         if(totalSteps++ > MAX_TOTAL_STEPS) break;
 
         vec3 coarsePos = startPos + traveled * worldDir;
@@ -218,7 +218,7 @@ void cloudRayMarching(vec3 startPos, vec3 worldPos, inout vec4 intScattTrans, in
 
             while(traveled < rayLength){
                 if(stepDis.x + traveled > CLOUD_MAX_DISTANCE) break;
-                if(intScattTrans.a < 0.05) break;
+                if(intScattTrans.a < 0.01) break;
                 if(fineSteps++ > MAX_FINE_STEPS_PER_DETECTION) break;
                 if(totalSteps++ > MAX_TOTAL_STEPS) break;
 
@@ -253,7 +253,7 @@ void cloudRayMarching(vec3 startPos, vec3 worldPos, inout vec4 intScattTrans, in
         }
     }
 
-    intScattTrans.rgb *= 5.5 * (1.0 - 0.75 * isNight);
+    intScattTrans.rgb *= 5.5 * (1.0 - 0.65 * isNight) * (1.0 + 0.25 * sunRiseSetS);
 
     // cloudHitLength = length(hitPos - oriStartPos);
     // if(isHit){
@@ -297,7 +297,7 @@ vec4 temporal_cloud3D(vec4 color_c){
     }
     }
 
-    vec4 blend = vec4(0.8);
+    vec4 blend = vec4(0.9);
     color_c = mix(color_c, c_s, w_s * blend);
 
     return color_c;

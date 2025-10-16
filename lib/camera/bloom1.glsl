@@ -52,8 +52,6 @@ const vec4 uvTable[9] = vec4[](
         );
     #endif
 
-    vec3 blur = vec3(0.0);
-
     for (int i = 0; i < BLOOM_LAYERS; ++i) {
         vec4 uvI = uvTable[i+2];
         vec2 uv = vec2(remap(texcoord.s, uvO.x, uvO.z, uvI.x, uvI.z), 

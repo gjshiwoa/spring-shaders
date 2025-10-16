@@ -32,7 +32,6 @@ varying vec3 sunColor, skyColor;
 
 
 #include "/lib/common/gbufferData.glsl"
-
 #include "/lib/common/materialIdMapper.glsl"
 #include "/lib/lighting/lightmap.glsl"
 #include "/lib/lighting/shadowMapping.glsl"
@@ -61,13 +60,14 @@ void main() {
 	vec3 ao = vec3(1.0);
 
 	#ifdef DISTANT_HORIZONS
-		bool isTerrain = skyB < 0.5 || dhTerrain > 0.5;
+		bool isTerrain = skyB < 0.5;
 
 		float depth1;
 		vec4 viewPos1;
 		if(dhTerrain > 0.5){ 
-			depth1 = texture(dhDepthTex0, texcoord).r;
-			viewPos1 = screenPosToViewPosDH(vec4(texcoord, depth1, 1.0));
+			depth1 = texture(dhDepthTex1, texcoord).r;
+			viewPos1 = screenPosToViewPosDH(vec4(unTAAJitter(texcoord), depth1, 1.0));
+			depth1 = viewPosToScreenPos(viewPos1).z;
 		}else{
 			depth1 = texture(depthtex1, texcoord).r;
 			viewPos1 = screenPosToViewPos(vec4(unTAAJitter(texcoord), depth1, 1.0));	
@@ -85,7 +85,7 @@ void main() {
 	vec3 shadowPos = getShadowPos(worldPos1).xyz;
 	float worldDis1 = length(worldPos1);
 
-	vec4 viewPos1R = screenPosToViewPos(vec4(texcoord.st, depth1, 1.0));
+	vec4 viewPos1R = screenPosToViewPos(vec4(texcoord, depth1, 1.0));
 	vec4 worldPos1R = viewPosToWorldPos(viewPos1R);
 	vec2 prePos = getPrePos(worldPos1R).xy;
 	vec2 velocity = texcoord - prePos;
@@ -147,8 +147,8 @@ void main() {
 		if(worldDis1 > shadowDistance * 0.75){
 			float mixFactor = smoothstep(shadowDistance * 0.75, shadowDistance * 0.90, worldDis1);
 			mixFactor = saturate(mixFactor);
-			float RTShadow = CT4R.y;
-			shadow = min(shadow, mix(1.0, RTShadow, mixFactor));
+			// float RTShadow = CT4R.y;
+			// shadow = min(shadow, mix(1.0, RTShadow, mixFactor));
 			shadow = saturate(shadow);
 		}
 		vec3 visibility = vec3(shadow + colorShadow * 1.0);
@@ -182,7 +182,7 @@ void main() {
 		
 		color.rgb += artificial;
 		// color.rgb = gi.rgb;
-		// color.rgb = vec3(gi.a);
+		color.rgb = vec3(gi.a);
 
 	}else{
 		float d_p2a = RaySphereIntersection(earthPos, worldDir, vec3(0.0), earth_r + atmosphere_h).y;
@@ -196,8 +196,11 @@ void main() {
 
 		#ifdef VOLUMETRIC_CLOUDS
 			vec2 cloud_uv = texcoord * 0.5 + vec2(0.5, 0.0);
-			if(!outScreen(cloud_uv * 2.0 - vec2(1.0, 0.0) + vec2(-1.0, 1.0) * invViewSize))	{
+			if(!outScreen(cloud_uv * 2.0 - vec2(1.0, 0.0) + vec2(-1.0, 1.0) * invViewSize) && camera.y < 5000.0)	{
 				vec4 CT1_c = texture(colortex3, cloud_uv);
+				if(dot(CT1_c.rgb, CT1_c.rgb) <= 1e-9){
+					CT1_c.a = 1.0;
+				}
 				cloudScattering = CT1_c.rgb;
 				cloudTransmittance = CT1_c.a;
 			}
@@ -231,15 +234,16 @@ void main() {
 				);
 			
 		}
-		color.rgb += pow(crepuscularLight, 1.0) * sunColor * max3(0.6 * sunRiseSetS, 5.0 * rainStrength, 0.15 * isNoonS) * saturate(1.0 - isNightS)
+		color.rgb += pow(crepuscularLight, 1.0) * sunColor * max3(0.6 * sunRiseSetS, 5.0 * rainStrength, 0.05 * isNoonS) * saturate(1.0 - isNightS)
 					* remapSaturate(camera.y, 600.0, 1000.0, 1.0, 0.0);
 		// color.rgb = vec3(computeCrepuscularLight(viewPos1));
 		// color.rgb = vec3(crepuscularLight);
 	}
 	
 	color.rgb = max(BLACK, color.rgb);
-	// color.rgb = vec3(texture(colortex1, texcoord * 0.5).rgb);
+	// color.rgb = vec3(1.0 - texture(colortex1, texcoord * 0.5).a);
 	
+	// if(dhTerrain > 0.5) color.rgb = vec3(1.0 - texture(colortex1, texcoord * 0.5).a);
 	
 	CT4.rg = pack4x8To2x16(vec4(albedo, ao));
 

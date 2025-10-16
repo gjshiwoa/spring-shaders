@@ -1,4 +1,7 @@
 #define max3(x, y, z) max(x, max(y, z))
+#define min3(x, y, z) min(x, min(y, z))
+#define max4(x, y, z, w) max(x, max3(y, z, w))
+#define min4(x, y, z, w) min(x, min3(y, z, w))
 
 vec2 rotate2D(vec2 point, float angle) {
     float s = sin(angle);
@@ -6,8 +9,6 @@ vec2 rotate2D(vec2 point, float angle) {
     mat2 rotationMatrix = mat2(c, -s, s, c);
     return rotationMatrix * point;
 }
-
-#define min3(x, y, z) min(x, min(y, z))
 
 float fastExp(float x) {
     x = 1.0 + x / 256.0;

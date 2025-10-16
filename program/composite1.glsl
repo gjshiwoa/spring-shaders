@@ -100,7 +100,7 @@ void main() {
 		skyColor = vec3(0.5, 0.4, 0.9) * 0.3;
 	#elif defined END
 		skyColor = endColor * 1.0;
-		sunColor = endColor * vec3(0.9, 0.45, 0.65) * 2.0;
+		sunColor = endColor * vec3(0.9, 0.45, 0.65) * 3.0;
 	#endif
 
 

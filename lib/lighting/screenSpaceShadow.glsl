@@ -26,7 +26,7 @@ float screenSpaceShadow(vec3 viewPos, vec3 normal, float shadowMappingResult){
             if(dhTerrain < 0.5){
                 z_sample = texture(depthtex1, p_screen.xy).r;
             }else{
-                float z_sampleDH = texture(dhDepthTex0, p_screen.xy).r;
+                float z_sampleDH = texture(dhDepthTex1, p_screen.xy).r;
                 vec4 viewPosDH = screenPosToViewPosDH(vec4(p_screen.xy, z_sampleDH, 1.0));
                 z_sample = viewPosToScreenPos(viewPosDH).z;
             }

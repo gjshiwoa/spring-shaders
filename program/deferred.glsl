@@ -8,8 +8,13 @@ varying vec2 texcoord;
 
 #include "/lib/common/position.glsl"
 #include "/lib/common/normal.glsl"
+#include "/lib/camera/colorToolkit.glsl"
+#include "/lib/camera/filter.glsl"
 
 #ifdef FSH
+
+// #include "/lib/common/gbufferData.glsl"
+// #include "/lib/common/materialIdMapper.glsl"
 
 void main() {
 	vec4 CT6 = texelFetch(colortex6, ivec2(gl_FragCoord.xy), 0);
@@ -19,6 +24,22 @@ void main() {
 	if(!outScreen(uv1)){
 		curZ = texelFetch(depthtex1, ivec2(uv1 * viewSize), 0).r;
 		curNormalW = normalize(viewPosToWorldPos(vec4(getNormalH(uv1), 0.0)).xyz);
+
+		#ifdef DISTANT_HORIZONS
+			float dhCurZ = texelFetch(dhDepthTex1, ivec2(uv1 * viewSize), 0).r;
+			vec4 dhViewPos = screenPosToViewPosDH(vec4(uv1, dhCurZ, 1.0));
+			dhCurZ = viewPosToScreenPos(dhViewPos).z;
+
+			vec4 CT4Hrr = texture(colortex4, uv1);
+			vec2 CT4GHrr = unpack16To2x8(CT4Hrr.g);
+			float blockIDHrr = CT4GHrr.x * ID_SCALE;
+			float dhTerrain = blockIDHrr > DH_TERRAIN - 0.5 ? 1.0 : 0.0;
+
+			if(dhTerrain > 0.5){
+				curZ = dhCurZ;
+			}
+		#endif
+
 		CT6 = vec4(packNormal(curNormalW), curZ, 0.0, 0.0);
 	}
 	

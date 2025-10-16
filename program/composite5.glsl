@@ -37,26 +37,29 @@ void main() {
 	vec3 worldDir = normalize(worldPos.xyz);
 
 	vec4 fogColor = getFog(depth);
+	// if(dot(fogColor.rgb, fogColor.rgb) < 1e-9){
+	// 	fogColor.a = 1.0;
+	// }
 
-	#if defined UNDERWATER_FOG || defined ATMOSPHERIC_SCATTERING_FOG
-		#ifdef UNDERWATER_FOG
-			if(isEyeInWater == 1){
-				color.rgb = mix(color.rgb, fogColor.rgb, pow(saturate(worldDis / UNDERWATER_FOG_MIST), 1.0));
-				color.rgb += waterFogColor * rand2_1(texcoord + sin(frameTimeCounter)) / 512.0;
-			}
-		#endif
+	// #if defined UNDERWATER_FOG || defined ATMOSPHERIC_SCATTERING_FOG
+	// 	#ifdef UNDERWATER_FOG
+	// 		if(isEyeInWater == 1){
+	// 			color.rgb = mix(color.rgb, fogColor.rgb, pow(saturate(worldDis / UNDERWATER_FOG_MIST), 1.0));
+	// 			color.rgb += waterFogColor * rand2_1(texcoord + sin(frameTimeCounter)) / 512.0;
+	// 		}
+	// 	#endif
 		
-		#ifdef ATMOSPHERIC_SCATTERING_FOG
-			if(isEyeInWater == 0 && depth > 0.7){
-				if(depth < 1.0){
-					color.rgb *= Transmittance1(earthPos, earthPos + worldPos.xyz * ATMOSPHERIC_SCATTERING_FOG_DENSITY, VOLUME_LIGHT_SAMPLES);
-				}
-				color.rgb *= fogColor.a;
-				color.rgb += fogColor.rgb;
-			}
-		#endif
-		// color.rgb = fogColor.rgb;
-	#endif
+	// 	#ifdef ATMOSPHERIC_SCATTERING_FOG
+	// 		if(isEyeInWater == 0 && depth > 0.7){
+	// 			if(depth < 1.0){
+	// 				color.rgb *= Transmittance1(earthPos, earthPos + worldPos.xyz * ATMOSPHERIC_SCATTERING_FOG_DENSITY, VOLUME_LIGHT_SAMPLES);
+	// 			}
+	// 			color.rgb *= fogColor.a;
+	// 			color.rgb += fogColor.rgb;
+	// 		}
+	// 	#endif
+	// 	// color.rgb = fogColor.rgb;
+	// #endif
 	
 /* DRAWBUFFERS:0 */
 	gl_FragData[0] = color;
