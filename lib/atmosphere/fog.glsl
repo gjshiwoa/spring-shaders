@@ -224,9 +224,9 @@ vec4 volumtricFog(vec3 startPos, vec3 worldPos){
         fogMaxDistance = dhRenderDistance;
     #endif
     stepDis.y = min(stepDis.y, fogMaxDistance);
-    // if(stepDis.y < 0.0001 || stepDis.x > fogMaxDistance){
-    //     return intScattTrans;
-    // }
+    if(stepDis.y < 0.0001 || stepDis.x > fogMaxDistance){
+        return intScattTrans;
+    }
 
     float jitter = temporalBayer64(gl_FragCoord.xy);
 
@@ -254,12 +254,12 @@ vec4 volumtricFog(vec3 startPos, vec3 worldPos){
         vec3 pos = startPos + jitter * stepVec;
         
         for(int i = 0; i < nNear; ++i){
-            // if(intScattTrans.a < 0.01 || distance(oriStartPos, pos) > fogMaxDistance){
-            //     break;
-            // }   
+            if(intScattTrans.a < 0.01 || distance(oriStartPos, pos) > stepDis.x + stepDis.y){
+                break;
+            }   
             float density = sampleFogDensity(pos, false);
             
-            if(density > 0.001){
+            if(density > 0.01){
                 intScattTrans = fogLuminance(intScattTrans, pos, oriStartPos, stepSize, density, VoL, iVoL, true);
             }
             pos += stepVec;
@@ -274,12 +274,12 @@ vec4 volumtricFog(vec3 startPos, vec3 worldPos){
         vec3 pos = startPos + jitter * stepVec;
 
         for(int i = 0; i < nFar; ++i){
-            // if(intScattTrans.a < 0.01 || distance(oriStartPos, pos) > fogMaxDistance){
-            //     break;
-            // }
+            if(intScattTrans.a < 0.01 || distance(oriStartPos, pos) > stepDis.x + stepDis.y){
+                break;
+            }
             float density = sampleFogDensity(pos, false);
 
-            if(density > 0.001){
+            if(density > 0.01){
                 intScattTrans = fogLuminance(intScattTrans, pos, oriStartPos, stepSize, density, VoL, iVoL, false);
             }
             pos += stepVec;
@@ -304,7 +304,7 @@ vec4 temporal_fog(vec4 color_c){
     vec4 c_s = vec4(0.0);
     float w_s = 0.0;
     
-    vec3 normal_c = unpackNormal(cur.r);
+    // vec3 normal_c = unpackNormal(cur.r);
     float depth_c = linearizeDepth(prePos.z);
     float fDepth = fwidth(depth_c);
 

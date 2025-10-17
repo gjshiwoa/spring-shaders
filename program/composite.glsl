@@ -72,9 +72,12 @@ void main() {
 
 			float dhTerrain = texture(dhDepthTex0, uv).r < 1.0 && curZ == 1.0 ? 1.0 : 0.0;
 
+			// if(dhTerrain < 0.5 && curZ < 1.0) curZ = -1.0;
+
 			if(dhTerrain > 0.5){
 				curZ = dhCurZ;
 			}
+			
 		#endif
 
 		CT6 = vec4(packNormal(curNormalW), curZ, 0.0, 0.0);

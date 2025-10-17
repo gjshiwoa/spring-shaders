@@ -45,6 +45,8 @@ void main() {
 		}else{
 			viewPos = screenPosToViewPos(vec4(unTAAJitter(texcoord), depth, 1.0));	
 		}
+
+		isTerrain = isTerrain || dhTerrain > 0.5;
 	#else 
 		bool isTerrain = skyB < 0.5;
 
@@ -57,9 +59,9 @@ void main() {
 	vec3 worldDir = normalize(worldPos.xyz);
 
 	vec4 fogColor = getFog(depth);
-	// if(dot(fogColor.rgb, fogColor.rgb) < 1e-9){
-	// 	fogColor.a = 1.0;
-	// }
+	if(dot(fogColor.rgb, fogColor.rgb) < 1e-9){
+		fogColor.a = 1.0;
+	}
 
 	#if defined UNDERWATER_FOG || defined ATMOSPHERIC_SCATTERING_FOG
 		#ifdef UNDERWATER_FOG
@@ -71,7 +73,7 @@ void main() {
 		
 		#ifdef ATMOSPHERIC_SCATTERING_FOG
 			if(isEyeInWater == 0 && depth > 0.7){
-				if(depth < 1.0){
+				if(isTerrain){
 					color.rgb *= Transmittance1(earthPos, earthPos + worldPos.xyz * ATMOSPHERIC_SCATTERING_FOG_DENSITY, VOLUME_LIGHT_SAMPLES);
 				}
 				color.rgb *= fogColor.a;

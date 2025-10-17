@@ -44,7 +44,7 @@ varying mat3 tbnMatrix;
 flat in float isWater;
 
 void main() {
-	vec4 color = vec4(0.0);
+	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);
 
 /* DRAWBUFFERS:0 */
 	gl_FragData[0] = color;

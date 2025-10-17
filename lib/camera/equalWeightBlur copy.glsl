@@ -78,20 +78,25 @@ vec4 EqualWeightBlur_Vertical(
 }
 
 vec4 JointBilateralFiltering_hrr_Horizontal(){
-    // return texelFetch(colortex3, ivec2(gl_FragCoord.xy), 0);
+    return texelFetch(colortex3, ivec2(gl_FragCoord.xy), 0);
     
     ivec2 pix = ivec2(gl_FragCoord.xy);
+    float z0;
 
     #ifdef DISTANT_HORIZONS
-        ivec2 uvC = ivec2(pix * 2.0 - vec2(0.0, 1.0) * viewSize);
-        float depthHrrC = texelFetch(depthtex0, uvC, 0).r;
-        float dhDepthC = texelFetch(dhDepthTex0, uvC, 0).r;
-        bool isSkyC = depthHrrC == 1.0 && dhDepthC == 1.0;
+        ivec2 hrrUV_c = ivec2(pix * 2.0 - vec2(0.0, 1.0) * viewSize);
+        float depthHrr = texelFetch(depthtex0, hrrUV_c, 0).r;
+        float dhDepth = texelFetch(dhDepthTex0, hrrUV_c, 0).r;
+        float dhTerrainHrr = depthHrr == 1.0 && dhDepth < 1.0 ? 1.0 : 0.0;
+        if(dhTerrainHrr > 0.5){
+            z0 = screenPosToViewPos(vec4(hrrUV_c * invViewSize, dhDepth, 1.0)).z;
+        }else{
+            z0 = screenPosToViewPos(vec4(hrrUV_c * invViewSize, depthHrr, 1.0)).z;
+        }
+    #else
+        vec4 curGD = texelFetch(colortex6, pix, 0);
+        z0 = linearizeDepth(curGD.g);
     #endif
-
-    vec4 curGD = texelFetch(colortex6, pix, 0);
-    // vec3  normal0 = unpackNormal(curGD.r);
-    float z0      = linearizeDepth(curGD.g);
 
     const float radius  = 6.0;
     const float quality = 6.0;
@@ -108,22 +113,24 @@ vec4 JointBilateralFiltering_hrr_Horizontal(){
 
         vec4 w = vec4(1.0);
         if(isEyeInWater == 0.0){
-            vec4 gd = texelFetch(colortex6, p, 0);
-            // vec3  n  = unpackNormal(gd.r);
-            float z  = linearizeDepth(gd.g);
-            
-            float wZ = saturate(1.2 - abs(z - z0) * 1.0);      // 深度权重
-            w  = vec4(wZ);
-
+            float z;
             #ifdef DISTANT_HORIZONS
                 ivec2 uv = ivec2(p * 2.0 - vec2(0.0, 1.0) * viewSize);
                 float depthHrr = texelFetch(depthtex0, uv, 0).r;
                 float dhDepth = texelFetch(dhDepthTex0, uv, 0).r;
-                bool isSky = depthHrr == 1.0 && dhDepth == 1.0;
-                if(isSkyC != isSky){
-                    w *= 0.01;
+                float dhTerrainHrr = depthHrr == 1.0 && dhDepth < 1.0 ? 1.0 : 0.0;
+                if(dhTerrainHrr > 0.5){
+                    z = screenPosToViewPos(vec4(uv * invViewSize, dhDepth, 1.0)).z;
+                }else{
+                    z = screenPosToViewPos(vec4(uv * invViewSize, depthHrr, 1.0)).z;
                 }
+            #else
+                vec4 gd = texelFetch(colortex6, p, 0);
+                z = linearizeDepth(gd.g);
             #endif
+            
+            float wZ = saturate(1.2 - abs(z - z0) * 1.0); 
+            w  = vec4(wZ);
         }
         vec4 col = texelFetch(colortex3, p, 0);
         cSum += col * w;
@@ -134,20 +141,25 @@ vec4 JointBilateralFiltering_hrr_Horizontal(){
 }
 
 vec4 JointBilateralFiltering_hrr_Vertical(){
-    // return texelFetch(colortex1, ivec2(gl_FragCoord.xy), 0);
+    return texelFetch(colortex1, ivec2(gl_FragCoord.xy), 0);
 
     ivec2 pix = ivec2(gl_FragCoord.xy);
+    float z0;
 
     #ifdef DISTANT_HORIZONS
-        ivec2 uvC = ivec2(pix * 2.0 - vec2(0.0, 1.0) * viewSize);
-        float depthHrrC = texelFetch(depthtex0, uvC, 0).r;
-        float dhDepthC = texelFetch(dhDepthTex0, uvC, 0).r;
-        bool isSkyC = depthHrrC == 1.0 && dhDepthC == 1.0;
+        ivec2 hrrUV_c = ivec2(pix * 2.0 - vec2(0.0, 1.0) * viewSize);
+        float depthHrr = texelFetch(depthtex0, hrrUV_c, 0).r;
+        float dhDepth = texelFetch(dhDepthTex0, hrrUV_c, 0).r;
+        float dhTerrainHrr = depthHrr == 1.0 && dhDepth < 1.0 ? 1.0 : 0.0;
+        if(dhTerrainHrr > 0.5){
+            z0 = screenPosToViewPos(vec4(hrrUV_c * invViewSize, dhDepth, 1.0)).z;
+        }else{
+            z0 = screenPosToViewPos(vec4(hrrUV_c * invViewSize, depthHrr, 1.0)).z;
+        }
+    #else
+        vec4 curGD = texelFetch(colortex6, pix, 0);
+        z0 = linearizeDepth(curGD.g);
     #endif
-
-    vec4 curGD = texelFetch(colortex6, pix, 0);
-    vec3  normal0 = unpackNormal(curGD.r);
-    float z0      = linearizeDepth(curGD.g);
 
     const float radius  = 6.0;
     const float quality = 6.0;
@@ -164,22 +176,24 @@ vec4 JointBilateralFiltering_hrr_Vertical(){
 
         vec4 w = vec4(1.0);
         if(isEyeInWater == 0.0){
-            vec4 gd = texelFetch(colortex6, p, 0);
-            // vec3  n  = unpackNormal(gd.r);
-            float z  = linearizeDepth(gd.g);
-            
-            float wZ = saturate(1.2 - abs(z - z0) * 1.0);
-            w  = vec4(wZ);
-
+            float z;
             #ifdef DISTANT_HORIZONS
                 ivec2 uv = ivec2(p * 2.0 - vec2(0.0, 1.0) * viewSize);
                 float depthHrr = texelFetch(depthtex0, uv, 0).r;
                 float dhDepth = texelFetch(dhDepthTex0, uv, 0).r;
-                bool isSky = depthHrr == 1.0 && dhDepth == 1.0;
-                if(isSkyC != isSky){
-                    w *= 0.01;
+                float dhTerrainHrr = depthHrr == 1.0 && dhDepth < 1.0 ? 1.0 : 0.0;
+                if(dhTerrainHrr > 0.5){
+                    z = screenPosToViewPos(vec4(uv * invViewSize, dhDepth, 1.0)).z;
+                }else{
+                    z = screenPosToViewPos(vec4(uv * invViewSize, depthHrr, 1.0)).z;
                 }
+            #else
+                vec4 gd = texelFetch(colortex6, p, 0);
+                z = linearizeDepth(gd.g);
             #endif
+
+            float wZ = saturate(1.2 - abs(z - z0) * 1.0);
+            w  = vec4(wZ);
         }
 
         vec4 col = texelFetch(colortex1, p, 0);

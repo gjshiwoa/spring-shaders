@@ -281,7 +281,7 @@ const bool shadowHardwareFiltering = true;
 
 #define SHADOW_BIAS 0.85    // [0.80 0.85 0.90 0.95 1.00]
 const int shadowMapResolution = 2048;   // [1024 2048 3072 4096 5120 6144 7168 8192]
-const float shadowDistance = 120.0;    // [40.0 80.0 120.0 160.0 200.0 240.0 280.0 320.0 360.0]
+const float shadowDistance = 160.0;    // [40.0 80.0 120.0 160.0 200.0 240.0 280.0 320.0 360.0]
 // const float shadowDistanceRenderMul = 1.0;
 #define BLOCKER_SEARCH_SAMPLES 3.0 // [3.0 5.0 7.0 9.0 12.0 15.0 18.0 21.0 24.0 27.0 30.0 33.0 36.0]
 #define SHADOW_SOFTNESS 1.0 // [0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 2.5 3.0 3.5 4.0 4.5 5.0 6.0 7.0 8.0 9.0 10.0]
