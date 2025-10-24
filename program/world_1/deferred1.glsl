@@ -21,13 +21,13 @@ varying float isNoon, isNight, sunRiseSet;
 #include "/lib/atmosphere/atmosphericScattering.glsl"
 
 #ifdef FSH
-const bool shadowtex1Mipmap = true;
-const bool shadowtex1Nearest = false;
+// const bool shadowtex1Mipmap = true;
+// const bool shadowtex1Nearest = false;
 
-const bool shadowcolor0Mipmap = true;
-const bool shadowcolor0Nearest = false;
-const bool shadowcolor1Mipmap = true;
-const bool shadowcolor1Nearest = false;
+// const bool shadowcolor0Mipmap = true;
+// const bool shadowcolor0Nearest = false;
+// const bool shadowcolor1Mipmap = true;
+// const bool shadowcolor1Nearest = false;
 
 #include "/lib/common/gbufferData.glsl"
 #include "/lib/common/materialIdMapper.glsl"
@@ -56,7 +56,7 @@ void main() {
 
 		vec4 gi = vec4(rsm, ao);
 		#if defined RSM_ENABLED || defined AO_ENABLED
-			gi = temporal_RSM(gi, 0.0);
+			gi = temporal_RSM(gi);
 			gi = max(vec4(0.0), gi);
 			CT1 = gi;
 			CT3 = gi;

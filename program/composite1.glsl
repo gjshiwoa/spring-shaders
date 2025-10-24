@@ -44,7 +44,7 @@ void main() {
 
 		float dhTerrainHrr = 0.0;
 		float depthHrr = texelFetch(depthtex0, ivec2(hrrUV_c * viewSize), 0).r;
-		#ifdef DISTANT_HORIZONS
+		#if defined DISTANT_HORIZONS && !defined NETHER && !defined END
 			float dhDepth = texture(dhDepthTex0, hrrUV_c).r;
 			dhTerrainHrr = depthHrr == 1.0 && dhDepth < 1.0 ? 1.0 : 0.0;
 			if(dhTerrainHrr > 0.5){
@@ -58,7 +58,7 @@ void main() {
 		vec4 hrrWorldPos = viewPosToWorldPos(hrrViewPos);
 		vec3 hrrWorldDir = normalize(hrrWorldPos.xyz);
 
-		#ifdef DISTANT_HORIZONS
+		#if defined DISTANT_HORIZONS && !defined NETHER && !defined END
 			if(isTerrainHrr < 0.5){
 				hrrWorldPos.xyz = hrrWorldDir * dhRenderDistance;
 			}
@@ -80,8 +80,10 @@ void main() {
 					fogVis = (fogVis * min(shadowDistance, hrrWorldDis) + max(hrrWorldDis - shadowDistance, 0.0)) / hrrWorldDis;
 					fogVis = saturate(fogVis * isNoon);
 
-					mat2x3 AtmosphericScattering_Land = AtmosphericScattering(hrrWorldPos.xyz, normalize(hrrWorldPos.xyz), sunWorldDir, IncomingLight, 1.0, int(VOLUME_LIGHT_SAMPLES));
-					fogColor.rgb += (AtmosphericScattering_Land[0] * fogVis + AtmosphericScattering_Land[1]) * ATMOSPHERIC_SCATTERING_FOG_DENSITY * fogColor.a;
+					mat2x3 AtmosphericScattering_Land = AtmosphericScattering(hrrWorldPos.xyz, normalize(hrrWorldPos.xyz), 
+														sunWorldDir, IncomingLight, 1.0, int(VOLUME_LIGHT_SAMPLES));
+					fogColor.rgb += (AtmosphericScattering_Land[0] * fogVis + AtmosphericScattering_Land[1])
+														 * ATMOSPHERIC_SCATTERING_FOG_DENSITY * fogColor.a;
 				}
 			#endif
 		}

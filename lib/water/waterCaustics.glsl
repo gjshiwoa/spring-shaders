@@ -87,7 +87,7 @@ vec3 computeCausticsWithDispersion(vec3 vMcPos) {
     sampleUV.z *= 3.0;
     sampleUV += CAUSTICS_SPEED * vec3(0.0, frameTimeCounter * 0.8, frameTimeCounter);
 
-    vec2 caustBase = texture(colortex8, sampleUV).rb;
+    vec2 caustBase = texture(colortex8, sampleUV).ba;
     float baseCol = evalCaustRemapped(caustBase);
 
     float disp = clamp(CAUSTICS_DISPERSION, 0.0, 1.0);
@@ -99,8 +99,8 @@ vec3 computeCausticsWithDispersion(vec3 vMcPos) {
     vec3 offR = vec3( 0.0, shift * 0.66, 0.0 );
     vec3 offB = vec3( 0.0, -shift * 1.0, 0.0 );
 
-    vec2 caustR = texture(colortex8, sampleUV + offR).rb;
-    vec2 caustB = texture(colortex8, sampleUV + offB).rb;
+    vec2 caustR = texture(colortex8, sampleUV + offR).ba;
+    vec2 caustB = texture(colortex8, sampleUV + offB).ba;
 
     vec3 colDisp = vec3(
         evalCaustRemapped(caustR),

@@ -67,17 +67,17 @@ void main() {
 
 	float dhTerrainHrr = 0.0;
 	float depthHrr1 = texelFetch(depthtex1, ivec2(hrrUV * viewSize), 0).r;
-	#ifdef DISTANT_HORIZONS
+	#if defined DISTANT_HORIZONS && !defined NETHER && !defined END
 		float dhDepth = texture(dhDepthTex0, hrrUV).r;
 		dhTerrainHrr = depthHrr1 == 1.0 && dhDepth < 1.0 ? 1.0 : 0.0;
 	#endif
 
-	float isTerrainHrr = depthHrr1 < 1.0 || dhTerrainHrr > 0.5 ? 1.0 : 0.0;
+	bool isTerrainHrr = depthHrr1 < 1.0 || dhTerrainHrr > 0.5;
 
-	if(!outScreen(hrrUV) && isTerrainHrr > 0.5){
+	if(!outScreen(hrrUV) && isTerrainHrr){
 		vec4 hrrScreenPos = vec4(unTAAJitter(hrrUV), hrrZ, 1.0);
 		vec4 hrrViewPos = screenPosToViewPos(hrrScreenPos);
-		#ifdef DISTANT_HORIZONS
+		#if defined DISTANT_HORIZONS && !defined NETHER && !defined END
 			if(dhTerrainHrr > 0.5){
 				hrrViewPos = screenPosToViewPosDH(vec4(unTAAJitter(hrrUV), dhDepth, 1.0));
 			}
@@ -110,7 +110,7 @@ void main() {
 
 		vec4 gi = vec4(rsm, ao);
 		#if defined RSM_ENABLED || defined AO_ENABLED
-			gi = temporal_RSM(gi, dhTerrainHrr);
+			gi = temporal_RSM(gi);
 			gi = max(vec4(0.0), gi);
 			// CT1 = gi;
 			CT3 = gi;

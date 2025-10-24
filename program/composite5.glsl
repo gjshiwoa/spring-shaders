@@ -29,15 +29,15 @@ varying float isNoonS, isNightS, sunRiseSetS;
 #include "/lib/atmosphere/fog.glsl"
 
 void main() {
-	float skyB = texelFetch(depthtex1, ivec2(gl_FragCoord.xy), 0).r == 1.0 ? 1.0 : 0.0;
+	float depth = texelFetch(depthtex0, ivec2(gl_FragCoord.xy), 0).r;
+	float skyB = depth == 1.0 ? 1.0 : 0.0;
 	vec4 color = texelFetch(colortex0, ivec2(gl_FragCoord.xy), 0);
 
-	#ifdef DISTANT_HORIZONS
+	#if defined DISTANT_HORIZONS && !defined NETHER && !defined END
 		bool isTerrain = skyB < 0.5;
 
-		float depth = texture(depthtex0, texcoord).r;
 		vec4 viewPos;
-		float dhDepth = texture(dhDepthTex0, texcoord).r;
+		float dhDepth = texelFetch(dhDepthTex0, ivec2(gl_FragCoord.xy), 0).r;
 		float dhTerrain = depth == 1.0 && dhDepth < 1.0 ? 1.0 : 0.0;
 		if(dhTerrain > 0.5){ 
 			viewPos = screenPosToViewPosDH(vec4(unTAAJitter(texcoord), dhDepth, 1.0));
@@ -50,7 +50,6 @@ void main() {
 	#else 
 		bool isTerrain = skyB < 0.5;
 
-		float depth = texture(depthtex1, texcoord).r;
 		vec4 viewPos = screenPosToViewPos(vec4(unTAAJitter(texcoord), depth, 1.0));	
 	#endif
 
@@ -59,9 +58,9 @@ void main() {
 	vec3 worldDir = normalize(worldPos.xyz);
 
 	vec4 fogColor = getFog(depth);
-	if(dot(fogColor.rgb, fogColor.rgb) < 1e-9){
-		fogColor.a = 1.0;
-	}
+	// if(dot(fogColor.rgb, fogColor.rgb) < 1e-9){
+	// 	fogColor.a = 1.0;
+	// }
 
 	#if defined UNDERWATER_FOG || defined ATMOSPHERIC_SCATTERING_FOG
 		#ifdef UNDERWATER_FOG

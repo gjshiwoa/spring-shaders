@@ -237,13 +237,14 @@ const float fog_b = 0.015;
 const float fog_startDis = 0.0;
 const float fog_startHeight = 0.0;
 
+#define VOLUMETRIC_FOG
 
 const float fogSigmaS = 0.03;
 const float fogSigmaA = 0.01;
 const float fogSigmaE = fogSigmaS + fogSigmaA;
 
 #define FOG_REF_HEIGHT 64.0
-#define FOG_THICKNESS 150.0
+#define FOG_THICKNESS 200.0
 const vec2 fogHeight = vec2(FOG_REF_HEIGHT - FOG_THICKNESS * 0.5, FOG_REF_HEIGHT + FOG_THICKNESS * 0.5) - 64.0 + CAMERA_HEIGHT;
 
 
@@ -361,7 +362,7 @@ const vec3 waterFogColor = vec3(WATER_FOG_COLOR_RED, WATER_FOG_COLOR_GREEN, WATE
 
 #define UNDERWATER_FOG
 #define UNDERWATER_FOG_G 0.15       // [0.01 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5]
-#define UNDERWATER_FOG_G2 0.65      // [0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95]
+#define UNDERWATER_FOG_G2 0.75      // [0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95]
 #define UNDERWATER_FOG_G2_BRI 0.2   // [0.0 0.1 0.15 0.2 0.25 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 #define UNDERWATER_FOG_MIST 50.0    // [10.0 20.0 30.0 40.0 50.0 60.0 70.0 80.0 90.0 100.0]
 
@@ -403,7 +404,7 @@ const vec3 waterFogColor = vec3(WATER_FOG_COLOR_RED, WATER_FOG_COLOR_GREEN, WATE
 
 
 #define CAUSTICS
-#define CAUSTICS_FREQ 0.06          // [0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.09 0.11 0.13 0.15 0.17 0.19]
+#define CAUSTICS_FREQ 0.03          // [0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.09 0.11 0.13 0.15 0.17 0.19]
 #define CAUSTICS_SPEED 0.13         // [0.01 0.03 0.05 0.06 0.07 0.09 0.11 0.13 0.15 0.17 0.19]
 #define CAUSTICS_POWER 3.0          // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
 #define CAUSTICS_BRI_MIN 1.0        // [0.2 0.4 0.6 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0]
@@ -433,8 +434,8 @@ const vec3 waterFogColor = vec3(WATER_FOG_COLOR_RED, WATER_FOG_COLOR_GREEN, WATE
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define EXPOSURE
 #define EXPOSURE_MODE 1             // [0 1]
-#define TARGET_BRIGHTNESS 0.1      // [0.06 0.07 0.08 0.09 0.1 0.11 0.012 0.13 0.14 0.15 0.16 0.17 0.18 0.19 0.2]
-#define LIGHT_SENSITIVITY 1.4       // [0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0]
+#define TARGET_BRIGHTNESS 0.11      // [0.06 0.07 0.08 0.09 0.1 0.11 0.012 0.13 0.14 0.15 0.16 0.17 0.18 0.19 0.2]
+#define LIGHT_SENSITIVITY 1.5       // [0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0]
 #define EXPOSURE_DELTA 0.55         // [0.1 0.2 0.3 0.4 0.5 0.55 0.6 0.7 0.8 0.9 1.0]
 
 

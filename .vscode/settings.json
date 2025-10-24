@@ -1,3 +1,4 @@
 {
-    "claudeCodeChat.permissions.yoloMode": false
+    "trae.tab.enableRename": false,
+    "trae.tab.enableAutoImport": false
 }

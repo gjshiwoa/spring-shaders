@@ -82,7 +82,7 @@ vec4 JointBilateralFiltering_hrr_Horizontal(){
     
     ivec2 pix = ivec2(gl_FragCoord.xy);
 
-    #ifdef DISTANT_HORIZONS
+    #if defined DISTANT_HORIZONS && !defined NETHER && !defined END
         ivec2 uvC = ivec2(pix * 2.0 - vec2(0.0, 1.0) * viewSize);
         float depthHrrC = texelFetch(depthtex0, uvC, 0).r;
         float dhDepthC = texelFetch(dhDepthTex0, uvC, 0).r;
@@ -115,7 +115,7 @@ vec4 JointBilateralFiltering_hrr_Horizontal(){
             float wZ = saturate(1.2 - abs(z - z0) * 1.0);      // 深度权重
             w  = vec4(wZ);
 
-            #ifdef DISTANT_HORIZONS
+            #if defined DISTANT_HORIZONS && !defined NETHER && !defined END
                 ivec2 uv = ivec2(p * 2.0 - vec2(0.0, 1.0) * viewSize);
                 float depthHrr = texelFetch(depthtex0, uv, 0).r;
                 float dhDepth = texelFetch(dhDepthTex0, uv, 0).r;
@@ -138,7 +138,7 @@ vec4 JointBilateralFiltering_hrr_Vertical(){
 
     ivec2 pix = ivec2(gl_FragCoord.xy);
 
-    #ifdef DISTANT_HORIZONS
+    #if defined DISTANT_HORIZONS && !defined NETHER && !defined END
         ivec2 uvC = ivec2(pix * 2.0 - vec2(0.0, 1.0) * viewSize);
         float depthHrrC = texelFetch(depthtex0, uvC, 0).r;
         float dhDepthC = texelFetch(dhDepthTex0, uvC, 0).r;
@@ -171,7 +171,7 @@ vec4 JointBilateralFiltering_hrr_Vertical(){
             float wZ = saturate(1.2 - abs(z - z0) * 1.0);
             w  = vec4(wZ);
 
-            #ifdef DISTANT_HORIZONS
+            #if defined DISTANT_HORIZONS && !defined NETHER && !defined END
                 ivec2 uv = ivec2(p * 2.0 - vec2(0.0, 1.0) * viewSize);
                 float depthHrr = texelFetch(depthtex0, uv, 0).r;
                 float dhDepth = texelFetch(dhDepthTex0, uv, 0).r;

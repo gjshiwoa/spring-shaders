@@ -35,7 +35,7 @@ void main() {
 
 	float dhTerrainHrr = 0.0;
 	float depthHrr1 = texelFetch(depthtex1, ivec2(uv * viewSize), 0).r;
-	#ifdef DISTANT_HORIZONS
+	#if defined DISTANT_HORIZONS && !defined NETHER && !defined END
 		dhTerrainHrr = depthHrr1 == 1.0 && texelFetch(dhDepthTex0, ivec2(uv * viewSize), 0).r < 1.0 ? 1.0 : 0.0;
 	#endif
 

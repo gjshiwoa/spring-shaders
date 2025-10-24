@@ -22,13 +22,13 @@ varying vec3 sunViewDir, moonViewDir, lightViewDir;
 #include "/lib/atmosphere/atmosphericScattering.glsl"
 
 #ifdef FSH
-const bool shadowtex1Mipmap = true;
-const bool shadowtex1Nearest = false;
+// const bool shadowtex1Mipmap = true;
+// const bool shadowtex1Nearest = false;
 
-const bool shadowcolor0Mipmap = true;
-const bool shadowcolor0Nearest = false;
-const bool shadowcolor1Mipmap = true;
-const bool shadowcolor1Nearest = false;
+// const bool shadowcolor0Mipmap = true;
+// const bool shadowcolor0Nearest = false;
+// const bool shadowcolor1Mipmap = true;
+// const bool shadowcolor1Nearest = false;
 
 
 
@@ -89,7 +89,7 @@ void main() {
 	vec3 normalW = normalize(viewPosToWorldPos(vec4(normalV, 0.0)).xyz);
 
 	vec3 L2 = BLACK;
-	float ao = 1.0;
+	vec3 ao = vec3(1.0);
 
 	if(skyB < 0.5){	
 		vec2 lightmap = AdjustLightmap(mcLightmap);
@@ -109,7 +109,13 @@ void main() {
 		
 		vec4 gi = getGI(depth1, normalW);
 		if(noRSM < 0.5) {
-			ao = gi.a;
+			#ifdef AO_ENABLED
+				#ifdef AO_MULTI_BOUNCE
+					ao = AOMultiBounce(albedo, saturate(gi.a));
+				#else 
+					ao = vec3(saturate(gi.a));
+				#endif
+			#endif
 		}
 
 		float shade = shadowMappingTranslucent(worldPos1, normalW, 0.5, 5.0);

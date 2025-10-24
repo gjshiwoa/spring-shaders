@@ -59,14 +59,14 @@ void main() {
 	vec3 L2 = BLACK;
 	vec3 ao = vec3(1.0);
 
-	#ifdef DISTANT_HORIZONS
+	#if defined DISTANT_HORIZONS && !defined NETHER && !defined END
 		bool isTerrain = skyB < 0.5;
 
 		float depth1;
 		vec4 viewPos1;
 		if(dhTerrain > 0.5){ 
-			depth1 = texture(dhDepthTex0, texcoord).r;
-			viewPos1 = screenPosToViewPosDH(vec4(unTAAJitter(texcoord), depth1, 1.0));
+			float dhDepth = texture(dhDepthTex0, texcoord).r;
+			viewPos1 = screenPosToViewPosDH(vec4(unTAAJitter(texcoord), dhDepth, 1.0));
 			depth1 = viewPosToScreenPos(viewPos1).z;
 		}else{
 			depth1 = texture(depthtex1, texcoord).r;

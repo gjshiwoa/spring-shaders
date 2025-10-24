@@ -22,9 +22,8 @@ float sampleCloudDensityLow(vec3 cameraPos, float height_fraction){
     coverage = saturate(1.0 - 0.45 * coverage - 0.3 * rainStrength + 0.05);
 
     // vec3 curl = vec3(0.0);
-    // float curlNoise = weatherData.g * 2.0 - 1.0;
-    // curl.xy = vec2(100.0 * curlNoise);
-    // curl.z = 200.0 * curlNoise * height_fraction;
+    // float curlNoise = weatherData.b * 2.0 - 1.0;
+    // curl.xy = vec2(200.0 * curlNoise);
     // cameraPos += curl;
 
     vec4 low_frequency_noise = texture(colortex8, cameraPos * 0.00045 + vec3(0.0, 0.4, 0.0));
@@ -56,6 +55,10 @@ float sampleCloudDensity(vec3 cameraPos, bool doCheaply){
     vec3 wind_direction = normalize(vec3(1.0, 0.0, 1.0));
     cameraPos += wind_direction * frameTimeCounter * 10.0;
     cameraPos += wind_direction * height_fraction * 100.0;
+
+    // cameraPos *= 0.0045;
+    // cameraPos = floor(cameraPos);
+    // cameraPos /= 0.0045;
 
     float base_cloud = sampleCloudDensityLow(cameraPos, height_fraction);
     float final_cloud = base_cloud;
@@ -113,7 +116,7 @@ float GetInScatterProbability(float height_fraction, float ds_loded, float atten
     float height_factor = remapSaturate(pow(height_fraction, 1.0), 0.0, 1.0, 0.7, 1.0);
     float attenuation_factor = remapSaturate(pow(attenuation, 1.0), 0.0, 1.0, 0.25, 1.0);
     // float angle_factor = remapSaturate(VoL, 0.6, 1.0, 1.0, 0.5);
-    float depth_probability = 0.05 + pow(ds_loded, attenuation_factor * height_factor * (1.25 - 0.0 * sunRiseSetS));
+    float depth_probability = 0.05 + pow(ds_loded, attenuation_factor * height_factor * 1.25);
 
     // float vertical_probability = pow(remapSaturate(height_fraction, 0.07, 0.14, 0.8, 1.0), 0.8);
 
@@ -142,7 +145,7 @@ vec3 sunLuminance(vec3 pos, float VoL, float iVoL, float extinction){
 
     float inScatter = GetInScatterProbability(height_fraction, density, attenuation, VoL);
 
-    vec3 direct = 1.35 * sunColor * attenuation * phase * pow(max(0.0, remap(height_fraction, 0.07, 0.14, 0.9, 1.0)), 0.8);
+    vec3 direct = 1.4 * sunColor * attenuation * phase * pow(max(0.0, remap(height_fraction, 0.07, 0.14, 0.9, 1.0)), 0.8);
 
     float height_factor = remapSaturate(pow(height_fraction, 0.5), 0.0, 1.0, 0.5, 1.0);
     float depth_factor = pow(saturate(1.0 - density), 2.0);

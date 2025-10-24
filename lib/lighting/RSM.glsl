@@ -162,7 +162,7 @@ float estimateRsmLeakAO(vec3 mainDir, vec3 hrrViewPos){
     return 1.0;
 }
 
-vec4 temporal_RSM(vec4 color_c, float dhTerrain){
+vec4 temporal_RSM(vec4 color_c){
     vec2 uv = texcoord * 2;
     vec2 cur = texelFetch(colortex6, ivec2(gl_FragCoord.xy), 0).rg;
     float z = cur.g;

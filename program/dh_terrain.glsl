@@ -20,7 +20,7 @@ varying vec4 vViewPos;
 flat in float blockID;
 
 void main() {
-	if(length(vViewPos.xyz) < far * 0.9 || outScreen(gl_FragCoord.xy * invViewSize)) {
+	if(texelFetch(depthtex0, ivec2(gl_FragCoord.xy), 0).r < 1.0 || length(vViewPos.xyz) < far * 0.9 || outScreen(gl_FragCoord.xy * invViewSize)) {
 		discard;
 	}
 
@@ -45,9 +45,9 @@ flat out float blockID;
 void main() {
 	switch(dhMaterialId){
 		case DH_BLOCK_LEAVES:	blockID = DH_LEAVES;  	break;
-		case DH_BLOCK_WOOD: 	blockID = DH_WOOD; 	break;
+		case DH_BLOCK_WOOD: 	blockID = DH_WOOD; 		break;
 
-		default:				blockID = DH_TERRAIN;		break;
+		default:				blockID = DH_TERRAIN;	break;
 	}
 
 	vViewPos = gl_ModelViewMatrix * gl_Vertex;

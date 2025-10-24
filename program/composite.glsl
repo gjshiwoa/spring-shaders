@@ -65,14 +65,12 @@ void main() {
 		vec3 curNormalV = normalDecode(texelFetch(colortex5, ivec2(uv * viewSize), 0).rg);
 		curNormalW = mat3(gbufferModelViewInverse) * curNormalV;
 
-		#ifdef DISTANT_HORIZONS
+		#if defined DISTANT_HORIZONS && !defined NETHER && !defined END
 			float dhCurZ = texelFetch(dhDepthTex0, ivec2(uv * viewSize), 0).r;
 			vec4 dhViewPos = screenPosToViewPosDH(vec4(uv, dhCurZ, 1.0));
 			dhCurZ = viewPosToScreenPos(dhViewPos).z;
 
 			float dhTerrain = texture(dhDepthTex0, uv).r < 1.0 && curZ == 1.0 ? 1.0 : 0.0;
-
-			// if(dhTerrain < 0.5 && curZ < 1.0) curZ = -1.0;
 
 			if(dhTerrain > 0.5){
 				curZ = dhCurZ;

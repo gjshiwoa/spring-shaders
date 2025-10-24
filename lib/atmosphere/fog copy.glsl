@@ -83,15 +83,15 @@ float sampleFogDensityLow(vec3 cameraPos, float height_fraction){
     float coverage = saturate(mix(weatherData.r, weatherData.g, 1.0));
     coverage = pow(coverage, remapSaturate(height_fraction, 0.1, 0.75, 0.6, 1.2));
     coverage = saturate(1.0 - 0.65 * coverage 
-                        - 0.35 * saturate(rainStrength + 0.66 * isNightS + 0.66 * sunRiseSetS)
-                        + 0.15 * remapSaturate(pow(height_fraction, 1.0), 0.5, 1.0, 0.0, 1.0));
+                        - 0.4 * saturate(rainStrength + 0.66 * isNightS + 0.66 * sunRiseSetS) 
+                        + 0.15 * remapSaturate(pow(height_fraction, 0.8), 0.5, 1.0, 0.0, 1.0));
 
     cameraPos.y *= 1.33;
 
-    vec4 low_frequency_noise = texture(colortex8, cameraPos * 0.0025 + vec3(0.0, 0.9, 0.0));
+    vec4 low_frequency_noise = texture(colortex8, cameraPos * 0.0035 + vec3(0.0, 0.9, 0.0));
     float perlin3d = low_frequency_noise.r;
     vec3 worley3d = low_frequency_noise.gba;
-    float worley3d_FBM = worley3d.r * 0.625 + worley3d.g * 0.25 + worley3d.b * 0.125;
+    float worley3d_FBM = worley3d.g * 0.66 + worley3d.b * 0.33;
     float base = remapSaturate(perlin3d, - worley3d_FBM, 1.0, 0.0, 1.0);
     // base = worley3d_FBM;
     base = remapSaturate(base, coverage, 1.0, 0.0, 1.0);
@@ -184,14 +184,14 @@ vec4 fogLuminance(inout vec4 intScattTrans, vec3 pos, vec3 oriStartPos, float st
     float height_fraction = getHeightFractionForPoint(pos.y, fogHeight);
 
     float phase = hgPhase1(VoL, 0.05);
-    float phase1 = hgPhase1(VoL, 0.75) * 0.075;
+    float phase1 = hgPhase1(VoL, 0.75) * 0.05;
     phase += phase1;
 
     float inScatter = GetInScatterProbability(height_fraction, density);
 
     // vec3 lightColor = mix(sunColor, skyColor * 8.0, saturate(0.05 + (1.0 - exp(-worldDis * fogSigmaS * 0.03))));
     vec3 lightColor = sunColor;
-    vec3 direct = 12.0 * lightColor * attenuation * inScatter * phase;
+    vec3 direct = 8.0 * lightColor * attenuation * inScatter * phase;
 
     float height_factor = remapSaturate(pow(height_fraction, 1.5), 0.0, 1.0, 0.5, 1.0);
     float depth_factor = (1.0 - density);
@@ -261,7 +261,7 @@ vec4 volumtricFog(vec3 startPos, vec3 worldPos){
             }   
             float density = sampleFogDensity(pos, false);
             
-            if(density > 0.001){
+            if(density > 0.05){
                 intScattTrans = fogLuminance(intScattTrans, pos, oriStartPos, stepSize, density, VoL, iVoL, true);
             }
             pos += stepVec;
@@ -281,7 +281,7 @@ vec4 volumtricFog(vec3 startPos, vec3 worldPos){
             }
             float density = sampleFogDensity(pos, false);
 
-            if(density > 0.001){
+            if(density > 0.05){
                 intScattTrans = fogLuminance(intScattTrans, pos, oriStartPos, stepSize, density, VoL, iVoL, false);
             }
             pos += stepVec;

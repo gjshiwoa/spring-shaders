@@ -25,7 +25,7 @@ void main() {
 		curZ = texelFetch(depthtex1, ivec2(uv1 * viewSize), 0).r;
 		curNormalW = normalize(viewPosToWorldPos(vec4(getNormalH(uv1), 0.0)).xyz);
 
-		#ifdef DISTANT_HORIZONS
+		#if defined DISTANT_HORIZONS && !defined NETHER && !defined END
 			float dhCurZ = texelFetch(dhDepthTex0, ivec2(uv1 * viewSize), 0).r;
 			vec4 dhViewPos = screenPosToViewPosDH(vec4(uv1, dhCurZ, 1.0));
 			dhCurZ = viewPosToScreenPos(dhViewPos).z;

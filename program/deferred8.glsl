@@ -74,6 +74,11 @@ void main() {
 					mix(saturate(pow(getLuminance(cloudScattering), 1.0)), exp(-cloudHitLength / CLOUD_FADE_DISTANCE) * 0.90, 0.66));
 		}
 
+		#if defined DISTANT_HORIZONS && !defined END && !defined NETHER
+			float far = dhRenderDistance;
+		#else
+			float fogDis = far;
+		#endif
 		vec4 fogColor = volumtricFog(camera, worldDirO * far);
 		color.rgb *= fogColor.a;
 		color.rgb += fogColor.rgb;

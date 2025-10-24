@@ -123,7 +123,7 @@ float GTAO(vec3 viewPos, vec3 normal, float dhTerrain){
                 vec4 sampleScreenPos = vec4(sampleUV, sampleDepth, 1.0);
                 vec3 sPosV = screenPosToViewPos(sampleScreenPos).xyz;
 
-                #ifdef DISTANT_HORIZONS
+                #if defined DISTANT_HORIZONS && !defined NETHER && !defined END
                     if(dhTerrain > 0.5){
                         float dhSampleDepth = texture(dhDepthTex0, sampleUV).r;
                         sPosV = screenPosToViewPosDH(vec4(sampleUV, dhSampleDepth, 1.0)).xyz;

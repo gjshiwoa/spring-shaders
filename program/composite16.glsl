@@ -40,6 +40,7 @@ void main() {
 	#else
 		bloomAmount += rainStrength * RAIN_ADDITIONAL_BLOOM;
 		bloomAmount += isNight * 0.05;
+		// bloomAmount += max(isNight, 1.0 - eyeBrightnessSmooth.y/240.0) * 0.05;
 
 		if(isEyeInWater == 1){
 			bloomAmount += UNDERWATER_ADD_BLOOM;

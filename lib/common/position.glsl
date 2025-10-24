@@ -10,7 +10,7 @@ vec4 screenPosToViewPos(vec4 screenPos){
     return vec4(clipPos.xyz / clipPos.w, 1.0);
 }
 
-#ifdef DISTANT_HORIZONS
+#if defined DISTANT_HORIZONS && !defined NETHER && !defined END
     vec4 screenPosToViewPosDH(vec4 screenPos){
         vec4 NDCPos = vec4(screenPos.xyz * 2.0 - 1.0, 1.0);
         vec4 clipPos = dhProjectionInverse * NDCPos;

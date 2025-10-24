@@ -1,21 +1,16 @@
-varying vec2 lmcoord, texcoord;
-
-varying vec3 normalVO, normalWO;
-
 varying vec4 glcolor;
 
-varying float worldDis0;
 varying vec4 vViewPos, vWorldPos, vMcPos;
+
 varying float isNoon, isNight, sunRiseSet;
+varying float isNoonS, isNightS, sunRiseSetS;
 
 varying vec3 sunWorldDir, moonWorldDir, lightWorldDir;
 varying vec3 sunViewDir, moonViewDir, lightViewDir;
 
+varying vec3 normalVO, normalWO;
+
 varying vec3 sunColor, skyColor;
-varying vec3 zenithColor, horizonColor;
-
-varying mat3 tbnMatrix;
-
 
 #include "/lib/uniform.glsl"
 #include "/lib/settings.glsl"
@@ -24,27 +19,143 @@ varying mat3 tbnMatrix;
 #include "/lib/common/position.glsl"
 #include "/lib/common/noise.glsl"
 #include "/lib/common/normal.glsl"
-
-// #include "/lib/atmosphere/atmosphericScattering.glsl"
-// #include "/lib/atmosphere/celestial.glsl"
-
-// #include "/lib/lighting/lightmap.glsl"
-// #include "/lib/lighting/shadowMapping.glsl"
-
-// #include "/lib/water/waterNormal.glsl"
-// #include "/lib/water/waterFog.glsl"
-// #include "/lib/water/waterReflectionRefraction.glsl"
-// #include "/lib/surface/PBR.glsl"
+#include "/lib/lighting/shadowMapping.glsl"
 
 #ifdef FSH
-// #include "/lib/water/translucentLighting.glsl"
-
-// const bool colortex5MipmapEnabled = true;
-
 flat in float isWater;
 
+#include "/lib/surface/PBR.glsl"
+#include "/lib/water/waterNormal.glsl"
+#include "/lib/water/waterFog.glsl"
+#include "/lib/water/waterReflectionRefraction.glsl"
+#include "/lib/water/translucentLighting.glsl"
+#include "/lib/atmosphere/celestial.glsl"
+
 void main() {
-	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);
+	vec2 fragCoord = gl_FragCoord.xy * invViewSize;
+	float depth = texture(depthtex0, fragCoord).r;
+	float worldDis0 = length(vWorldPos.xyz);
+	if(depth < 1.0) {
+		discard;
+	}
+
+	vec4 color = vec4(0.0, 0.0, 0.0, 1.0);
+
+	bool isUnderwater = (isEyeInWater == 1);
+	bool isAbovewater = (isEyeInWater == 0);
+
+	if(isWater > 0.5){
+		vec3 waveWorldNormal = getWaveNormalDH(vMcPos.xz, WAVE_NORMAL_ITERATIONS);
+		vec3 waveViewNormal = mat3(gbufferModelView) * waveWorldNormal;
+		
+		vec2 refractCoord = saturate(waterRefractionCoord(normalVO, waveViewNormal, worldDis0));
+		float depth1 = texture(depthtex1, refractCoord).r;
+		vec4 viewPos1;
+		float dhDepth1 = texture(dhDepthTex1, refractCoord).r;
+		float dhTerrain = depth1 == 1.0 && dhDepth1 < 1.0 ? 1.0 : 0.0;
+		if(dhTerrain > 0.5){
+			viewPos1 = screenPosToViewPosDH(vec4(refractCoord, dhDepth1, 1.0));
+		}else{
+			viewPos1 = screenPosToViewPos(vec4(refractCoord, depth1, 1.0));
+		}
+		vec3 viewDir = normalize(viewPos1.xyz);
+		vec4 worldPos1 = viewPosToWorldPos(viewPos1);
+		float worldDis1 = length(worldPos1.xyz);
+		vec3 worldDir = normalize(worldPos1.xyz);
+		vec4 fWorldPos1 = vec4(min(worldDis1, dhRenderDistance) * worldDir, 1.0);
+
+
+
+
+		#ifdef WATER_REFRACTION
+			bool useRefract =  dot(normalize(worldPos1.xyz - vWorldPos.xyz), normalWO) < 0.0;
+			vec2 sampleCoord = useRefract ? refractCoord : fragCoord;
+			color.rgb = textureLod(gaux1, sampleCoord, 1).rgb * 1.25 * COLOR_UI_SCALE;
+		#endif
+
+
+
+
+		float deep = worldDis1 - worldDis0;
+		vec3 fogColor = waterFogColor * (mix(vec3(getLuminance(sunColor)), sunColor, 0.5) * 0.125 + NIGHT_VISION_BRIGHTNESS * nightVision);
+
+		float lightmapY = 1.0;
+
+		if (isAbovewater) {
+			float depthFactor = saturate(deep / WATER_MIST_VISIBILITY);
+			vec3 fogAttenuation = saturate(exp(-(vec3(1.0) - fogColor) * deep * WATER_FOG_TRANSMIT));
+			
+			color.rgb *= fogAttenuation;
+			color.rgb = mix(color.rgb, fogColor * 0.25 * lightmapY, depthFactor);
+		}
+
+
+
+		float TIR = 0.0;
+		vec3 reflectWorldDir = reflect(worldDir, waveWorldNormal);
+		vec3 reflectViewDir = reflect(viewDir, waveViewNormal);
+	
+		float underwaterFactor = isUnderwater ? 0.0 : 1.0;
+		bool ssrTargetSampled = false;
+		
+		float cosTheta = dot(-worldDir, waveWorldNormal);
+		float fresnel = mix(pow(1.0 - saturate(cosTheta), REFLECTION_FRESNAL_POWER), 1.0, WATER_F0);
+
+		#ifdef WATER_REFLECTION
+			vec3 reflectColor = reflection(
+				colortex8, 
+				vViewPos.xyz, 
+				reflectWorldDir, 
+				reflectViewDir, 
+				lightmapY * underwaterFactor, 
+				normalVO, 
+				COLOR_UI_SCALE, 
+				ssrTargetSampled
+			);
+
+			reflectColor *= saturate(dot(normalWO, upWorldDir) + 0.1);
+			
+			if (isAbovewater) {
+				color.rgb = mix(color.rgb, reflectColor, fresnel);
+			} else {
+				color.rgb += fogColor * 0.2 * lightmapY * TIR;
+				color.rgb = mix(color.rgb, reflectColor, saturate(float(ssrTargetSampled) * TIR));
+			}
+		#endif
+
+
+
+
+		#ifdef WATER_REFLECT_HIGH_LIGHT
+			float shade = 1.0;
+			#if MC_VERSION < 11400
+				
+			#else
+				#ifdef TRANSLUCENT_SHADOW
+					shade = shadowMappingTranslucent(vWorldPos, normalWO, 0.5, 1.0);
+				#endif
+			#endif
+			MaterialParams params;
+			params.roughness = 0.5;
+			params.metalness = 0.5;
+			vec3 BRDF = reflectPBR(viewDir, waveViewNormal, sunViewDir, params);
+			float lightmapMask = remapSaturate(lightmapY, 0.5, 1.0, 0.0, 1.0) * shade;
+			color.rgb += drawCelestial(reflectWorldDir, 1.0, false) * lightmapMask * WATER_REFLECT_HIGH_LIGHT_INTENSITY * 0.5 * float(!ssrTargetSampled);
+		#endif
+
+		// float dhDepth0 = texture(dhDepthTex0, fragCoord).r;
+		// vec4 viewPos0 = screenPosToViewPosDH(vec4(fragCoord, dhDepth0, 1.0));
+
+		// dhDepth1 = texture(dhDepthTex1, fragCoord).r;
+		// viewPos1 = screenPosToViewPosDH(vec4(fragCoord, dhDepth1, 1.0));
+		// color.rgb = max(vec3(abs(length(viewPos1.xyz - viewPos0.xyz))), vec3(0.0));
+	}else{
+		color = vec4(glcolor.rgb * isNoon, 0.5);
+	}
+
+	
+	
+	
 
 /* DRAWBUFFERS:0 */
 	gl_FragData[0] = color;
@@ -55,12 +166,10 @@ void main() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef VSH
-// #include "/lib/common/noise.glsl"
 flat out float isWater;
 
 attribute vec4 mc_Entity;
 attribute vec4 mc_midTexCoord;
-// attribute vec4 at_tangent;
 
 void main() {
 	gl_Position = ftransform();
@@ -68,18 +177,10 @@ void main() {
 
 	vViewPos = gl_ModelViewMatrix * gl_Vertex;
 	vWorldPos = viewPosToWorldPos(vViewPos);
-	worldDis0 = length(vWorldPos.xyz);
 	vMcPos = vec4(vWorldPos.xyz + cameraPosition, 1.0);
 
-	// TBN Mat 参考自 BSL shader
-	vec4 at_tangent = vec4(normalize(cross(gl_Normal.xyz, vec3(0.333333333))), 1.0);
-	vec3 N = normalize(gl_NormalMatrix * gl_Normal);
-	vec3 B = normalize(gl_NormalMatrix * cross(at_tangent.xyz, gl_Normal.xyz) * at_tangent.w);
-	vec3 T = normalize(gl_NormalMatrix * at_tangent.xyz);
-	tbnMatrix = mat3(T, B, N);
-
-	normalVO = N;
-	normalWO = viewPosToWorldPos(vec4(N, 0.0)).xyz;
+	normalVO = normalize(gl_NormalMatrix * gl_Normal);
+	normalWO = viewPosToWorldPos(vec4(normalVO, 0.0)).xyz;
 
 	sunViewDir = normalize(sunPosition);
 	moonViewDir = normalize(moonPosition);
@@ -93,13 +194,13 @@ void main() {
 	isNight = saturate(dot(moonWorldDir, upWorldDir) * NIGHT_DURATION);
 	sunRiseSet = saturate(1 - isNoon - isNight);
 
-	// sunColor = texelFetch(gaux2, SUN_COLOR_UV, 0).rgb;
-	// skyColor = texelFetch(gaux2, SKY_COLOR_UV, 0).rgb;
-	// zenithColor = texelFetch(gaux2, ZENITH_COLOR_UV, 0).rgb;
-	// horizonColor = texelFetch(gaux2, HORIZON_COLOR_UV, 0).rgb;
+	isNoonS = saturate(dot(sunWorldDir, upWorldDir) * NOON_DURATION_SLOW);
+	isNightS = saturate(dot(moonWorldDir, upWorldDir) * NIGHT_DURATION_SLOW);
+	sunRiseSetS = saturate(1 - isNoonS - isNightS);
 
-	lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
-	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+	sunColor = texelFetch(gaux4, sunColorUV, 0).rgb;
+	skyColor = texelFetch(gaux4, skyColorUV, 0).rgb;
+
 	glcolor = gl_Color;
 }
 

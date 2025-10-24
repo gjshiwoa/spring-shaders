@@ -53,9 +53,16 @@ void main() {
 	vec2 fragCoord = gl_FragCoord.xy * invViewSize;
 	// original underwater position
 	float depth1O = texture(depthtex1, fragCoord).r;
-	vec4 viewpos1O = screenPosToViewPos(vec4(fragCoord, depth1O, 1.0));
-	vec3 viewDir = normalize(viewpos1O.xyz);
-	vec4 worldPos1O = viewPosToWorldPos(viewpos1O);
+	vec4 viewPos1O = screenPosToViewPos(vec4(fragCoord, depth1O, 1.0));
+	#if defined DISTANT_HORIZONS && !defined NETHER && !defined END
+		float dhDepth = texture(dhDepthTex1, fragCoord).r;
+		float dhTerrain = depth1O == 1.0 && dhDepth < 1.0 ? 1.0 : 0.0;
+		if(dhTerrain > 0.5){
+			viewPos1O = screenPosToViewPosDH(vec4(fragCoord, dhDepth, 1.0));
+		}
+	#endif
+	vec3 viewDir = normalize(viewPos1O.xyz);
+	vec4 worldPos1O = viewPosToWorldPos(viewPos1O);
 	vec3 worldDir = normalize(worldPos1O.xyz);
 
 	vec4 mcPos = vMcPos;
@@ -87,13 +94,20 @@ void main() {
 		vec2 refractCoord = saturate(waterRefractionCoord(normalVO, waveViewNormal, worldDis0));
 		float depth1 = texture(depthtex1, refractCoord).r;
 		vec4 viewPos1 = screenPosToViewPos(vec4(refractCoord, depth1, 1.0));
+		#if defined DISTANT_HORIZONS && !defined NETHER && !defined END
+			float dhDepth = texture(dhDepthTex1, refractCoord).r;
+			float dhTerrain = depth1 == 1.0 && dhDepth < 1.0 ? 1.0 : 0.0;
+			if(dhTerrain > 0.5){
+				viewPos1 = screenPosToViewPosDH(vec4(refractCoord, dhDepth, 1.0));
+			}
+		#endif
 		vec4 worldPos1 = viewPosToWorldPos(viewPos1);
 		#if MC_VERSION < 11400
 			worldPos1 -= vec4(0.0, 2.0, 0.0, 0.0);
 		#endif
 		float worldDis1 = length(worldPos1.xyz);
 		vec3 worldDir = normalize(worldPos1.xyz);
-		vec4 fWorldPos1 = vec4(min(worldDis1, far) * worldDir, 1.0);
+		// vec4 fWorldPos1 = vec4(min(worldDis1, far) * worldDir, 1.0);
 
 		
 
@@ -107,8 +121,7 @@ void main() {
 		#endif
 
 		#ifdef WATER_REFRACTION
-			// 折射（法线不朝上，或碰撞点低于水面时折射）
-			bool useRefract = (worldPos1.y < vWorldPos.y || normalWO.y < 0.5);
+			bool useRefract = dot(normalize(worldPos1.xyz - vWorldPos.xyz), normalWO) < 0.0;
 			vec2 sampleCoord = useRefract ? refractCoord : fragCoord;
 			vec3 colorRGB = textureLod(gaux1, sampleCoord, 1).rgb * 1.25;
 
@@ -129,7 +142,7 @@ void main() {
 		float deep = worldDis1 - worldDis0;
 		vec3 fogColor = waterFogColor * (mix(vec3(getLuminance(sunColor)), sunColor, 0.5) * 0.125 + NIGHT_VISION_BRIGHTNESS * nightVision);
 
-		float lightmapY = saturate(lightmap.y + NIGHT_VISION_BRIGHTNESS * nightVision + 0.015);
+		float lightmapY = saturate(lightmap.y + NIGHT_VISION_BRIGHTNESS * nightVision);
 
 		if (isAbovewater) {
 			float depthFactor = saturate(deep / WATER_MIST_VISIBILITY);
@@ -188,17 +201,21 @@ void main() {
 			vec3 BRDF = reflectPBR(viewDir, waveViewNormal, sunViewDir, params);
 			float lightmapMask = remapSaturate(lightmap.y, 0.5, 1.0, 0.0, 1.0) * shade;
 			// color.rgb *= 1.0 + 1.0 *  sunColor * BRDF * pow(saturate(dot(waveViewNormal, lightViewDir)), 1.0) * lightmapMask * sunRiseSetS;
-			color.rgb += drawCelestial(reflectWorldDir, 1.0, false) * lightmapMask * WATER_REFLECT_HIGH_LIGHT_INTENSITY * 0.5;
+			color.rgb += drawCelestial(reflectWorldDir, 1.0, false) * lightmapMask * WATER_REFLECT_HIGH_LIGHT_INTENSITY * 0.5 * float(!ssrTargetSampled);
 			// vec3 waveWorldNormal_diffuse = normalize(vec3(waveWorldNormal.x, waveWorldNormal.y * 0.333, waveWorldNormal.z));
 			// color.rgb *= 1.0 + 0.075 * sunColor * vec3(pow(saturate(dot(waveWorldNormal_diffuse, lightWorldDir)), 1.0)) * lightmap.y * lightmapMask * WATER_REFLECT_HIGH_LIGHT_INTENSITY;
 		#endif
 
 
 
+		// float d = texture(depthtex0, fragCoord).r;
+		// float d1 = texture(depthtex1, fragCoord).r;
+		// vec3 v0 = screenPosToViewPos(vec4(fragCoord, d, 1.0)).xyz;
+		// vec3 v1 = screenPosToViewPos(vec4(fragCoord, d1, 1.0)).xyz;
 
+		// color.rgb = max(vec3(length(v1.xyz - v0.xyz)), vec3(0.0));
 
 	}else{
-		color.a = texColor.a;
 		vec3 albedo = toLinearR(texColor.rgb);
 		vec3 diffuse = albedo / PI;
 
@@ -277,6 +294,13 @@ void main() {
 		}
 		#endif
 
+		// color.a = 1.0;
+		// vec2 refractCoord = saturate(waterRefractionCoord(normalVO, normalTexV, worldDis0));
+		// vec3 refractColor = texture(gaux1, refractCoord).rgb * COLOR_UI_SCALE;
+		// c = mix(refractColor, c, texColor.a);
+
+		color.a = texColor.a;
+
 
 
 		#define TRANSLUCENT_MODE 1
@@ -284,7 +308,7 @@ void main() {
 			color.rgb = mix(texture(gaux1, fragCoord).rgb * COLOR_UI_SCALE, c, color.a);
 			color.a = 1.0;
 		#elif TRANSLUCENT_MODE == 1
-			color.rgb = c;
+			color = vec4(c, color.a);
 		#elif TRANSLUCENT_MODE == 2
 			color.rgb = albedo * lightmap.y * sunColor * 0.2;
 		#endif

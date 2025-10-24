@@ -132,3 +132,30 @@ vec3 getWaveNormal(vec2 uv){
     return normal;
 }
 
+vec3 normalFrom3Points(vec3 pC, vec3 pX, vec3 pZ){
+    vec3 tX = pX - pC;
+    vec3 tZ = pZ - pC;
+
+    vec3 n = normalize(cross(tZ, tX));
+
+    if (dot(n, upWorldDir) < 0.0) n = -n;
+
+    return n;
+}
+
+vec3 normalFromHeights(vec2 centerXZ, float hC, float hX, float hZ, float eps){
+    vec3 pC = vec3(centerXZ.x,        hC, centerXZ.y);
+    vec3 pX = vec3(centerXZ.x + eps,  hX, centerXZ.y);
+    vec3 pZ = vec3(centerXZ.x,        hZ, centerXZ.y + eps);
+
+    return normalFrom3Points(pC, pX, pZ);
+}
+
+vec3 getWaveNormalDH(vec2 centerXZ, const int quality){
+    const float eps = 0.05;
+    float hC = getWaveHeight(centerXZ, quality);
+    float hX = getWaveHeight(centerXZ + vec2(eps, 0.0), quality);
+    float hZ = getWaveHeight(centerXZ + vec2(0.0, eps), quality);
+
+    return normalFromHeights(centerXZ, hC, hX, hZ, eps);
+}
