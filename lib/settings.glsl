@@ -140,7 +140,7 @@ const vec3 MieSigma = vec3(3.996) * 1e-6;
 const vec3 MieAbsorptionSigma = vec3(4.4) * 1e-6;
 const vec3 OzoneAbsorptionSigma = vec3(0.650, 1.881, 0.085) * 1e-6;
 
-#define Information CHUN_v2_2025_10_BY_ZY     //     [CHUN_v2_2025_10_BY_ZY]
+#define Information CHUN_v2_2025_11_BY_ZY     //     [CHUN_v2_2025_11_BY_ZY]
 
 const float H_R = 8500.0;
 const float H_M = 1200.0;

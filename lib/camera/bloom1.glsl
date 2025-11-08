@@ -1,6 +1,6 @@
 // https://zhuanlan.zhihu.com/p/525500877
-const vec2 offset = vec2(10.0 * invViewSize.x, 0.0);
-const vec4 uvTable[9] = vec4[](
+vec2 offset = vec2(10.0 * invViewSize.x, 0.0);
+vec4 uvTable[9] = vec4[](
     vec4(0.0, 0.0, 1.0, 1.0),
     vec4(0.0, 0.0, 0.5, 0.5),
     vec4(0.0, 0.0, 0.25, 0.25),

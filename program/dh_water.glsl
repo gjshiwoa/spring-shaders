@@ -79,7 +79,7 @@ void main() {
 		float deep = worldDis1 - worldDis0;
 		vec3 fogColor = waterFogColor * (mix(vec3(getLuminance(sunColor)), sunColor, 0.5) * 0.125 + NIGHT_VISION_BRIGHTNESS * nightVision);
 
-		float lightmapY = 1.0;
+		float lightmapY = 0.85;
 
 		if (isAbovewater) {
 			float depthFactor = saturate(deep / WATER_MIST_VISIBILITY);
@@ -127,19 +127,11 @@ void main() {
 
 
 		#ifdef WATER_REFLECT_HIGH_LIGHT
-			float shade = 1.0;
-			#if MC_VERSION < 11400
-				
-			#else
-				#ifdef TRANSLUCENT_SHADOW
-					shade = shadowMappingTranslucent(vWorldPos, normalWO, 0.5, 1.0);
-				#endif
-			#endif
 			MaterialParams params;
 			params.roughness = 0.5;
 			params.metalness = 0.5;
 			vec3 BRDF = reflectPBR(viewDir, waveViewNormal, sunViewDir, params);
-			float lightmapMask = remapSaturate(lightmapY, 0.5, 1.0, 0.0, 1.0) * shade;
+			float lightmapMask = remapSaturate(lightmapY, 0.5, 1.0, 0.0, 1.0);
 			color.rgb += drawCelestial(reflectWorldDir, 1.0, false) * lightmapMask * WATER_REFLECT_HIGH_LIGHT_INTENSITY * 0.5 * float(!ssrTargetSampled);
 		#endif
 
@@ -173,6 +165,7 @@ attribute vec4 mc_midTexCoord;
 
 void main() {
 	gl_Position = ftransform();
+	
 	isWater = dhMaterialId == DH_BLOCK_WATER ? 1.0 : 0.0;
 
 	vViewPos = gl_ModelViewMatrix * gl_Vertex;
@@ -181,6 +174,12 @@ void main() {
 
 	normalVO = normalize(gl_NormalMatrix * gl_Normal);
 	normalWO = viewPosToWorldPos(vec4(normalVO, 0.0)).xyz;
+
+	vec2 jitter = Halton_2_3[framemod8];	//-1 to 1
+	jitter *= invViewSize;
+	gl_Position.xyz /= gl_Position.w;
+    gl_Position.xy += jitter * TAA_JITTER_AMOUNT;
+    gl_Position.xyz *= gl_Position.w;
 
 	sunViewDir = normalize(sunPosition);
 	moonViewDir = normalize(moonPosition);

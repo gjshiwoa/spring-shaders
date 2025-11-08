@@ -130,7 +130,7 @@ void main() {
 
 			// 全内反射
 			float TIRFactor = 1.0;
-			if(useRefract && isUnderwater) {
+			if(isUnderwater) {
 				TIRFactor = (1.0 - TIR) * eyeBrightnessSmooth.y / 240.0;
 			}
 			colorRGB *= TIRFactor;

@@ -75,11 +75,15 @@ void main() {
 		}
 
 		#if defined DISTANT_HORIZONS && !defined END && !defined NETHER
-			float far = dhRenderDistance;
+			float fogDis = dhRenderDistance;
 		#else
 			float fogDis = far;
 		#endif
-		vec4 fogColor = volumtricFog(camera, worldDirO * far);
+
+		vec4 fogColor = vec4(0.0, 0.0, 0.0, 1.0);
+		#ifdef VOLUMETRIC_FOG
+			fogColor = volumtricFog(camera, worldDirO * fogDis);
+		#endif
 		color.rgb *= fogColor.a;
 		color.rgb += fogColor.rgb;
 		
