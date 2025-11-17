@@ -126,7 +126,7 @@ float GetDirectScatterProbability(float CosTheta, float eccentricity, float silv
 }
 
 vec3 sunLuminance(vec3 pos, float VoL, float iVoL, float extinction){
-    float density = extinction / cloudSigmaS;
+    float density = extinction / CLOUD_SIGMA_S;
     float height_fraction = getHeightFractionForPoint(pos.y, cloudHeight);
     
     float lightPathOpticalDepth = computeLightPathOpticalDepth(pos, lightWorldDir, 20.0, 3);

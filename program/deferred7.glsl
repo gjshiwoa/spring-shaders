@@ -218,8 +218,9 @@ void main() {
 		float VoL = saturate(dot(worldDir, sunWorldDir));
 		float phase = saturate(hgPhase1(VoL, 0.66 - 0.56 * rainStrength));
 		float crepuscularLight = 0.0;
-		if(phase > 0.01 && sunRiseSetS + isNoonS > 0.001) crepuscularLight = computeCrepuscularLight(viewPos1) * phase;
-
+		#ifdef CREPUSCULAR_LIGHT
+			if(phase > 0.01 && sunRiseSetS + isNoonS > 0.001) crepuscularLight = computeCrepuscularLight(viewPos1) * phase;
+		#endif
 		if(cloudTransmittance < 1.0){
 
 			color.rgb = 

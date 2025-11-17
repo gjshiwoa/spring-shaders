@@ -204,7 +204,7 @@ vec3 temporal_Reflection(vec3 color_c, float r){
         float weight = (1.0 - abs(prePos.x - curUV.x)) * (1.0 - abs(prePos.y - curUV.y));
 
         weight *= saturate(mix(1.0, dot(unpackNormal(pre.r), normal_c), 1.0));
-        weight *= saturate(1.2 - abs(depth_p - depth_c) / (1.0 + fDepth * 2.0));
+        weight *= exp(-abs(depth_p - depth_c) / (1.0 + fDepth * 2.0 + depth_p / 2.0));
 
         c_s += texelFetch(colortex3, ivec2(curUV), 0) * weight;
         w_s += weight;

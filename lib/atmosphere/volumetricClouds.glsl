@@ -19,14 +19,14 @@ float sampleCloudDensityLow(vec3 cameraPos, float height_fraction){
     vec4 weatherData = texture(noisetex, cameraPos.xz * 0.000025 + vec2(0.17325, 0.17325));
     float coverage = mix(weatherData.r, weatherData.g, 0.0);
     coverage = saturate(1.5 * coverage - 0.5 * height_fraction);
-    coverage = saturate(1.0 - 0.45 * coverage - 0.3 * rainStrength + 0.05);
+    coverage = saturate(1.0 - CLOUD_COVERAGE * coverage - CLOUD_RAIN_ADD_COVERAGE * rainStrength + 0.05);
 
     // vec3 curl = vec3(0.0);
     // float curlNoise = weatherData.b * 2.0 - 1.0;
     // curl.xy = vec2(200.0 * curlNoise);
     // cameraPos += curl;
 
-    vec4 low_frequency_noise = texture(colortex8, cameraPos * 0.00045 + vec3(0.0, 0.4, 0.0));
+    vec4 low_frequency_noise = texture(colortex8, cameraPos * 0.00045 + vec3(0.0, VOLUME_CLOUD_NOISE_SEED, 0.0));
     float perlin3d = low_frequency_noise.r;
     vec3 worley3d = low_frequency_noise.gba;
     float worley3d_FBM = worley3d.r * 0.625 + worley3d.g * 0.25 + worley3d.b * 0.125;
@@ -116,7 +116,7 @@ float GetInScatterProbability(float height_fraction, float ds_loded, float atten
     float height_factor = remapSaturate(pow(height_fraction, 1.0), 0.0, 1.0, 0.7, 1.0);
     float attenuation_factor = remapSaturate(pow(attenuation, 1.0), 0.0, 1.0, 0.25, 1.0);
     // float angle_factor = remapSaturate(VoL, 0.6, 1.0, 1.0, 0.5);
-    float depth_probability = 0.05 + pow(ds_loded, attenuation_factor * height_factor * 1.25);
+    float depth_probability = 0.05 + pow(ds_loded, attenuation_factor * height_factor * CLOUD_INSCATTER_POWDER);
 
     // float vertical_probability = pow(remapSaturate(height_fraction, 0.07, 0.14, 0.8, 1.0), 0.8);
 
@@ -129,7 +129,7 @@ float GetDirectScatterProbability(float CosTheta, float eccentricity, float silv
 }
 
 vec3 sunLuminance(vec3 pos, float VoL, float iVoL, float extinction){
-    float density = extinction / cloudSigmaS;
+    float density = extinction / CLOUD_SIGMA_S;
     float height_fraction = getHeightFractionForPoint(pos.y, cloudHeight);
     
     float lightPathOpticalDepth = computeLightPathOpticalDepth(pos, lightWorldDir, 10.0, 4);
@@ -145,11 +145,11 @@ vec3 sunLuminance(vec3 pos, float VoL, float iVoL, float extinction){
 
     float inScatter = GetInScatterProbability(height_fraction, density, attenuation, VoL);
 
-    vec3 direct = 1.4 * sunColor * attenuation * phase * pow(max(0.0, remap(height_fraction, 0.07, 0.14, 0.9, 1.0)), 0.8);
+    vec3 direct = CLOUD_BRIGHTNESS_DIRECT * sunColor * attenuation * phase * pow(max(0.0, remap(height_fraction, 0.07, 0.14, 0.9, 1.0)), 0.8);
 
     float height_factor = remapSaturate(pow(height_fraction, 0.5), 0.0, 1.0, 0.5, 1.0);
     float depth_factor = pow(saturate(1.0 - density), 2.0);
-    vec3 ambient = 0.3 * skyColor * (depth_factor + upAttenuation) * height_factor;
+    vec3 ambient = CLOUD_BRIGHTNESS_AMBIENT * skyColor * (depth_factor + upAttenuation) * height_factor;
 
     vec3 luminance = direct + ambient;
 
@@ -177,15 +177,14 @@ void cloudRayMarching(vec3 startPos, vec3 worldPos, inout vec4 intScattTrans, in
     }
 
     float verticalness = abs(dot(worldDir, upWorldDir));
-    int N_COARSE = int(remap(verticalness, 0.0, 1.0, 18, 9));
+    int N_COARSE = int(remap(verticalness, 0.0, 1.0, VOLUMETRIC_CLOUDS_MAX_SAMPLES, VOLUMETRIC_CLOUDS_MIN_SAMPLES));
     #ifdef SKY_BOX
         N_COARSE = int(N_COARSE * 0.35);
     #endif
 
     float rayLength = stepDis.y;
     float coarseStep = rayLength / float(max(N_COARSE, 1));
-    const float SMALL_STEP = 2.0;
-    const float SMALL_STEP_FACTOR = 1.0 / SMALL_STEP;
+    const float SMALL_STEP_FACTOR = 1.0 / CLOUD_SMALL_STEP;
     float smallStep = coarseStep * SMALL_STEP_FACTOR;
 
     vec3 oriStartPos = startPos;
@@ -198,7 +197,7 @@ void cloudRayMarching(vec3 startPos, vec3 worldPos, inout vec4 intScattTrans, in
 
     const float COARSE_DETECT_THRESHOLD = 0.01; // 低质量噪声判断云的阈值（可调）
     const float MIN_DENSITY = 1e-4;             // 视为有效云密度的最小值（保留原阈值）
-    const int FINE_MISS_LIMIT = int(SMALL_STEP) + 1;              // 小步内连续多少次未命中则回到粗步
+    const int FINE_MISS_LIMIT = int(CLOUD_SMALL_STEP) + 1;              // 小步内连续多少次未命中则回到粗步
     const int MAX_FINE_STEPS_PER_DETECTION = 48;// 单次进入精细区域样本上限（防止爆炸）
     const int MAX_TOTAL_STEPS = 256;            // 全过程样本上限（总预算保护）
 

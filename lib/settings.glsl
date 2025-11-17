@@ -208,19 +208,34 @@ const vec3 IncomingLight_N = vec3(INCOMING_LIGHT_N_RED, INCOMING_LIGHT_N_GREEN, 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define VOLUMETRIC_CLOUDS
+#define CREPUSCULAR_LIGHT
 
-const float cloudHeightMin = 650.0 + CAMERA_HEIGHT;
-const float cloudThinkness = 800.0;
-const vec2 cloudHeight = vec2(cloudHeightMin, cloudHeightMin + cloudThinkness);
+#define VOLUMETRIC_CLOUDS_MIN_HEIGHT 650.0  // [350.0 500.0 650.0 800.0 950.0 1100.0 1250.0 1400.0]
+const float cloudHeightMin = VOLUMETRIC_CLOUDS_MIN_HEIGHT + CAMERA_HEIGHT;
+#define CLOUD_THICKNESS 800.0               // [50.0 100.0 200.0 300.0 400.0 500.0 600.0 700.0 800.0 900.0 1000.0]
+const vec2 cloudHeight = vec2(cloudHeightMin, cloudHeightMin + CLOUD_THICKNESS);
 
-const float cloudSigmaS = 0.09;
-const float cloudSigmaA = 0.01;
-const float cloudSigmaE = cloudSigmaS + cloudSigmaA;
+#define VOLUMETRIC_CLOUDS_MAX_SAMPLES 18    // [3 6 9 12 15 18 21 24 27 30]
+#define VOLUMETRIC_CLOUDS_MIN_SAMPLES 9     // [1 3 6 9 12 15 18 21 24 27 30]
+#define CLOUD_SMALL_STEP 2.0            // [2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
 
-#define CLOUD_FADE_DISTANCE 9000.0
+#define VOLUME_CLOUD_NOISE_SEED 0.6         // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9]
+#define CLOUD_COVERAGE 0.45      // [0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9]
+#define CLOUD_RAIN_ADD_COVERAGE 0.3     // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9]
+
+#define CLOUD_SIGMA_S 0.09    // [0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.11 0.12 0.13 0.14 0.15]
+#define CLOUD_SIGMA_A 0.01    // [0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1]
+const float cloudSigmaE = CLOUD_SIGMA_S + CLOUD_SIGMA_A;
+
+#define CLOUD_INSCATTER_POWDER 1.25 // [0.0 0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.5 3.0]
+
+#define CLOUD_BRIGHTNESS_DIRECT 1.4     // [0.2 0.4 0.6 0.8 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
+#define CLOUD_BRIGHTNESS_AMBIENT 0.3    // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+
+#define CLOUD_FADE_DISTANCE 9000.0  // [3000.0 4500.0 6000.0 7500.0 9000.0 12000.0 15000.0 18000.0]
 
 const float CLOUD_LARGE_STEP = 280.0;  // 大步幅
-const float CLOUD_SMALL_STEP = 70.0;   // 小步幅
+// const float CLOUD_SMALL_STEP = 70.0;   // 小步幅
 const int CLOUD_MAX_STEPS = 80;      // 最大步进次数
 const int CLOUD_EMPTY_STEPS = 4;      // 连续空样本阈值
 const float CLOUD_MAX_DISTANCE = 40000.0;  // 最大步进距离
@@ -249,7 +264,7 @@ const float fogSigmaE = FOG_SIGMA_S + FOG_SIGMA_A;
 #define FOG_DIRECT_INTENSITY 12.0        // [0.0 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 15.0 16.0 17.0 18.0 19.0 20.0]
 #define FOG_AMBIENT_INTENSITY 4.0        // [0.0 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 15.0 16.0 17.0 18.0 19.0 20.0]
 
-#define FOG_REF_HEIGHT 64.0     // [0.0 16.0 32.0 48.0 64.0 80.0 96.0 112.0 128.0 144.0 160.0 176.0 192.0 208.0 224.0 240.0 256.0 272.0 288.0 304.0 320.0]
+#define FOG_REF_HEIGHT 64.0     // [-64.0 -32.0 0.0 16.0 32.0 48.0 64.0 80.0 96.0 112.0 128.0 144.0 160.0 176.0 192.0 208.0 224.0 240.0 256.0 272.0 288.0 304.0 320.0]
 #define FOG_THICKNESS 200.0     // [0.0 20.0 40.0 60.0 80.0 100.0 120.0 140.0 160.0 180.0 200.0 220.0 240.0 260.0 280.0 300.0 320.0 340.0 360.0 380.0 400.0]
 const vec2 fogHeight = vec2(FOG_REF_HEIGHT - FOG_THICKNESS * 0.5, FOG_REF_HEIGHT + FOG_THICKNESS * 0.5) - 64.0 + CAMERA_HEIGHT;
 
