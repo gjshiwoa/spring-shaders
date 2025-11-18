@@ -11,7 +11,7 @@ vec2 wavedx(vec2 position, vec2 direction, float frequency, float timeshift) {
 }
 
 float getwaves(vec2 position, int iterations) {
-    position *= 0.85;
+    position *= 0.65;
     float iter = 0.5 * PI;
     float frequency = 1.0;
     float timeMultiplier = WAVE_SPEED;

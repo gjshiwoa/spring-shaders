@@ -59,9 +59,9 @@ void main() {
 
 	#if defined UNDERWATER_FOG || defined ATMOSPHERIC_SCATTERING_FOG || defined VOLUMETRIC_FOG
 		vec4 fogColor = getFog(depth);
-		if(dot(fogColor.rgb, fogColor.rgb) < 1e-7){
-			fogColor.a = 1.0;
-		}
+		// if(dot(fogColor.rgb, fogColor.rgb) < 1e-7){
+		// 	fogColor.a = 1.0;
+		// }
 		#ifdef UNDERWATER_FOG
 			if(isEyeInWater == 1){
 				color.rgb = mix(color.rgb, fogColor.rgb, saturate(worldDis / UNDERWATER_FOG_MIST));

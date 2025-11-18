@@ -176,7 +176,7 @@ void main() {
 		color.rgb += direct * lightMask * DIRECT_LUMINANCE;
 
 		if(isEyeInWater == 1){
-			vec3 underWaterTransmit = saturate(fastExp(-(vec3(1.0) - waterFogColor) * (1.25 - lightmap.y) * 3));
+			vec3 underWaterTransmit = saturate(exp(-(vec3(1.0) - waterFogColor) * (1.25 - lightmap.y) * 3));
 			color.rgb *= underWaterTransmit * 1.0;
 		}
 		

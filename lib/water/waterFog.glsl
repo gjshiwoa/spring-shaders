@@ -60,8 +60,8 @@ vec3 underWaterFog(vec3 worldDir, float worldDis){
     float eyeBrightness = eyeBrightnessSmooth.y / 240.0;
     vec3 scattering = mix(vec3(0.2, 0.6, 0.9), vec3(density * UNDERWATER_FOG_LIGHT_BRI) * waterFogColor, 0.5);
 
-    float phase0 = hgPhase1(dot(sunWorldDir, worldDir), UNDERWATER_FOG_G);
-    float phase1 = hgPhase1(dot(sunWorldDir, worldDir), UNDERWATER_FOG_G2) * UNDERWATER_FOG_G2_BRI;
+    float phase0 = hgPhase1(dot(sunWorldDir, worldDir), 0.15);
+    float phase1 = hgPhase1(dot(sunWorldDir, worldDir), 0.75) * 0.2;
     float phase = phase0 + phase1;
 
     vec3 underWaterFogColor = UNDERWATER_FOG_BRI 
