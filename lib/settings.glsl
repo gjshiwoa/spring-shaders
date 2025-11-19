@@ -93,7 +93,7 @@ const int noiseTextureResolution = 64;
 #define RAINY_GROUND_WET_ENABLE
 #define TRANSLUCENT_ROUGHNESS 0.75  // [0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95]
 #define TRANSLUCENT_F0 0.75         // [0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95]
-
+// #define TRANSLUCENT_USE_REASOURCESPACK_PBR
 
 
 
@@ -261,7 +261,7 @@ const float fog_startHeight = 0.0;
 #define FOG_SIGMA_A 0.01    // [0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1]
 const float fogSigmaE = FOG_SIGMA_S + FOG_SIGMA_A;
 
-#define FOG_DIRECT_INTENSITY 12.0        // [0.0 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 15.0 16.0 17.0 18.0 19.0 20.0]
+#define FOG_DIRECT_INTENSITY 10.0        // [0.0 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 15.0 16.0 17.0 18.0 19.0 20.0]
 #define FOG_AMBIENT_INTENSITY 4.0        // [0.0 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 15.0 16.0 17.0 18.0 19.0 20.0]
 
 #define FOG_REF_HEIGHT 64.0     // [-64.0 -32.0 0.0 16.0 32.0 48.0 64.0 80.0 96.0 112.0 128.0 144.0 160.0 176.0 192.0 208.0 224.0 240.0 256.0 272.0 288.0 304.0 320.0]
@@ -274,8 +274,8 @@ const vec2 fogHeight = vec2(FOG_REF_HEIGHT - FOG_THICKNESS * 0.5, FOG_REF_HEIGHT
 #define FOG_BASE_COVERAGE_NOON 0.05        // [0.0 0.1 0.2 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0]
 
 #define FOG_ADD_COVERAGE_RAIN 0.35        // [0.0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.7 0.8 0.9 1.0]
-#define FOG_ADD_COVERAGE_NIGHT 0.125        // [0.0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.7 0.8 0.9 1.0]
-#define FOG_ADD_COVERAGE_SUNRISESET 0.125        // [0.0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.7 0.8 0.9 1.0]
+#define FOG_ADD_COVERAGE_NIGHT 0.2        // [0.0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.7 0.8 0.9 1.0]
+#define FOG_ADD_COVERAGE_SUNRISESET 0.2        // [0.0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.7 0.8 0.9 1.0]
 #define FOG_ADD_COVERAGE_NOON 0.0        // [0.0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.7 0.8 0.9 1.0]
 
 
@@ -391,7 +391,6 @@ const vec3 waterFogColor = vec3(WATER_FOG_COLOR_RED, WATER_FOG_COLOR_GREEN, WATE
 
 
 
-
 #define UNDERWATER_FOG
 #define UNDERWATER_FOG_MIST 50.0    // [10.0 20.0 30.0 40.0 50.0 60.0 70.0 80.0 90.0 100.0]
 
@@ -400,10 +399,11 @@ const vec3 waterFogColor = vec3(WATER_FOG_COLOR_RED, WATER_FOG_COLOR_GREEN, WATE
 #define UNDERWATER_FOG_LIGHT_BRI 0.7   // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5]
 #define UNDERWATER_FOG_BRI 0.35     // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5]
 
+
+
 #define UNDERWATER_ADD_BLOOM 0.12  // [0.005 0.0075 0.01 0.0125 0.015 0.0175 0.02 0.0225 0.025 0.0275 0.03 0.035 0.04 0.045 0.05 0.055 0.06 0.065 0.07 0.075 0.08]
 #define UNDERWATER_CANTRAST 1.5     // [0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
 #define UNDERWATER_BRI 1.5          // [0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.25 2.5 2.75 3.0 3.25 3.5 3.75 4.0]
-
 
 
 
@@ -422,11 +422,12 @@ const vec3 waterFogColor = vec3(WATER_FOG_COLOR_RED, WATER_FOG_COLOR_GREEN, WATE
 
 
 
-
-
 #define TRANSLUCENT_SHADOW
 #define TRANSLUCENT_SHADOW_SOFTNESS 0.5     // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 #define TRANSLUCENT_SHADOW_QUALITY 5.0      // [2.0 5.0 8.0 12.0 16.0 20.0]
+// #define TRANSLUCENT_REFRACTION
+#define TRANSLUCENT_REFRACTION_INTENSITY 1.0   // [0.5 0.75 1.0 1.25 1.5 1.75 2.0]
+
 
 
 
@@ -438,8 +439,9 @@ const vec3 waterFogColor = vec3(WATER_FOG_COLOR_RED, WATER_FOG_COLOR_GREEN, WATE
 #define CAUSTICS_POWER 3.0          // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
 #define CAUSTICS_BRI_MIN 1.0        // [0.2 0.4 0.6 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0]
 #define CAUSTICS_BRI_MAX 4.0        // [0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 2.2 2.4 2.6 2.8 3.0 3.2 3.4 3.6 3.8 4.0 4.2 4.4 4.6 4.8 5.0]
-#define CAUSTICS_CHROMA_SHIFT 0.05  
-#define CAUSTICS_DISPERSION 0.33
+#define CAUSTICS_CHROMA_SHIFT 0.05  // [0.0 0.0125 0.025 0.0375 0.05 0.0625 0.075 0.0875 0.1]
+#define CAUSTICS_DISPERSION 0.35    // [0.0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5]
+
 
 
 
@@ -449,7 +451,7 @@ const vec3 waterFogColor = vec3(WATER_FOG_COLOR_RED, WATER_FOG_COLOR_GREEN, WATE
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define BLOOM
 #define BLOOM_MODE 0    // [0 1 2]
-#define BLOOM_LAYERS 7
+#define BLOOM_LAYERS 7  // [1 2 3 4 5 6 7]
 
 #define BLOOM_AMOUNT 0.02     // [0.0025 0.005 0.00625 0.0075 0.00875 0.01 0.0125 0.015 0.0175 0.02 0.0225 0.025 0.0275 0.03]
 #define RAIN_ADDITIONAL_BLOOM 0.04 // [0.0025 0.005 0.0075 0.01 0.0125 0.015 0.0175 0.02 0.0225 0.025 0.0275 0.03]
@@ -507,7 +509,7 @@ const vec3 filterPower = vec3(1.0, 1.0, 1.0) * FILTER_CONTRAST;
 #define LOTTES_ADDITIVE 0.75
 #define HABLE_ADDITIVE 1.8
 #define NEUTRAL_ADDITIVE 1.0
-#define UCHIMURA_ADDITIVE 0.8
+#define UCHIMURA_ADDITIVE 0.85
 
 #define AGX_EV 12.0     // [10.0 10.25 10.5 10.75 11.0 11.25 11.5 11.75 12.0 12.25 12.5 12.75 13.0 13.25 13.5 13.75 14.0 14.25 14.5 14.75 15.0]
 
@@ -529,7 +531,7 @@ const vec3 filterPower = vec3(1.0, 1.0, 1.0) * FILTER_CONTRAST;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // #define MOTION_BLUR
 
-#define MOTIONBLUR_THRESHOLD 0.01
+#define MOTIONBLUR_THRESHOLD 0.005
 #define MOTIONBLUR_MAX 0.21         // [0.05 0.075 0.1 0.125 0.15 0.175 0.2 0.225 0.25 0.275 0.3 0.325 0.35 0.375 0.4 0.425 0.45 0.475 0.5]
 #define MOTIONBLUR_STRENGTH 0.5     // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 #define MOTIONBLUR_SAMPLE 5         // [1 2 3 4 5 6 7 8 9 10]

@@ -91,7 +91,7 @@ void main() {
 
 		// camera above water surface
 		// underwater position with refraction offset
-		vec2 refractCoord = saturate(waterRefractionCoord(normalVO, waveViewNormal, worldDis0));
+		vec2 refractCoord = saturate(waterRefractionCoord(normalVO, waveViewNormal, worldDis0, WAVE_REFRACTION_INTENSITY));
 		float depth1 = texture(depthtex1, refractCoord).r;
 		vec4 viewPos1 = screenPosToViewPos(vec4(refractCoord, depth1, 1.0));
 		#if defined DISTANT_HORIZONS && !defined NETHER && !defined END
@@ -220,12 +220,17 @@ void main() {
 		vec3 diffuse = albedo / PI;
 
 		MaterialParams materialParams = MapMaterialParams(specularMap);
-		// if(dot(specularMap.rgb, vec3(1.0)) < 0.001){
-			materialParams.smoothness = TRANSLUCENT_ROUGHNESS;
-			float perceptual_roughness = 1.0 - materialParams.smoothness;
-    		materialParams.roughness = perceptual_roughness * perceptual_roughness;
-			materialParams.metalness = TRANSLUCENT_F0;
-		// }
+
+		#ifdef TRANSLUCENT_USE_REASOURCESPACK_PBR
+			if(dot(specularMap.rgb, vec3(1.0)) < 0.001){
+		#endif
+				materialParams.smoothness = TRANSLUCENT_ROUGHNESS;
+				float perceptual_roughness = 1.0 - materialParams.smoothness;
+				materialParams.roughness = perceptual_roughness * perceptual_roughness;
+				materialParams.metalness = TRANSLUCENT_F0;
+		#ifdef TRANSLUCENT_USE_REASOURCESPACK_PBR
+			}
+		#endif
 		#ifdef PBR_REFLECTIVITY
 			mat2x3 PBR = CalculatePBR(viewDir, normalTexV, lightViewDir, albedo, materialParams);
 			vec3 BRDF = PBR[0] + PBR[1];
@@ -294,12 +299,14 @@ void main() {
 		}
 		#endif
 
-		// color.a = 1.0;
-		// vec2 refractCoord = saturate(waterRefractionCoord(normalVO, normalTexV, worldDis0));
-		// vec3 refractColor = texture(gaux1, refractCoord).rgb * COLOR_UI_SCALE;
-		// c = mix(refractColor, c, texColor.a);
-
-		color.a = texColor.a;
+		#ifdef TRANSLUCENT_REFRACTION
+			color.a = 1.0;
+			vec2 refractCoord = saturate(waterRefractionCoord(normalVO, normalTexV, worldDis0, TRANSLUCENT_REFRACTION_INTENSITY));
+			vec3 refractColor = texture(gaux1, refractCoord).rgb * COLOR_UI_SCALE;
+			c = mix(refractColor, c, texColor.a);
+		#else
+			color.a = texColor.a;
+		#endif
 
 
 

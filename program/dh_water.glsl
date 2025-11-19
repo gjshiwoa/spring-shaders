@@ -50,7 +50,7 @@ void main() {
 		vec3 waveWorldNormal = getWaveNormalDH(vMcPos.xz, WAVE_NORMAL_ITERATIONS);
 		vec3 waveViewNormal = mat3(gbufferModelView) * waveWorldNormal;
 		
-		vec2 refractCoord = saturate(waterRefractionCoord(normalVO, waveViewNormal, worldDis0));
+		vec2 refractCoord = saturate(waterRefractionCoord(normalVO, waveViewNormal, worldDis0, WAVE_REFRACTION_INTENSITY));
 		float depth1 = texture(depthtex1, refractCoord).r;
 		vec4 viewPos1;
 		float dhDepth1 = texture(dhDepthTex1, refractCoord).r;

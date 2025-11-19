@@ -1,10 +1,10 @@
 #ifdef FSH
-vec2 waterRefractionCoord(vec3 normalTex, vec3 worldNormal, float worldDis0){
+vec2 waterRefractionCoord(vec3 normalTex, vec3 worldNormal, float worldDis0, float intensity){
     vec3 waterOriNormal = normalTex;
     worldNormal.xy -= waterOriNormal.xy;
 
     vec2 fragCoord = gl_FragCoord.xy * invViewSize;
-    vec2 refractCoord = fragCoord - clamp(worldNormal.xy * WAVE_REFRACTION_INTENSITY / (worldDis0 + 0.0001), vec2(-1.0), vec2(1.0));
+    vec2 refractCoord = fragCoord - clamp(worldNormal.xy * intensity / (worldDis0 + 0.0001), vec2(-1.0), vec2(1.0));
     if(outScreen(refractCoord)) 
         refractCoord = fragCoord;
 
