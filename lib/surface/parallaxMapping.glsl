@@ -13,32 +13,22 @@ vec2 GetParallaxCoord(vec2 offsetNormalized) {
 }
 
 float getParallaxHeight(vec2 uv, vec2 texGradX, vec2 texGradY){
-    // 1) 如果基底贴图在该 uv 的 alpha==0，保持原逻辑
     float baseAlpha = texture(tex, uv).a;
     
-    // 2) 计算 tile 的归一化尺寸与 tile 起点
-    vec2 tileSizeNormalized = vec2(float(textureResolution)) / atlasSize; // tile 在 atlas 中的 normalized 尺寸
-    vec2 tileStart = floor(uv / tileSizeNormalized) * tileSizeNormalized; // tile 起点（normalized）
+    vec2 tileSizeNormalized = vec2(float(textureResolution)) / atlasSize;
+    vec2 tileStart = floor(uv / tileSizeNormalized) * tileSizeNormalized;
     
-    // 3) tile 内局部 uv（0..1）
     vec2 localUV = (uv - tileStart) / tileSizeNormalized;
-    // Clamp localUV 到 [0,1) 的范围可以避免少数浮点问题（但下面我们取模）
-    // localUV = fract(localUV);
 
-    // 4) 计算在 tile 内的连续像素坐标（0..textureResolution）
-    vec2 texPos = localUV * float(textureResolution); // 连续像素坐标（0..res）
-    vec2 f = fract(texPos);               // 双线性插值权重
-    ivec2 i0 = ivec2(floor(texPos));      // 左下像素索引（tile 内）
+    vec2 texPos = localUV * float(textureResolution);
+    vec2 f = fract(texPos);
+    ivec2 i0 = ivec2(floor(texPos));
 
-    // 5) atlas 的像素尺寸（整数）
-    ivec2 atlasPxSize = textureSize(normals, 0);
+    ivec2 atlasPxSize = atlasSize;
 
-    // 6) 计算 tile 起点的像素坐标（整数）, 理论上 tileStart * atlasPxSize 应该正好是整数
     ivec2 tileStartPx = ivec2(tileStart * vec2(atlasPxSize) + 0.5);
 
-    // 7) 施工四个像素在 tile 内的索引（带 wrap/repeat）
     int res = textureResolution;
-    // 将 i0.x/y 与 res 做模以实现 tile 内 repeat
     int ix = i0.x % res;
     int iy = i0.y % res;
     if(ix < 0) ix += res;
@@ -52,19 +42,19 @@ float getParallaxHeight(vec2 uv, vec2 texGradX, vec2 texGradY){
     ivec2 p01 = tileStartPx + ivec2(ix,  iy1);
     ivec2 p11 = tileStartPx + ivec2(ix1, iy1);
 
-    // 8) 使用 texelFetch 精确读取四个像素（level 0）
     float h00 = texelFetch(normals, p00, 0).a;
     float h10 = texelFetch(normals, p10, 0).a;
     float h01 = texelFetch(normals, p01, 0).a;
     float h11 = texelFetch(normals, p11, 0).a;
 
-    // 9) 双线性插值
+    float thresh = 0.9 / 255.0;
+    vec4 hh = vec4(h00, h10, h01, h11);
+    hh = mix(vec4(1.0), hh, step(vec4(thresh), hh));
+    h00 = hh.x; h10 = hh.y; h01 = hh.z; h11 = hh.w;
+
     float hx0 = mix(h00, h10, f.x);
     float hx1 = mix(h01, h11, f.x);
     float height = mix(hx0, hx1, f.y);
-
-    // 10) 保持原有的 alpha==0 特殊处理
-    if(baseAlpha == 0.0) height = 1.0;
 
     return height;
 }
@@ -102,15 +92,39 @@ vec2 parallaxMapping(vec3 viewVector, vec2 texGradX, vec2 texGradY, out vec3 par
         weight = currDeltaHeight / (currDeltaHeight + prevDeltaHeight);
     }
 
-    vec2 lerpOffset = vec2(0.0);
-    #ifdef PARALLAX_LERP
-        lerpOffset = weight * dUV;
-    #endif
+    vec2 lerpOffset = weight * dUV;
     parallaxOffset = vec3(currUVOffset + lerpOffset, rayHeight);
     return GetParallaxCoord(currUVOffset + lerpOffset);
 }
 
+vec3 computeNormalFromHeight(vec2 parallaxUV, vec2 texGradX, vec2 texGradY) {
+    ivec2 atlasPxSizeI = textureSize(normals, 0);
+    vec2 atlasPxSize = vec2(atlasPxSizeI);
+    vec2 oneTexelUV = 0.02 * (vec2(textureResolution) / vec2(atlasPxSize));
 
+    float parallaxHeight = PARALLAX_HEIGHT * 0.025;
+    float hc = mix(1.0, getParallaxHeight(parallaxUV, texGradX, texGradY), parallaxHeight);
+
+    vec2 offX = vec2(oneTexelUV.x, 0.0);
+    vec2 offY = vec2(0.0, oneTexelUV.y);
+
+    vec2 leftUV  = GetParallaxCoord(-offX, parallaxUV, textureResolution);
+    vec2 rightUV = GetParallaxCoord( offX, parallaxUV, textureResolution);
+    vec2 downUV  = GetParallaxCoord( vec2(0.0, -oneTexelUV.y), parallaxUV, textureResolution);
+    vec2 upUV    = GetParallaxCoord( vec2(0.0,  oneTexelUV.y), parallaxUV, textureResolution);
+
+    float hl = mix(1.0, getParallaxHeight(leftUV, texGradX, texGradY), parallaxHeight);
+    float hr = mix(1.0, getParallaxHeight(rightUV, texGradX, texGradY), parallaxHeight);
+    float hd = mix(1.0, getParallaxHeight(downUV, texGradX, texGradY), parallaxHeight);
+    float hu = mix(1.0, getParallaxHeight(upUV, texGradX, texGradY), parallaxHeight);
+
+    float dhdu = (hr - hl) / (2.0 * oneTexelUV.x);
+    float dhdv = (hu - hd) / (2.0 * oneTexelUV.y);
+
+    vec3 n = normalize(vec3(-PARALLAX_HEIGHT * dhdu, -PARALLAX_HEIGHT * dhdv, 1.0));
+
+    return n;
+}
 
 float ParallaxShadow(vec3 parallaxOffset, vec3 viewDirTS, vec3 lightDirTS, vec2 texGradX, vec2 texGradY){
     float parallaxHeight = parallaxOffset.z;
@@ -127,9 +141,8 @@ float ParallaxShadow(vec3 parallaxOffset, vec3 viewDirTS, vec3 lightDirTS, vec2 
         float rayHeight = parallaxHeight + dHeight;
         float dist = dDist;
 
-        float prevHeight = parallaxHeight;
         vec2 currUVOffset = parallaxOffset.st + dUV;
-        float currHeight = getParallaxHeight(GetParallaxCoord(currUVOffset, texcoord.st, textureResolution), texGradX, texGradY);
+        float currHeight = getParallaxHeight(GetParallaxCoord(currUVOffset), texGradX, texGradY);
 
         for (int i = 1; i < slicesNum && rayHeight < 1.0; i++){
                 if (currHeight > rayHeight){
@@ -140,8 +153,7 @@ float ParallaxShadow(vec3 parallaxOffset, vec3 viewDirTS, vec3 lightDirTS, vec2 
                 dist += dDist;
             
             currUVOffset += dUV;
-            prevHeight = currHeight;
-            currHeight = getParallaxHeight(GetParallaxCoord(currUVOffset, texcoord.st, textureResolution), texGradX, texGradY);
+            currHeight = getParallaxHeight(GetParallaxCoord(currUVOffset), texGradX, texGradY);
         }
 
     }
