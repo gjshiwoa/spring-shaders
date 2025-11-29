@@ -36,15 +36,13 @@ void main() {
 	vec3 normalFH = vec3(0.0, 0.0, 1.0);
 	#ifdef PARALLAX_MAPPING
 		vec3 viewDirTS = normalize(viewPos.xyz * tbnMatrix);
-		parallaxUV = voxelParallaxMapping(viewDirTS, texGradX, texGradY, parallaxOffset);
+		parallaxUV = voxelParallaxMapping(viewDirTS, parallaxOffset, normalFH);
 
-		// normalFH = normalize(computeNormalFromHeight(parallaxUV, texGradX, texGradY));
-
-		// #ifdef PARALLAX_SHADOW
-		// 	vec3 lightDirTS = normalize(shadowLightPosition * tbnMatrix);
-		// 	parallaxOffset += vec3(0.25 * normalFH.xy / vec2(atlasSize), saturate(12.0 * normalFH.z / 255.0));
-		// 	parallaxShadow = ParallaxShadow(parallaxOffset, viewDirTS, lightDirTS, texGradX, texGradY);
-		// #endif
+		#ifdef PARALLAX_SHADOW
+			vec3 lightDirTS = normalize(shadowLightPosition * tbnMatrix);
+			// parallaxOffset += vec3(0.15 * normalFH.xy / vec2(atlasSize), saturate(12.0 * normalFH.z / 255.0));
+			parallaxShadow = voxelParallaxShadow(parallaxOffset, viewDirTS, lightDirTS);
+		#endif
 	#endif
 
 	vec4 texColor;
@@ -70,10 +68,10 @@ void main() {
 	
 	vec4 color = texColor * glcolor;
 	vec3 normalTex = N;
-	// #ifdef PARALLAX_MAPPING
-	// 	normalTex = normalize(tbnMatrix * (textureGrad(normals, parallaxUV, texGradX, texGradY).rgb * 2.0 - 1.0));
-	// 	normalTex = mix(normalTex, tbnMatrix * normalFH, 0.5);
-	// #endif
+	#ifdef PARALLAX_MAPPING
+		normalTex = normalize(tbnMatrix * (textureGrad(normals, parallaxUV, texGradX, texGradY).rgb * 2.0 - 1.0));
+		normalTex = mix(normalTex, tbnMatrix * normalFH, 1.0);
+	#endif
 	vec4 specularTex = saturate(textureGrad(specular, parallaxUV, texGradX, texGradY));
 	specularTex.g = saturate(specularTex.g);
 

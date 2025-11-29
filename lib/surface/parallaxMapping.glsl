@@ -97,8 +97,8 @@ vec2 parallaxMapping(vec3 viewVector, vec2 texGradX, vec2 texGradY, out vec3 par
     return GetParallaxCoord(parallaxOffset.xy);
 }
 
-vec3 computeNormalFromHeight(vec2 parallaxUV, vec2 texGradX, vec2 texGradY) {
-    const float sampleSpanTexels = 1.5;
+vec3 computeNormalFromHeight(vec2 parallaxUV) {
+    const float sampleSpanTexels = 0.5;
     vec2 dUV = vec2(sampleSpanTexels) / vec2(atlasSize);
 
     float hc = getParallaxHeight(parallaxUV);
@@ -122,7 +122,7 @@ vec3 computeNormalFromHeight(vec2 parallaxUV, vec2 texGradX, vec2 texGradY) {
     return n;
 }
 
-float ParallaxShadow(vec3 parallaxOffset, vec3 viewDirTS, vec3 lightDirTS, vec2 texGradX, vec2 texGradY){
+float ParallaxShadow(vec3 parallaxOffset, vec3 viewDirTS, vec3 lightDirTS){
     float parallaxHeight = parallaxOffset.z;
     float shadow = 0.0;
 
@@ -158,8 +158,7 @@ float ParallaxShadow(vec3 parallaxOffset, vec3 viewDirTS, vec3 lightDirTS, vec2 
 }
 
 
-// 最近像素高度采样：返回 [0,1]，并保留你原来对 0 -> 1 的处理
-float getVoxelHeightTexel(ivec2 texelIndex, ivec2 tileStartPx) {
+float getVoxelHeightTexel(ivec2 texelIndex, ivec2 tileStartPx){
     int res = textureResolution;
 
     int ix = texelIndex.x % res;
@@ -167,177 +166,278 @@ float getVoxelHeightTexel(ivec2 texelIndex, ivec2 tileStartPx) {
     if (ix < 0) ix += res;
     if (iy < 0) iy += res;
 
-    ivec2 p = tileStartPx + ivec2(ix, iy);
-    float h = texelFetch(normals, p, 0).a;
+    ivec2 pixelCoord = tileStartPx + ivec2(ix, iy);
+
+    float h = texelFetch(normals, pixelCoord, 0).a;
 
     float thresh = 0.5 / 255.0;
-    if (h < thresh) h = 1.0;
+    if (h < thresh)
+        h = 1.0;
 
-    return h; // [0,1]
+    return h;
 }
-vec2 voxelParallaxMapping(vec3 viewVector, vec2 texGradX, vec2 texGradY,
-                          out vec3 parallaxOffset)
-{
-    // ---------- 0. 解析当前 tile ----------
-    vec2 tileSizeNormalized = vec2(float(textureResolution)) / vec2(atlasSize);
-    vec2 tileStart = floor(texcoord / tileSizeNormalized) * tileSizeNormalized;
 
-    // localUV0 ∈ [0,1)
+vec2 voxelParallaxMapping(vec3 viewVector, out vec3 parallaxOffset, out vec3 voxelNormalTS){
+    vec2 tileSizeNormalized = vec2(float(textureResolution)) / vec2(atlasSize);
+    
+    vec2 tileStart = floor(texcoord / tileSizeNormalized) * tileSizeNormalized;
+    
     vec2 localUV0 = (texcoord - tileStart) / tileSizeNormalized;
+    localUV0 = clamp(localUV0, vec2(0.0), vec2(1.0 - 1e-6));
 
     float resF = float(textureResolution);
-
-    // 在 texel 网格中的连续坐标
     vec2 gridPos = localUV0 * resF;
+
     int ix = int(floor(gridPos.x));
     int iy = int(floor(gridPos.y));
 
     ivec2 atlasPxSize = atlasSize;
     ivec2 tileStartPx = ivec2(tileStart * vec2(atlasPxSize) + 0.5);
 
-    // ---------- 1. 初始高度 ----------
     int res = textureResolution;
+
     int sx0 = ix % res; if (sx0 < 0) sx0 += res;
     int sy0 = iy % res; if (sy0 < 0) sy0 += res;
+    
     float hCurr = getVoxelHeightTexel(ivec2(sx0, sy0), tileStartPx);
 
-    // 几乎无视差则直接返回
+    int sxCurr = sx0;
+    int syCurr = sy0;
+
+    voxelNormalTS = vec3(0.0, 0.0, 1.0);
+    vec3 hitNormalTS = vec3(0.0, 0.0, 1.0);
+
     if (hCurr >= 254.5 / 255.0) {
         parallaxOffset = vec3(0.0, 0.0, 1.0);
+        voxelNormalTS  = vec3(0.0, 0.0, 1.0);
         return texcoord;
     }
 
-    // ---------- 2. 构造 (u,v,height) 空间中的射线 ----------
-    float vz = max(abs(viewVector.z), 1e-4);
-    // height(t) = 1 - t,  t ∈ [0,1]
+    const float EPS  = 1e-4;
+    const float HUGE = 1e20;
+
+    float vz = max(abs(viewVector.z), EPS);
+    
     vec3 rayDirLocal = vec3(PARALLAX_HEIGHT * viewVector.xy / vz, -1.0);
+    
+    vec2 rayDirGrid  = rayDirLocal.xy * resF;
 
-    // 在 texel 网格坐标中的方向
-    vec2 rayDirGrid = rayDirLocal.xy * resF;
-
-    int stepX = (rayDirGrid.x > 0.0) ? 1 : -1;
-    int stepY = (rayDirGrid.y > 0.0) ? 1 : -1;
-
-    float invDirX = (rayDirGrid.x != 0.0) ? 1.0 / abs(rayDirGrid.x) : 1e20;
-    float invDirY = (rayDirGrid.y != 0.0) ? 1.0 / abs(rayDirGrid.y) : 1e20;
-
+    int   stepX   = (rayDirGrid.x > 0.0) ? 1 : -1;
+    int   stepY   = (rayDirGrid.y > 0.0) ? 1 : -1;
+    
+    float invDirX = (rayDirGrid.x != 0.0) ? 1.0 / abs(rayDirGrid.x) : HUGE;
+    float invDirY = (rayDirGrid.y != 0.0) ? 1.0 / abs(rayDirGrid.y) : HUGE;
     float tDeltaX = invDirX;
     float tDeltaY = invDirY;
 
-    // 当前格子内的小数部分 [0,1)
     float fracX = gridPos.x - float(ix);
     float fracY = gridPos.y - float(iy);
 
-    float tMaxX, tMaxY;
-    if (rayDirGrid.x > 0.0)
-        tMaxX = (1.0 - fracX) * invDirX;
-    else
-        tMaxX = fracX * invDirX;
-
-    if (rayDirGrid.y > 0.0)
-        tMaxY = (1.0 - fracY) * invDirY;
-    else
-        tMaxY = fracY * invDirY;
+    float tMaxX = (rayDirGrid.x > 0.0) ? (1.0 - fracX) * invDirX : fracX * invDirX;
+    float tMaxY = (rayDirGrid.y > 0.0) ? (1.0 - fracY) * invDirY : fracY * invDirY;
 
     float tEnter = 0.0;
 
-    // 命中信息
-    bool  hit      = false;
-    bool  hitSide  = false;   // 区分顶面/侧面
-    float tHit     = 1.0;
-    float hitHeight = 1.0;
-    vec2  hitLocalUV = localUV0; // 命中处在本 tile 内的 UV（0~1）
+    const int VOXEL_MAX_STEPS = 64;
 
-    const int VOXEL_MAX_STEPS = 128;
+    bool  hit          = false;
+    bool  hitSide      = false;
+    float tHit         = 1.0;
+    float hitHeight    = 1.0;
+
+    vec2  hitLocalUVGeo   = localUV0;
+    vec2  hitLocalUVColor = localUV0;
 
     for (int step = 0; step < VOXEL_MAX_STEPS; ++step) {
         if (tEnter > 1.0)
             break;
 
-        // 当前格子的退出时间（撞到哪条格线）
-        float tExit = min(tMaxX, tMaxY);
+        float tExit        = min(tMaxX, tMaxY);
         float tExitClamped = min(tExit, 1.0);
 
-        // ---------- A. 顶面检测（当前格子内部） ----------
-        float tTop = 1.0 - hCurr; // height(t) = 1 - t <= hCurr -> t >= 1 - hCurr
+        float tTop = 1.0 - hCurr;
 
         if (tTop >= tEnter && tTop <= tExitClamped) {
-            hit = true;
-            hitSide = false;
-            tHit = tTop;
+            hit       = true;
+            hitSide   = false;
+            tHit      = tTop;
             hitHeight = hCurr;
-            // 顶面：命中处的 UV 沿射线平移得到
-            hitLocalUV = localUV0 + rayDirLocal.xy * tHit;
+
+            vec2 localHit = localUV0 + rayDirLocal.xy * tHit;
+            hitLocalUVGeo   = localHit;
+            hitLocalUVColor = localHit;
+
+            // 顶部法向量
+            hitNormalTS = vec3(0.0, 0.0, 1.0);
+
             break;
         }
 
-        // ---------- B. 准备侧面检测：先确定将要跨哪条边界 ----------
-        bool stepXaxis = (tMaxX < tMaxY);
-        float tBoundary = tExit; // 此时就是跨格线的时刻
+        bool  stepXaxis = (tMaxX < tMaxY);
+        
+        float tBoundary = tExit;
 
         if (tBoundary > 1.0) {
             break;
         }
 
         int nx = ix + (stepXaxis ? stepX : 0);
-        int ny = iy + (stepXaxis ? 0 : stepY);
+        int ny = iy + (stepXaxis ? 0    : stepY);
 
-        // 邻居格子高度（repeat）
         int sNx = nx % res; if (sNx < 0) sNx += res;
         int sNy = ny % res; if (sNy < 0) sNy += res;
+        
         float hNext = getVoxelHeightTexel(ivec2(sNx, sNy), tileStartPx);
 
-        // ---------- C. 侧面检测 ----------
-        float heightB = 1.0 - tBoundary;  // 光线在边界处的高度
-
+        float heightB = 1.0 - tBoundary;
+        
         float hMin = min(hCurr, hNext);
         float hMax = max(hCurr, hNext);
 
         if (heightB >= hMin && heightB <= hMax) {
-            // 撞到一堵竖直墙，这堵墙属于高度更高的那一格
-            hit = true;
-            hitSide = true;
-            tHit = tBoundary;
+            hit       = true;
+            hitSide   = true;
+            tHit      = tBoundary;
             hitHeight = heightB;
 
-            bool currIsHigh = (hCurr >= hNext);
-            int highX = currIsHigh ? ix : nx;
-            int highY = currIsHigh ? iy : ny;
+            vec2 localHitGeo = localUV0 + rayDirLocal.xy * tHit;
+            hitLocalUVGeo = localHitGeo;
 
-            // 用高体素那一格的“texel 中心”作为采样 UV（体素柱整体拉高）
-            hitLocalUV = (vec2(highX, highY) + vec2(0.5)) / resF;
+            bool currIsHigh = (hCurr >= hNext);
+
+            int highSx = currIsHigh ? sxCurr : sNx;
+            int highSy = currIsHigh ? syCurr : sNy;
+
+            vec2 highCellUV = (vec2(highSx, highSy) + vec2(0.5)) / resF;
+            hitLocalUVColor = highCellUV;
+
+            // 侧面法向量
+            int highIx = currIsHigh ? ix : nx;
+            int highIy = currIsHigh ? iy : ny;
+            int lowIx  = currIsHigh ? nx : ix;
+            int lowIy  = currIsHigh ? ny : iy;
+
+            int dx = lowIx - highIx;
+            int dy = lowIy - highIy;
+
+            vec3 nSide = vec3(float(dx), float(dy), 0.0);
+
+            if (nSide.x == 0.0 && nSide.y == 0.0) {
+                nSide = vec3(0.0, 0.0, 1.0);
+            }
+
+            hitNormalTS = normalize(nSide);
 
             break;
         }
 
-        // ---------- D. 没有命中，推进到下一个格子 ----------
         tEnter = tExit;
 
         if (stepXaxis) {
             tMaxX += tDeltaX;
-            ix = nx;
+            ix     = nx;
         } else {
             tMaxY += tDeltaY;
-            iy = ny;
+            iy     = ny;
         }
 
-        hCurr = hNext;  // 当前高度变为新格子的高度
+        hCurr  = hNext;
+        sxCurr = sNx;
+        syCurr = sNy;
     }
 
-    // ---------- 3. 结果 UV 偏移 ----------
-    vec2 offsetNormalized = vec2(0.0);
+    vec2  offsetShade = vec2(0.0);
+    vec2  offsetGeo   = vec2(0.0);
     float finalHeight = 1.0;
 
     if (hit) {
-        // 把命中处的 localUV（0~1）换算到全局 UV
-        vec2 finalTexcoord = tileStart + hitLocalUV * tileSizeNormalized;
-        offsetNormalized = finalTexcoord - texcoord;
+        vec2 localGeoWrapped = fract(hitLocalUVGeo); 
+        vec2 finalTexcoordGeo   = tileStart + localGeoWrapped * tileSizeNormalized;
+
+        vec2 finalTexcoordColor = tileStart + hitLocalUVColor   * tileSizeNormalized;
+
+        offsetGeo   = finalTexcoordGeo   - texcoord;
+        offsetShade = finalTexcoordColor - texcoord;
         finalHeight = hitHeight;
     } else {
+        offsetGeo   = vec2(0.0);
+        offsetShade = vec2(0.0);
         finalHeight = 0.0;
-        offsetNormalized = vec2(0.0);
+
+        hitNormalTS = vec3(0.0, 0.0, 1.0);
     }
 
-    parallaxOffset = vec3(offsetNormalized, finalHeight);
-    return GetParallaxCoord(offsetNormalized);
+    parallaxOffset = vec3(offsetGeo, finalHeight);
+    voxelNormalTS  = hitNormalTS;
+
+    return GetParallaxCoord(offsetShade);
+}
+
+float getVoxelHeight(vec2 uv){
+    vec2 tileSizeNormalized = vec2(float(textureResolution)) / vec2(atlasSize);
+
+    vec2 tileStart = floor(uv / tileSizeNormalized) * tileSizeNormalized;
+
+    vec2 localUV = (uv - tileStart) / tileSizeNormalized;
+    localUV = clamp(localUV, vec2(0.0), vec2(1.0 - 1e-6));
+
+    float resF = float(textureResolution);
+    vec2 gridPos = localUV * resF;
+
+    int ix = int(floor(gridPos.x));
+    int iy = int(floor(gridPos.y));
+
+    ivec2 atlasPxSize = atlasSize;
+    ivec2 tileStartPx = ivec2(tileStart * vec2(atlasPxSize) + 0.5);
+
+    int res = textureResolution;
+    int sx = ix % res; if (sx < 0) sx += res;
+    int sy = iy % res; if (sy < 0) sy += res;
+
+    return getVoxelHeightTexel(ivec2(sx, sy), tileStartPx);
+}
+
+float voxelParallaxShadow(vec3 parallaxOffset, vec3 viewDirTS, vec3 lightDirTS){
+    float parallaxHeight = parallaxOffset.z;
+
+    if (parallaxHeight >= 0.999) return 1.0;
+
+    const int SAMPLES = int(PARALLAX_SHADOW_SAMPPLES);
+    const float SOFTENING = PARALLAX_SHADOW_SOFTENING * 5.0;
+    const float BIAS = 0.001;
+
+    vec2 baseOffset = parallaxOffset.xy;
+    vec2 uvScale = vec2(float(textureResolution)) / vec2(atlasSize);
+
+    float vz = max(abs(lightDirTS.z), 1e-5);
+    vec2 dirXYPerHeight = PARALLAX_HEIGHT * lightDirTS.xy / vz;
+
+    float slices = float(SAMPLES);
+    float dHeight = (1.0 - parallaxHeight) / slices;
+
+    vec2 dUV = uvScale * dirXYPerHeight * dHeight;
+
+    float rayHeight = parallaxHeight + dither * dHeight;
+    float dDist = 1.0 / slices;
+    float dist = dDist;
+
+    vec2 currUVOffset = baseOffset + dither * dUV;
+    float currHeight = getVoxelHeight(GetParallaxCoord(currUVOffset));
+
+    float shadow = 0.0;
+
+    for (int i = 1; i < SAMPLES && rayHeight < 1.0; ++i) {
+        if (currHeight > rayHeight + BIAS) {
+            float occl = clamp((currHeight - rayHeight) / dist * SOFTENING, 0.0, 1.0);
+            shadow = max(shadow, occl);
+            if (shadow >= 0.999) break;
+        }
+
+        rayHeight += dHeight;
+        dist += dDist;
+        currUVOffset += dUV;
+        currHeight = getVoxelHeight(GetParallaxCoord(currUVOffset));
+    }
+
+    return saturate(1.0 - shadow);
 }
