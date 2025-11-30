@@ -41,12 +41,12 @@ void main() {
 		#if PARALLAX_TYPE == 0
 			parallaxUV = parallaxMapping(viewDirTS, parallaxOffset, normalFH);
 			#ifdef PARALLAX_SHADOW
-				parallaxShadow = ParallaxShadow(parallaxOffset, viewDirTS, lightDirTS);
+				parallaxShadow = ParallaxShadow(parallaxOffset, lightDirTS);
 			#endif
 		#else
 			parallaxUV = voxelParallaxMapping(viewDirTS, parallaxOffset, normalFH);
 			#ifdef PARALLAX_SHADOW
-				parallaxShadow = voxelParallaxShadow(parallaxOffset, viewDirTS, lightDirTS);
+				parallaxShadow = voxelParallaxShadow(parallaxOffset, lightDirTS);
 			#endif
 		#endif
 	#endif

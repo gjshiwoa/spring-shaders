@@ -58,7 +58,7 @@ float getParallaxHeight(vec2 uv){
     float hx1 = mix(h01, h11, f.x);
     float height = mix(hx0, hx1, f.y);
 
-    return mix(height, 1.0, remapSaturate(dis, 0.66 * PARALLAX_DISTANCE, PARALLAX_DISTANCE, 0.0, 1.0));
+    return mix(height, 1.0, remapSaturate(dis, 0.5 * PARALLAX_DISTANCE, PARALLAX_DISTANCE, 0.0, 1.0));
 }
 
 vec3 computeNormalFromHeight(vec2 parallaxUV) {
@@ -149,7 +149,7 @@ float getVoxelHeightTexel(ivec2 texelIndex, ivec2 tileStartPx){
     if (h < thresh)
         h = 1.0;
 
-    return mix(h, 1.0, remapSaturate(dis, 0.66 * PARALLAX_DISTANCE, PARALLAX_DISTANCE, 0.0, 1.0));
+    return mix(h, 1.0, remapSaturate(dis, 0.5 * PARALLAX_DISTANCE, PARALLAX_DISTANCE, 0.0, 1.0));
     return h;
 }
 
@@ -222,7 +222,7 @@ vec2 voxelParallaxMapping(vec3 viewVector, out vec3 parallaxOffset, out vec3 vox
     vec2  hitLocalUVGeo   = localUV0;
     vec2  hitLocalUVColor = localUV0;
 
-    for (int step = 0; step < PARALLAX_SAMPPLES; ++step) {
+    for (int step = 0; step < 128.0; ++step) {
         if (tEnter > 1.0)
             break;
 
@@ -403,7 +403,7 @@ float traceParallaxShadow(vec3 parallaxOffset, vec3 lightDirTS, float shadowSoft
         if (currHeight > rayHeight + bias){
             float occlusion = (currHeight - rayHeight) / dist * shadowSoftening;
             shadow = max(shadow, occlusion);
-            if (shadow >= 1.0) break;
+            if (shadow >= 0.999) break;
         }
 
         rayHeight += dHeight;
@@ -416,10 +416,10 @@ float traceParallaxShadow(vec3 parallaxOffset, vec3 lightDirTS, float shadowSoft
 }
 
 
-float ParallaxShadow(vec3 parallaxOffset, vec3 viewDirTS, vec3 lightDirTS){
+float ParallaxShadow(vec3 parallaxOffset, vec3 lightDirTS){
     return traceParallaxShadow(parallaxOffset, lightDirTS, PARALLAX_SHADOW_SOFTENING, false);
 }
 
-float voxelParallaxShadow(vec3 parallaxOffset, vec3 viewDirTS, vec3 lightDirTS){
+float voxelParallaxShadow(vec3 parallaxOffset, vec3 lightDirTS){
     return traceParallaxShadow(parallaxOffset, lightDirTS, PARALLAX_SHADOW_SOFTENING * 5.0, true);
 }
