@@ -13,6 +13,8 @@ vec2 GetParallaxCoord(vec2 offsetNormalized) {
 }
 
 float getParallaxHeight(vec2 uv){
+    float dis = length(viewPos.xyz);
+    if(dis > PARALLAX_DISTANCE) return 1.0;
     float baseAlpha = texture(tex, uv).a;
     
     vec2 tileSizeNormalized = vec2(float(textureResolution)) / atlasSize;
@@ -56,10 +58,35 @@ float getParallaxHeight(vec2 uv){
     float hx1 = mix(h01, h11, f.x);
     float height = mix(hx0, hx1, f.y);
 
-    return height;
+    return mix(height, 1.0, remapSaturate(dis, 0.66 * PARALLAX_DISTANCE, PARALLAX_DISTANCE, 0.0, 1.0));
 }
 
-vec2 parallaxMapping(vec3 viewVector, out vec3 parallaxOffset){
+vec3 computeNormalFromHeight(vec2 parallaxUV) {
+    const float sampleSpanTexels = 1.0;
+    vec2 dUV = vec2(sampleSpanTexels) / vec2(atlasSize);
+
+    float hc = getParallaxHeight(parallaxUV);
+
+    vec2 leftUV  = GetParallaxCoord(vec2(-dUV.x,0.0), parallaxUV, textureResolution);
+    vec2 rightUV = GetParallaxCoord(vec2(dUV.x, 0.0), parallaxUV, textureResolution);
+    vec2 downUV  = GetParallaxCoord(vec2(0.0, -dUV.y), parallaxUV, textureResolution);
+    vec2 upUV    = GetParallaxCoord(vec2(0.0,  dUV.y), parallaxUV, textureResolution);
+
+    float hl = getParallaxHeight(leftUV);
+    float hr = getParallaxHeight(rightUV);
+    float hd = getParallaxHeight(downUV);
+    float hu = getParallaxHeight(upUV);
+
+    float spanUV = sampleSpanTexels / float(textureResolution);
+    float dhdu = (hr - hl) / (2.0 * spanUV);
+    float dhdv = (hu - hd) / (2.0 * spanUV);
+
+    vec3 n = normalize(vec3(-PARALLAX_HEIGHT * dhdu, -PARALLAX_HEIGHT * dhdv, 1.0));
+
+    return n;
+}
+
+vec2 parallaxMapping(vec3 viewVector, out vec3 parallaxOffset, out vec3 normalTS){
     // const float slicesMin = 60.0;
     // const float slicesMax = 60.0;
     // float slicesNum = ceil(lerp(slicesMax, slicesMin, abs(dot(vec3(0, 0, 1), viewVector))));
@@ -93,74 +120,20 @@ vec2 parallaxMapping(vec3 viewVector, out vec3 parallaxOffset){
     }
 
     vec2 lerpOffset = weight * dUV;
+
     parallaxOffset = vec3(currUVOffset + lerpOffset, rayHeight);
-    return GetParallaxCoord(parallaxOffset.xy);
-}
+    vec2 parallaxUV = GetParallaxCoord(parallaxOffset.xy);
+    normalTS = computeNormalFromHeight(parallaxUV);
 
-vec3 computeNormalFromHeight(vec2 parallaxUV) {
-    const float sampleSpanTexels = 0.5;
-    vec2 dUV = vec2(sampleSpanTexels) / vec2(atlasSize);
-
-    float hc = getParallaxHeight(parallaxUV);
-
-    vec2 leftUV  = GetParallaxCoord(vec2(-dUV.x,0.0), parallaxUV, textureResolution);
-    vec2 rightUV = GetParallaxCoord(vec2(dUV.x, 0.0), parallaxUV, textureResolution);
-    vec2 downUV  = GetParallaxCoord(vec2(0.0, -dUV.y), parallaxUV, textureResolution);
-    vec2 upUV    = GetParallaxCoord(vec2(0.0,  dUV.y), parallaxUV, textureResolution);
-
-    float hl = getParallaxHeight(leftUV);
-    float hr = getParallaxHeight(rightUV);
-    float hd = getParallaxHeight(downUV);
-    float hu = getParallaxHeight(upUV);
-
-    float spanUV = sampleSpanTexels / float(textureResolution);
-    float dhdu = (hr - hl) / (2.0 * spanUV);
-    float dhdv = (hu - hd) / (2.0 * spanUV);
-
-    vec3 n = normalize(vec3(-PARALLAX_HEIGHT * dhdu, -PARALLAX_HEIGHT * dhdv, 1.0));
-
-    return n;
-}
-
-float ParallaxShadow(vec3 parallaxOffset, vec3 viewDirTS, vec3 lightDirTS){
-    float parallaxHeight = parallaxOffset.z;
-    float shadow = 0.0;
-
-    if(parallaxHeight > 254.5 / 255.0){  
-        return 1.0;
-    }
-
-    const float shadowSoftening = PARALLAX_SHADOW_SOFTENING;
-    float slicesNum = PARALLAX_SHADOW_SAMPPLES;
-    
-    float dDist = 1.0 / slicesNum;
-    float dHeight = (1.0 - parallaxHeight) / slicesNum;
-    vec2 dUV = vec2(textureResolution)/vec2(atlasSize) * PARALLAX_HEIGHT * dHeight * lightDirTS.xy / lightDirTS.z;
-
-    float rayHeight = parallaxHeight + dither * dHeight;
-    float dist = dDist;
-
-    vec2 currUVOffset = parallaxOffset.st + dither * dUV;
-    float currHeight = getParallaxHeight(GetParallaxCoord(currUVOffset));
-
-    for (int i = 1; i < slicesNum && rayHeight < 1.0; i++){
-        if (currHeight > rayHeight){
-            shadow = max(shadow, (currHeight - rayHeight) / dist * shadowSoftening);
-            if(1.0 == shadow) break;
-        }
-        rayHeight += dHeight;
-        dist += dDist;
-        
-        currUVOffset += dUV;
-        currHeight = getParallaxHeight(GetParallaxCoord(currUVOffset));
-    }
-
-    return saturate(1.0 - shadow);
+    return parallaxUV;
 }
 
 
 
 float getVoxelHeightTexel(ivec2 texelIndex, ivec2 tileStartPx){
+    float dis = length(viewPos.xyz);
+    if(dis > PARALLAX_DISTANCE) return 1.0;
+
     int res = textureResolution;
 
     int ix = texelIndex.x % res;
@@ -176,6 +149,7 @@ float getVoxelHeightTexel(ivec2 texelIndex, ivec2 tileStartPx){
     if (h < thresh)
         h = 1.0;
 
+    return mix(h, 1.0, remapSaturate(dis, 0.66 * PARALLAX_DISTANCE, PARALLAX_DISTANCE, 0.0, 1.0));
     return h;
 }
 
@@ -240,8 +214,6 @@ vec2 voxelParallaxMapping(vec3 viewVector, out vec3 parallaxOffset, out vec3 vox
 
     float tEnter = 0.0;
 
-    const int VOXEL_MAX_STEPS = 64;
-
     bool  hit          = false;
     bool  hitSide      = false;
     float tHit         = 1.0;
@@ -250,7 +222,7 @@ vec2 voxelParallaxMapping(vec3 viewVector, out vec3 parallaxOffset, out vec3 vox
     vec2  hitLocalUVGeo   = localUV0;
     vec2  hitLocalUVColor = localUV0;
 
-    for (int step = 0; step < VOXEL_MAX_STEPS; ++step) {
+    for (int step = 0; step < PARALLAX_SAMPPLES; ++step) {
         if (tEnter > 1.0)
             break;
 
@@ -377,71 +349,77 @@ vec2 voxelParallaxMapping(vec3 viewVector, out vec3 parallaxOffset, out vec3 vox
     return GetParallaxCoord(offsetShade);
 }
 
-float getVoxelHeight(vec2 uv){
+
+
+
+void getVoxelTileData(vec2 uv, out vec2 localUV, out ivec2 tileStartPx){
     vec2 tileSizeNormalized = vec2(float(textureResolution)) / vec2(atlasSize);
-
     vec2 tileStart = floor(uv / tileSizeNormalized) * tileSizeNormalized;
-
-    vec2 localUV = (uv - tileStart) / tileSizeNormalized;
-    localUV = clamp(localUV, vec2(0.0), vec2(1.0 - 1e-6));
-
-    float resF = float(textureResolution);
-    vec2 gridPos = localUV * resF;
-
-    int ix = int(floor(gridPos.x));
-    int iy = int(floor(gridPos.y));
-
+    localUV = fract((uv - tileStart) / tileSizeNormalized);
     ivec2 atlasPxSize = atlasSize;
-    ivec2 tileStartPx = ivec2(tileStart * vec2(atlasPxSize) + 0.5);
-
-    int res = textureResolution;
-    int sx = ix % res; if (sx < 0) sx += res;
-    int sy = iy % res; if (sy < 0) sy += res;
-
-    return getVoxelHeightTexel(ivec2(sx, sy), tileStartPx);
+    tileStartPx = ivec2(tileStart * vec2(atlasPxSize) + 0.5);
 }
 
-float voxelParallaxShadow(vec3 parallaxOffset, vec3 viewDirTS, vec3 lightDirTS){
-    float parallaxHeight = parallaxOffset.z;
+float getVoxelHeight(vec2 uv){
+    vec2 localUV;
+    ivec2 tileStartPx;
+    getVoxelTileData(uv, localUV, tileStartPx);
 
+    float resF = float(textureResolution);
+    ivec2 texelIndex = ivec2(floor(localUV * resF));
+
+    return getVoxelHeightTexel(texelIndex, tileStartPx);
+}
+
+float sampleParallaxHeight(bool useVoxelHeight, vec2 coord){
+    return useVoxelHeight ? getVoxelHeight(coord) : getParallaxHeight(coord);
+}
+
+float traceParallaxShadow(vec3 parallaxOffset, vec3 lightDirTS, float shadowSoftening, bool useVoxelHeight){
+    float parallaxHeight = parallaxOffset.z;
     if (parallaxHeight >= 254.5 / 255.0) return 1.0;
 
     const int SAMPLES = int(PARALLAX_SHADOW_SAMPPLES);
-    const float SOFTENING = PARALLAX_SHADOW_SOFTENING * 5.0;
-    const float BIAS = 0.001;
+    float slicesNum = float(SAMPLES);
 
-    vec2 baseOffset = parallaxOffset.xy;
+    float dDist = 1.0 / slicesNum;
+    float dHeight = (1.0 - parallaxHeight) / slicesNum;
+
     vec2 uvScale = vec2(float(textureResolution)) / vec2(atlasSize);
-
     float vz = max(abs(lightDirTS.z), 1e-5);
     vec2 dirXYPerHeight = PARALLAX_HEIGHT * lightDirTS.xy / vz;
-
-    float slices = float(SAMPLES);
-    float dHeight = (1.0 - parallaxHeight) / slices;
-
     vec2 dUV = uvScale * dirXYPerHeight * dHeight;
 
     float rayHeight = parallaxHeight + dither * dHeight;
-    float dDist = 1.0 / slices;
     float dist = dDist;
 
-    vec2 currUVOffset = baseOffset + dither * dUV;
-    float currHeight = getVoxelHeight(GetParallaxCoord(currUVOffset));
+    vec2 currUVOffset = parallaxOffset.xy + dither * dUV;
+    float currHeight = sampleParallaxHeight(useVoxelHeight, GetParallaxCoord(currUVOffset));
 
     float shadow = 0.0;
 
     for (int i = 1; i < SAMPLES && rayHeight < 1.0; ++i) {
-        if (currHeight > rayHeight + BIAS) {
-            float occl = clamp((currHeight - rayHeight) / dist * SOFTENING, 0.0, 1.0);
-            shadow = max(shadow, occl);
-            if (shadow >= 0.999) break;
+        float bias = 12.5 / 255.0 * (1.0 - 0.8 * float(PARALLAX_TYPE));
+        if (currHeight > rayHeight + bias){
+            float occlusion = (currHeight - rayHeight) / dist * shadowSoftening;
+            shadow = max(shadow, occlusion);
+            if (shadow >= 1.0) break;
         }
 
         rayHeight += dHeight;
         dist += dDist;
         currUVOffset += dUV;
-        currHeight = getVoxelHeight(GetParallaxCoord(currUVOffset));
+        currHeight = sampleParallaxHeight(useVoxelHeight, GetParallaxCoord(currUVOffset));
     }
 
     return saturate(1.0 - shadow);
+}
+
+
+float ParallaxShadow(vec3 parallaxOffset, vec3 viewDirTS, vec3 lightDirTS){
+    return traceParallaxShadow(parallaxOffset, lightDirTS, PARALLAX_SHADOW_SOFTENING, false);
+}
+
+float voxelParallaxShadow(vec3 parallaxOffset, vec3 viewDirTS, vec3 lightDirTS){
+    return traceParallaxShadow(parallaxOffset, lightDirTS, PARALLAX_SHADOW_SOFTENING * 5.0, true);
 }
