@@ -137,41 +137,8 @@ vec3 reflection(sampler2D tex, vec3 viewPos, vec3 reflectWorldDir, vec3 reflectV
     return max(reflectColor, BLACK);
 }
 
-vec3 getScatteredReflection(vec3 reflectDir, float roughness, vec3 normal) {
-    if (roughness < 1e-6) {
-        return normalize(reflectDir);
-    }
-
-    vec3 randVec = rand2_3(gl_FragCoord.xy * invViewSize + sin(frameTimeCounter));
-    
-    vec3 tangent = normalize(cross(
-        abs(reflectDir.z) < 0.999 ? vec3(0,0,1) : vec3(1,0,0), 
-        reflectDir
-    ));
-    vec3 bitangent = cross(reflectDir, tangent);
-    mat3 tbn = mat3(tangent, bitangent, reflectDir);
-
-    float a = roughness * roughness;
-    float phi = _2PI * randVec.x;
-    
-    float cosTheta = sqrt((1.0 - randVec.y) / (1.0 + (a*a - 1.0) * randVec.y));
-    float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
-    
-    vec3 hemisphere = vec3(
-        sinTheta * cos(phi),
-        sinTheta * sin(phi),
-        cosTheta
-    );
-
-    vec3 scatteredDir = tbn * hemisphere;
-
-    return dot(scatteredDir, normal) > 0.0 
-        ? normalize(scatteredDir)
-        : reflect(scatteredDir, normal);
-}
-
 #ifndef GBF
-vec3 temporal_Reflection(vec3 color_c, float r){
+vec3 temporal_Reflection(vec3 color_c, int samples){
     vec2 uv = texcoord * 2 - 1.0;
     float z = texture(depthtex1, uv).r;
     vec4 screenPos = vec4(uv, z, 1.0);
@@ -211,7 +178,7 @@ vec3 temporal_Reflection(vec3 color_c, float r){
     }
     }
 
-    color_c = mix(color_c.rgb, c_s.rgb, w_s * 0.95 * cameraDisplacementWeight);
+    color_c = mix(color_c.rgb, c_s.rgb, w_s * (0.95 - 0.02 * float(samples - 1.0)) * cameraDisplacementWeight);
     return color_c;
 }
 

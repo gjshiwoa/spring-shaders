@@ -84,10 +84,10 @@ const int noiseTextureResolution = 64;
 #define PARALLAX_HEIGHT 0.25        // [0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0]
 #define PARALLAX_DISTANCE 30.0      // [5.0 10.0 15.0 20.0 25.0 30.0 40.0 50.0 60.0]
 #define PARALLAX_SHADOW
-#define PARALLAX_SHADOW_SAMPPLES 12.0   // [4.0 8.0 12.0 16.0 20.0 24.0 28.0 32.0]
+#define PARALLAX_SHADOW_SAMPPLES 8.0   // [4.0 8.0 12.0 16.0 20.0 24.0 28.0 32.0]
 #define PARALLAX_SHADOW_SOFTENING 1.0   // [0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 2.5 3.0 3.5 4.0 5.0]
 #define PARALLAX_NORMAL_MIX_WEIGHT 0.5   // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
-#define PARALLAX_FORCE_TEXTURE_NORMAL_ON_VERTICAL
+#define PARALLAX_FORCE_NORMAL_VERTICAL
 
 #define PBR_REFLECTIVITY
 #define SSS_INTENSITY 5.0           // [0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0]
@@ -111,9 +111,9 @@ const int noiseTextureResolution = 64;
 #define TAA_BLEND_FACTOR 0.03       // [0.01 0.015 0.02 0.025 0.03 0.035 0.04 0.045 0.05 0.055 0.06 0.065 0.07 0.075 0.08 0.085 0.09 0.095 0.1]
 
 
-// #define ANISOTROPIC_FILTERING
+#define ANISOTROPIC_FILTERING
 #define ANISOTROPIC_FILTERING_MODE 0        // [0 1]
-#define ANISOTROPIC_FILTERING_QUALITY 4.0   // [2.0 4.0 8.0 16.0]
+#define ANISOTROPIC_FILTERING_QUALITY 1.0   // [1.0 2.0 4.0 8.0 16.0]
 
 #define FSR_RCAS
 #define RCAS_LIMIT (0.25 - (1.0 / 16.0))
@@ -143,7 +143,7 @@ const vec3 MieSigma = vec3(3.996) * 1e-6;
 const vec3 MieAbsorptionSigma = vec3(4.4) * 1e-6;
 const vec3 OzoneAbsorptionSigma = vec3(0.650, 1.881, 0.085) * 1e-6;
 
-#define Information CHUN_v2_2025_11_BY_ZY     //     [CHUN_v2_2025_11_BY_ZY]
+#define Information CHUN_v2_2025_12_BY_ZY     //     [CHUN_v2_2025_12_BY_ZY]
 
 const float H_R = 8500.0;
 const float H_M = 1200.0;

@@ -29,11 +29,10 @@ void main() {
 	vec2 texGradX = dFdx(texcoord);
 	vec2 texGradY = dFdy(texcoord);
 
-	vec3 parallaxOffset = vec3(0.0, 0.0, 1.0);
-
 	vec2 parallaxUV = texcoord;
 	float parallaxShadow = 1.0;
 	vec3 normalFH = vec3(0.0, 0.0, 1.0);
+	vec3 parallaxOffset = vec3(0.0, 0.0, 1.0);
 	#ifdef PARALLAX_MAPPING
 		vec3 viewDirTS = normalize(viewPos.xyz * tbnMatrix);
 		vec3 lightDirTS = normalize(shadowLightPosition * tbnMatrix);
@@ -52,36 +51,34 @@ void main() {
 	#endif
 
 	vec4 texColor;
-	if(blockID == NO_ANISO){
-		texColor = texture(tex, texcoord);
-	}else{
+	#ifdef ANISOTROPIC_FILTERING
+		#if ANISOTROPIC_FILTERING_MODE == 0
+			texColor = textureAniso2(tex, parallaxUV, texcoord);
+		#else
+			texColor = textureAniso(tex, parallaxUV, texcoord);
+		#endif
+	#else
 		#ifdef PARALLAX_MAPPING
 			texColor = textureGrad(tex, parallaxUV, texGradX, texGradY);
 		#else
-			#ifdef ANISOTROPIC_FILTERING
-				#if ANISOTROPIC_FILTERING_MODE == 0
-					texColor = textureAniso2(tex, parallaxUV, texcoord);
-				#else
-					texColor = textureAniso(tex, parallaxUV, texcoord);
-				#endif
-			#else
-				texColor = texture(tex, texcoord);
-			#endif
+			texColor = texture(tex,parallaxUV);
 		#endif
-	}
+	#endif
+	
 
 	
 	
 	vec4 color = texColor * glcolor;
 	vec3 normalTex = N;
+	vec3 sampledNormal = textureGrad(normals, parallaxUV, texGradX, texGradY).rgb * 2.0 - 1.0;
+	normalTex = normalize(tbnMatrix * sampledNormal);
 	#ifdef PARALLAX_MAPPING
-		normalTex = normalize(tbnMatrix * (textureGrad(normals, parallaxUV, texGradX, texGradY).rgb * 2.0 - 1.0));
 		#if PARALLAX_TYPE == 0
 			normalTex = mix(normalTex, tbnMatrix * normalFH, PARALLAX_NORMAL_MIX_WEIGHT);
 		#else
 			float verticalness = dot(normalFH, vec3(0.0, 0.0, 1.0));
 			const float VERTICAL_THRESHOLD = 0.95;
-			#ifdef PARALLAX_FORCE_TEXTURE_NORMAL_ON_VERTICAL
+			#ifdef PARALLAX_FORCE_NORMAL_VERTICAL
 				normalTex = verticalness > VERTICAL_THRESHOLD ? normalTex : (tbnMatrix * normalFH);
 			#else
 				normalTex = tbnMatrix * normalFH;

@@ -53,7 +53,7 @@ void main() {
 		vec3 reflectColor = getReflectColor(depth1, normalW);
 
 		vec3 F0 = mix(vec3(0.04), albedo, params.metalness); 
-		if(params.metalness > 0.9) F0 += ComplexFresnel(NdotV, N, K);
+		if(params.metalness > 0.9) F0 += ComplexFresnel(N, K);
 		vec3 BRDF = EnvDFGLazarov(F0, params.smoothness, NdotV) * pow(params.smoothness, 1.0 / MIRROR_INTENSITY);
 
 		color.rgb += reflectColor * BRDF * ao;

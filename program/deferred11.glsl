@@ -32,7 +32,7 @@ void main() {
 	vec4 viewPos1 = screenPosToViewPos(vec4(unTAAJitter(texcoord), depth1, 1.0));
 
 #ifdef PBR_REFLECTIVITY
-	if(specularMap.r + rainStrength > 1.0 / 255.0){
+	if(specularMap.r + rainStrength > 0.5 / 255.0){
 		
 		vec3 viewDir = normalize(viewPos1.xyz);
 
@@ -53,7 +53,7 @@ void main() {
 		vec3 reflectColor = getReflectColor(depth1, normalW);
 
 		vec3 F0 = mix(vec3(0.04), albedo, params.metalness); 
-		if(params.metalness > 0.9) F0 += ComplexFresnel(NdotV, N, K);
+		if(params.metalness > 0.9) F0 += max(vec3(0.0), ComplexFresnel(params.N, params.K));
 		vec3 BRDF = EnvDFGLazarov(F0, params.smoothness, NdotV) * pow(params.smoothness, 1.0 / MIRROR_INTENSITY);
 
 		color.rgb += reflectColor * BRDF * ao;

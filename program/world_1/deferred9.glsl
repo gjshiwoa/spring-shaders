@@ -42,25 +42,27 @@ void main() {
 
 			vec2 mcLightmap = texelFetch(colortex5, ivec2(gl_FragCoord.xy * 2 - viewSize), 0).ba;
 			vec2 lightmap = AdjustLightmap(mcLightmap);
-
+			
 			float r = saturate(1.0 * params.roughness - 0.90 * rainStrength * smoothstep(0.90, 0.95, mcLightmap.y));
-			vec3 reflectViewDir = normalize(reflect(hrrViewDir, hrrNormalV));
-			reflectViewDir = getScatteredReflection(reflectViewDir, r, hrrNormalV);
-			vec3 reflectWorldDir = normalize(reflect(hrrWorldDir, hrrNormalW));	
 
-			float NdotU = dot(upWorldDir, reflectWorldDir);
-			lightmap.y *= smoothstep(-1.0, 1.0, NdotU);
+			const int reflectionSamples = 5;
+			vec3 accumulatedReflectColor = vec3(0.0);
+			for(int sampleIndex = 0; sampleIndex < reflectionSamples; ++sampleIndex){
+				vec3 sampleReflectViewDir = normalize(reflect(hrrViewDir, hrrNormalV));
+				sampleReflectViewDir = getScatteredReflection(hrrViewDir, hrrNormalV, r, sampleIndex);
+				vec3 sampleReflectWorldDir = normalize(viewPosToWorldPos(vec4(sampleReflectViewDir.xyz, 0.0)).xyz);
 
-			bool ssrTargetSampled = false;
-			reflectColor = reflection(colortex2, hrrViewPos.xyz, reflectWorldDir, reflectViewDir, lightmap.y, hrrNormalV, 1.0, ssrTargetSampled);
-			reflectColor = clamp(reflectColor, 0.001, 10.0);
-			// reflectViewDir = normalize(
-			// 					reflect(hrrViewDir, hrrNormalV) + 
-			// 					1.9 * r * (rand2_3(texcoord + sin(frameTimeCounter) + vec2(96.317, 46.389135)) - 0.5));
-			// reflectColor = 0.5 * (reflectColor + reflection(colortex0, hrrViewPos.xyz, reflectWorldDir, reflectViewDir, lightmap.y, vec3(0.0), 1.0));
-			
-			
-			reflectColor = temporal_Reflection(reflectColor, params.roughness);
+				float NdotU = dot(upWorldDir, sampleReflectWorldDir);
+				float sampleLightmapY = lightmap.y * smoothstep(-1.0, 1.0, NdotU);
+
+				bool ssrTargetSampled = false;
+				vec3 sampleColor = reflection(colortex2, hrrViewPos.xyz, sampleReflectWorldDir, sampleReflectViewDir, sampleLightmapY, hrrNormalV, 1.0, ssrTargetSampled);
+				sampleColor = clamp(sampleColor, 0.001, 10.0);
+				accumulatedReflectColor += sampleColor;
+			}
+
+			reflectColor = accumulatedReflectColor / float(reflectionSamples);
+			reflectColor = temporal_Reflection(reflectColor, reflectionSamples);
 			
 			CT3.rgb = reflectColor;
 		}	
