@@ -11,11 +11,11 @@ vec3 wavingPlants(vec3 vMcPos, float A, float B, float Da, float yW){
     // 通过sin函数，使数值随时间有规律地忽高忽低，且不同位置初始值不同
     float nt = sin(((1.0 / 16.0) * t + noise.b) * _2PI) * 0.5 + 0.5;
     nt = mix(noiseT, nt, 0.4);
-    nt = saturate(max(max(0.1, nt), 0.4 * rainStrength));
-    A *= nt * (1.0 + 0.5 * rainStrength);
+    nt = saturate(max(max(0.1, nt), 0.4 * wetness));
+    A *= nt * (1.0 + 0.5 * wetness);
 
     B = _2PI / B;
-    B *= 1.0 + 0.5 * step(0.01, rainStrength);
+    B *= 1.0 + 0.5 * step(0.01, wetness);
 
     vec3 C = vec3(_2PI) * noise.rgb;
 

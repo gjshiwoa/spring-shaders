@@ -22,15 +22,15 @@ varying vec3 sunViewDir, moonViewDir, lightViewDir;
 
 void main() {
 	vec4 CT3 = texelFetch(colortex3, ivec2(gl_FragCoord.xy), 0);
-	vec4 CT6 = texelFetch(colortex6, ivec2(gl_FragCoord.xy - 0.5 * viewSize), 0);
+	
 #ifdef PBR_REFLECTIVITY
 	vec2 hrrUV = texcoord * 2.0 - 1.0;
 	vec3 reflectColor = BLACK;
-
 	if(!outScreen(hrrUV)){
 		vec4 hrrSpecularMap = unpack2x16To4x8(texelFetch(colortex4, ivec2(gl_FragCoord.xy * 2 - viewSize), 0).ba);
 		MaterialParams params = MapMaterialParams(hrrSpecularMap);
-		if(hrrSpecularMap.r + rainStrength > 0.001){
+		if(hrrSpecularMap.r + wetness > 0.5 / 255.0){
+			vec4 CT6 = texelFetch(colortex6, ivec2(gl_FragCoord.xy - 0.5 * viewSize), 0);
 			float hrrZ = CT6.g;
 			vec4 hrrViewPos = screenPosToViewPos(vec4(unTAAJitter(hrrUV), hrrZ, 1.0));
 			vec3 hrrViewDir = normalize(hrrViewPos.xyz);
@@ -43,12 +43,13 @@ void main() {
 			vec2 mcLightmap = texelFetch(colortex5, ivec2(gl_FragCoord.xy * 2 - viewSize), 0).ba;
 			vec2 lightmap = AdjustLightmap(mcLightmap);
 
-			float r = saturate(1.0 * params.roughness - 0.90 * rainStrength * smoothstep(0.90, 0.95, mcLightmap.y));
+			float r = saturate(1.0 * params.roughness - 0.90 * wetness * smoothstep(0.90, 0.95, mcLightmap.y));
 
-			const int reflectionSamples = 5;
+			const int reflectionSamples = PBR_REFLECTION_DIR_COUNT;
 			vec3 accumulatedReflectColor = vec3(0.0);
 			for(int sampleIndex = 0; sampleIndex < reflectionSamples; ++sampleIndex){
 				vec3 sampleReflectViewDir = normalize(reflect(hrrViewDir, hrrNormalV));
+				// r = 0.1;
 				sampleReflectViewDir = getScatteredReflection(hrrViewDir, hrrNormalV, r, sampleIndex);
 				vec3 sampleReflectWorldDir = normalize(viewPosToWorldPos(vec4(sampleReflectViewDir.xyz, 0.0)).xyz);
 
@@ -62,7 +63,7 @@ void main() {
 			}
 
 			reflectColor = accumulatedReflectColor / float(reflectionSamples);
-			reflectColor = temporal_Reflection(reflectColor, reflectionSamples);
+			reflectColor = temporal_Reflection(reflectColor, reflectionSamples, r);
 			
 			CT3.rgb = reflectColor;
 		}	
@@ -77,7 +78,7 @@ void main() {
 
 #endif
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////Z/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Y//
+///////////////////////////////////////////////////BY ZYPanDa gjshiwoa////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef VSH
 

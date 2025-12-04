@@ -29,13 +29,25 @@ void main() {
 	vec2 texGradX = dFdx(texcoord);
 	vec2 texGradY = dFdy(texcoord);
 
+	vec3 dp1 = dFdx(viewPos.xyz);
+	vec3 dp2 = dFdy(viewPos.xyz);
+
+	vec3 N = normalize(cross(dp1, dp2));
+	vec3 dp2perp = cross(dp2, N);
+	vec3 dp1perp = cross(N, dp1);
+
+	vec3 T = normalize(dp2perp * texGradX.x + dp1perp * texGradY.x);
+	vec3 B = normalize(dp2perp * texGradX.y + dp1perp * texGradY.y);
+	float invmax = inversesqrt(max(dot(T, T), dot(B, B)));
+	mat3 tbn = mat3(T * invmax, B * invmax, N);
+
 	vec2 parallaxUV = texcoord;
 	float parallaxShadow = 1.0;
 	vec3 normalFH = vec3(0.0, 0.0, 1.0);
 	vec3 parallaxOffset = vec3(0.0, 0.0, 1.0);
 	#ifdef PARALLAX_MAPPING
-		vec3 viewDirTS = normalize(viewPos.xyz * tbnMatrix);
-		vec3 lightDirTS = normalize(shadowLightPosition * tbnMatrix);
+		vec3 viewDirTS = normalize(viewPos.xyz * tbn);
+		vec3 lightDirTS = normalize(shadowLightPosition * tbn);
 
 		#if PARALLAX_TYPE == 0
 			parallaxUV = parallaxMapping(viewDirTS, parallaxOffset, normalFH);
@@ -71,17 +83,17 @@ void main() {
 	vec4 color = texColor * glcolor;
 	vec3 normalTex = N;
 	vec3 sampledNormal = textureGrad(normals, parallaxUV, texGradX, texGradY).rgb * 2.0 - 1.0;
-	normalTex = normalize(tbnMatrix * sampledNormal);
+	normalTex = normalize(tbn * sampledNormal);
 	#ifdef PARALLAX_MAPPING
 		#if PARALLAX_TYPE == 0
-			normalTex = mix(normalTex, tbnMatrix * normalFH, PARALLAX_NORMAL_MIX_WEIGHT);
+			normalTex = mix(normalTex, tbn * normalFH, PARALLAX_NORMAL_MIX_WEIGHT);
 		#else
 			float verticalness = dot(normalFH, vec3(0.0, 0.0, 1.0));
 			const float VERTICAL_THRESHOLD = 0.95;
 			#ifdef PARALLAX_FORCE_NORMAL_VERTICAL
-				normalTex = verticalness > VERTICAL_THRESHOLD ? normalTex : (tbnMatrix * normalFH);
+				normalTex = verticalness > VERTICAL_THRESHOLD ? normalTex : (tbn * normalFH);
 			#else
-				normalTex = tbnMatrix * normalFH;
+				normalTex = tbn * normalFH;
 			#endif
 		#endif
 	#endif
@@ -183,16 +195,16 @@ void main() {
     // v_tcrange.xy = mc_midTexCoord.xy - v_tcrange.zw * 0.5;
 
 	// 来自BSL
-	vec2 midCoord = (gl_TextureMatrix[0] *  mc_midTexCoord).st;
-	vec2 texMinMidCoord = v_texcoord - midCoord;
+	// vec2 midCoord = (gl_TextureMatrix[0] *  mc_midTexCoord).st;
+	// vec2 texMinMidCoord = v_texcoord - midCoord;
 	// vTexCoordAM.pq  = abs(texMinMidCoord) * 2;
 	// vTexCoordAM.st  = min(v_texcoord, midCoord - texMinMidCoord);
 	// vTexCoord.xy    = sign(texMinMidCoord) * 0.5 + 0.5;
 
-	v_N = gl_NormalMatrix * normalize(gl_Normal);
-	vec3 T = gl_NormalMatrix * normalize(at_tangent.xyz);
 	const float inf = uintBitsToFloat(0x7f800000u);
 	float handedness = clamp(at_tangent.w * inf, -1.0, 1.0);
+	v_N = gl_NormalMatrix * normalize(gl_Normal);
+	vec3 T = gl_NormalMatrix * normalize(at_tangent.xyz);
 	vec3 B = cross(T, v_N) * handedness;
 	v_tbnMatrix = mat3(T, B, v_N);
 

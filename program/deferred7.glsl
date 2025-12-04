@@ -216,7 +216,7 @@ void main() {
 		color.rgb = color.rgb * cloudTransmittance + cloudScattering;
 
 		float VoL = saturate(dot(worldDir, sunWorldDir));
-		float phase = saturate(hgPhase1(VoL, 0.66 - 0.56 * rainStrength));
+		float phase = saturate(hgPhase1(VoL, 0.66 - 0.56 * wetness));
 		float crepuscularLight = 0.0;
 		#ifdef CREPUSCULAR_LIGHT
 			if(phase > 0.01 && sunRiseSetS + isNoonS > 0.001) crepuscularLight = computeCrepuscularLight(viewPos1) * phase;
@@ -235,7 +235,7 @@ void main() {
 				);
 			
 		}
-		color.rgb += pow(crepuscularLight, 1.0) * sunColor * max3(0.6 * sunRiseSetS, 5.0 * rainStrength, 0.05 * isNoonS) * saturate(1.0 - isNightS)
+		color.rgb += pow(crepuscularLight, 1.0) * sunColor * max3(0.6 * sunRiseSetS, 5.0 * wetness, 0.05 * isNoonS) * saturate(1.0 - isNightS)
 					* remapSaturate(camera.y, 600.0, 1000.0, 1.0, 0.0);
 		// color.rgb = vec3(computeCrepuscularLight(viewPos1));
 		// color.rgb = vec3(crepuscularLight);

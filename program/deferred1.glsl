@@ -78,11 +78,11 @@ void main() {
 
 	sunColor = isNoon * TransmittanceToAtmosphere(earthPos, sunWorldDir) * IncomingLight;
 	sunColor += isNight * TransmittanceToAtmosphere(earthPos, moonWorldDir) * IncomingLight_N;
-	sunColor *= 1.0 - 0.75 * rainStrength;
+	sunColor *= 1.0 - 0.75 * wetness;
 	
 	skyColor = zenithColor;
 	skyColor *= 3.0;
-	skyColor *= 1.0 - 0.3 * rainStrength;
+	skyColor *= 1.0 - 0.3 * wetness;
 }
 
 #endif

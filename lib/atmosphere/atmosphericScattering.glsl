@@ -362,7 +362,7 @@ mat2x3 AtmosphericScattering(vec3 worldPos, vec3 worldDirO, vec3 lightDir, vec3 
     vec3 multiScattering = multiScatteringR * RayleighSigma
                         + multiScatteringM * MieSigma * mieAmount * MIE_STRENGTHNESS;
 
-    inScattering = mix(inScattering, vec3(getLuminance(inScattering)), rainStrength * 0.33);
+    inScattering = mix(inScattering, vec3(getLuminance(inScattering)), wetness * 0.33);
 
     return mat2x3(inScattering * ds * I, multiScattering * ds * I);
 }

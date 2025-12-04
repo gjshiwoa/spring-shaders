@@ -45,7 +45,7 @@ vec3 drawCelestial(vec3 worldDir, float transmittance, bool stars){
     
     float mixAmount = saturate((worldDir.y - 0.02) * 5);   // 遮罩
     mixAmount *= fastPow(transmittance, 10);
-    mixAmount *= 1.0 - rainStrength;
+    mixAmount *= 1.0 - wetness;
 
     return mix(BLACK, celestialColor, mixAmount);
 }

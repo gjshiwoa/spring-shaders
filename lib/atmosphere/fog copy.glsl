@@ -83,7 +83,7 @@ float sampleFogDensityLow(vec3 cameraPos, float height_fraction){
     float coverage = saturate(mix(weatherData.r, weatherData.g, 1.0));
     coverage = pow(coverage, remapSaturate(height_fraction, 0.1, 0.75, 0.6, 1.2));
     coverage = saturate(1.0 - 0.65 * coverage 
-                        - 0.4 * saturate(rainStrength + 0.66 * isNightS + 0.66 * sunRiseSetS) 
+                        - 0.4 * saturate(wetness + 0.66 * isNightS + 0.66 * sunRiseSetS) 
                         + 0.15 * remapSaturate(pow(height_fraction, 0.8), 0.5, 1.0, 0.0, 1.0));
 
     cameraPos.y *= 1.33;
@@ -325,7 +325,7 @@ vec4 temporal_fog(vec4 color_c){
         // float normalWeight = saturate(dot(normal_c, unpackNormal(pre.r)));
 
         if(isEyeInWater == 0){
-            depthWeight = mix(1.0, depthWeight, mix(1.0, c.a, rainStrength));
+            depthWeight = mix(1.0, depthWeight, mix(1.0, c.a, wetness));
             // normalWeight = mix(normalWeight, 1.0, c.a);
         }
 

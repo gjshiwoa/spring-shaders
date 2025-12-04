@@ -99,12 +99,23 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness){
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
-vec3 BurleyDiffuse(vec3 kD, vec3 albedo, float roughness, float NoL, float NoV, float Lh){
-    float Fd90 = 0.5 + 2.0 * roughness * Lh * Lh;
+vec3 BurleyDiffuse(vec3 kD, vec3 albedo, float roughness, float NoL, float NoV, float VoH){
+    float Fd90 = 0.5 + 2.0 * roughness * VoH * VoH;
     float fresnelL = pow(saturate(1.0 - NoL), 5.0);
     float fresnelV = pow(saturate(1.0 - NoV), 5.0);
     float diffuseTerm = (1.0 + (Fd90 - 1.0) * fresnelL) * (1.0 + (Fd90 - 1.0) * fresnelV);
     return kD * albedo * (1.0 / PI) * diffuseTerm;
+}
+
+vec3 Diffuse_OrenNayar(vec3 DiffuseColor, float Roughness, float NoV, float NoL, float VoH) {
+    float a = Roughness * Roughness;
+    float s = a;
+    float s2 = s * s;
+    float VoL = 2.0 * VoH * VoH - 1.0;
+    float Cosri = VoL - NoV * NoL;
+    float C1 = 1.0 - 0.5 * s2 / (s2 + 0.33);
+    float C2 = 0.45 * s2 / (s2 + 0.09) * Cosri * (Cosri >= 0.0 ? 1.0 / max(NoL, NoV) : 1.0);
+    return DiffuseColor / PI * (C1 + C2) * (1.0 + Roughness * 0.5);
 }
 
 vec3 ComplexFresnel(vec3 N, vec3 K) {
@@ -128,7 +139,6 @@ mat2x3 CalculatePBR(vec3 viewDir, vec3 N, vec3 L, vec3 albedo, MaterialParams pa
     float NoH = saturate(dot(N, H));
     float NoV = saturate(dot(N, V));
     float NoL = saturate(dot(N, L));
-    float LoH = saturate(dot(L, H));
     
     vec3 F0 = vec3(params.metalness);
     F0 = mix(vec3(0.04), albedo, params.metalness);
@@ -143,7 +153,9 @@ mat2x3 CalculatePBR(vec3 viewDir, vec3 N, vec3 L, vec3 albedo, MaterialParams pa
     vec3 kS = fresnelSchlickRoughness(VoH, vec3(params.metalness), params.roughness);
     vec3 kD = vec3(1.0) - kS;
     
-    vec3 diffuse = BurleyDiffuse(kD, albedo, params.roughness, NoL, NoV, LoH);
+    // vec3 diffuse = BurleyDiffuse(kD, albedo, params.roughness, NoL, NoV, VoH);
+    // vec3 diffuse = Diffuse_OrenNayar(kD * albedo, params.roughness, NoV, NoL, VoH);
+    vec3 diffuse = kD * albedo / PI;
 
     return mat2x3(diffuse, specular); 
 }
@@ -200,7 +212,7 @@ vec3 getScatteredReflection(vec3 reflectDir, vec3 normal, float roughness, float
         return normalize(reflectDir);
     }
 
-    vec3 randVec = rand2_3(texcoord + sin(frameTimeCounter) + sampleIndex);
+    vec3 randVec = rand2_3(texcoord + sin(frameTimeCounter) + sampleIndex * GOLDEN_RATIO);
     
     vec3 tangent = normalize(cross(
         abs(reflectDir.z) < 0.999 ? vec3(0,0,1) : vec3(1,0,0), 
@@ -209,7 +221,7 @@ vec3 getScatteredReflection(vec3 reflectDir, vec3 normal, float roughness, float
     vec3 bitangent = cross(reflectDir, tangent);
     mat3 tbn = mat3(tangent, bitangent, reflectDir);
 
-    float a = roughness;
+    float a = roughness * roughness;
     float phi = _2PI * randVec.x;
     
     float cosTheta = sqrt((1.0 - randVec.y) / (1.0 + (a*a - 1.0) * randVec.y));

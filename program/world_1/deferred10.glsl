@@ -29,7 +29,7 @@ void main() {
 		vec4 hrrSpecularMap = unpack2x16To4x8(texelFetch(colortex4, ivec2(gl_FragCoord.xy * 2 - viewSize), 0).ba);
 		MaterialParams params = MapMaterialParams(hrrSpecularMap);
 		if(hrrSpecularMap.r + wetness > 0.5 / 255.0){
-			CT1.rgb = JointBilateralFiltering_Refl_Vertical();
+			CT1.rgb = JointBilateralFiltering_Refl_Horizontal();
 		}	
 
 		CT1.rgb = max(vec3(0.0), CT1.rgb);

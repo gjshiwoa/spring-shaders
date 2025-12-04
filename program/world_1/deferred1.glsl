@@ -106,7 +106,7 @@ void main() {
 
 	// sunColor = isNoon * TransmittanceToAtmosphere(earthPos, sunWorldDir) * IncomingLight;
 	// sunColor += isNight * TransmittanceToAtmosphere(earthPos, moonWorldDir) * IncomingLight_N;
-	// sunColor *= 1.0 - 0.75 * rainStrength;
+	// sunColor *= 1.0 - 0.75 * wetness;
 	// skyColor = GetMultiScattering(getHeigth(earthPos), upWorldDir, sunWorldDir) * IncomingLight * 3;
 	// skyColor += GetMultiScattering(getHeigth(earthPos), upWorldDir, moonWorldDir) * IncomingLight_N * 3;
 

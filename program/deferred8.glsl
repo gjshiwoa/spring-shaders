@@ -47,7 +47,7 @@ void main() {
 		float d = d_p2e > 0.0 ? d_p2e : d_p2a;
 		d = max(d, 0.0);
 
-		mat2x3 atmosphericScattering = AtmosphericScattering(worldDir * d_p2a, worldDirO, sunWorldDir, IncomingLight * (1.0 - 0.3 * rainStrength), 1.0, int(ATMOSPHERE_SCATTERING_SAMPLES * 0.5));
+		mat2x3 atmosphericScattering = AtmosphericScattering(worldDir * d_p2a, worldDirO, sunWorldDir, IncomingLight * (1.0 - 0.3 * wetness), 1.0, int(ATMOSPHERE_SCATTERING_SAMPLES * 0.5));
 		atmosphericScattering += AtmosphericScattering(worldDir * d_p2a, worldDirO, moonWorldDir, IncomingLight_N, 1.0, int(ATMOSPHERE_SCATTERING_SAMPLES * 0.5)) * 0.2 * SKY_BASE_COLOR_BRIGHTNESS_N;
 		vec3 skyBaseColor = atmosphericScattering[0] + atmosphericScattering[1];
 		skyBaseColor *= SKY_BASE_COLOR_BRIGHTNESS;

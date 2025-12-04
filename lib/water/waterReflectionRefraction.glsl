@@ -138,7 +138,7 @@ vec3 reflection(sampler2D tex, vec3 viewPos, vec3 reflectWorldDir, vec3 reflectV
 }
 
 #ifndef GBF
-vec3 temporal_Reflection(vec3 color_c, int samples){
+vec3 temporal_Reflection(vec3 color_c, int samples, float r){
     vec2 uv = texcoord * 2 - 1.0;
     float z = texture(depthtex1, uv).r;
     vec4 screenPos = vec4(uv, z, 1.0);
@@ -157,7 +157,15 @@ vec3 temporal_Reflection(vec3 color_c, int samples){
     float depth_c = linearizeDepth(prePos.z);
     float fDepth = fwidth(depth_c);
 
+    float blur = 0.0;
+    #ifndef PBR_REFLECTION_BLUR
+        blur = 1.0;
+    #endif
+
     float cameraDisplacementWeight = clamp(1.2 - length(cameraPosition - previousCameraPosition) * 20.0 / depth_c, 0.5, 1.0);
+    float rWeight = remapSaturate(r, 0.0, 0.2 - 0.1 * blur, 0.8, 1.0);
+    float sampleWeight = exp2(-float(samples - 1) * 0.05);
+    float commonWeight = cameraDisplacementWeight * rWeight * sampleWeight;
 
     for(int i = 0; i <= 1; i++){
     for(int j = 0; j <= 1; j++){
@@ -178,67 +186,107 @@ vec3 temporal_Reflection(vec3 color_c, int samples){
     }
     }
 
-    color_c = mix(color_c.rgb, c_s.rgb, w_s * (0.95 - 0.02 * float(samples - 1.0)) * cameraDisplacementWeight);
+    color_c = mix(color_c.rgb, c_s.rgb, w_s * (0.9 + 0.05 * blur) * commonWeight);
     return color_c;
 }
 
-// vec3 JointBilateralFiltering_Reflection(){
-//     // return texture(colortex1, texcoord).rgb;
-//     vec2 uv = texcoord * 2;
+vec3 JointBilateralFiltering_Refl_Horizontal(){
+    // return texelFetch(colortex3, ivec2(gl_FragCoord.xy), 0).rgb;
     
-//     vec4 cur = textureLod(colortex6, texcoord, 0);
-//     vec3 normal = cur.xyz;
-//     float z = cur.a;
-//     z = linearizeDepth(z);
+    ivec2 pix = ivec2(gl_FragCoord.xy);
+    vec2 curGD = texelFetch(colortex6, ivec2(pix - 0.5 * viewSize), 0).rg;
+    vec3  normal0 = unpackNormal(curGD.r);
+    float z0      = linearizeDepth(curGD.g);
 
-//     const float radius = 2.0;
-// 	const float quality = 2.0;
-// 	float d = 2.0 * radius / quality;
+    const float radius  = 4.0;
+    const float quality = 4.0;
+    const float sigma   = radius * 0.5;
+    const float invSigma2 = 1.0 / (2.0 * sigma * sigma);
+    float d = 2.0 * radius / quality;
+
+    vec3 wSum = vec3(0.0);
+    vec3  cSum = vec3(0.0);
+
+    float fDepth = fwidth(z0);
+
+    for (float dx = -radius; dx <= radius + 0.001; dx += d) {
+        ivec2 offset = ivec2(dx, 0.0);
+        ivec2 p = pix + offset;
+
+        if (outScreen((vec2(p) * invViewSize) * 2.0 - 1.0)) continue;
+
+        vec2 gd = texelFetch(colortex6, ivec2(p - 0.5 * viewSize), 0).rg;
+        vec3  n  = unpackNormal(gd.r);
+        float z  = linearizeDepth(gd.g);
+
+        float wN = saturate(mix(1.0, dot(n, normal0), 25.0));             // 法线权重
+        float wZ = exp(-abs(z - z0) / (1.0 + fDepth * 2.0 + z0 / 2.0));      // 深度权重
+        float wS = exp(-dx * dx * invSigma2);               // 空间高斯权重
+        vec3 w  = vec3(wN * wZ * wS);
+
+        vec3 col = texelFetch(colortex3, p, 0).rgb;
+        cSum += col * w;
+        wSum += w;
+    }
+
+    return cSum / max(vec3(1e-4), wSum);
+}
+
+vec3 JointBilateralFiltering_Refl_Vertical(){
+    // return texelFetch(colortex1, ivec2(gl_FragCoord.xy), 0).rgb;
+
+    ivec2 pix = ivec2(gl_FragCoord.xy);
+    vec2 curGD = texelFetch(colortex6, ivec2(pix - 0.5 * viewSize), 0).rg;
+    vec3  normal0 = unpackNormal(curGD.r);
+    float z0      = linearizeDepth(curGD.g);
+
+    const float radius  = 4.0;
+    const float quality = 4.0;
+    const float sigma   = radius * 0.5;
+    const float invSigma2 = 1.0 / (2.0 * sigma * sigma);
+    float d = 2.0 * radius / quality;
+
+    vec3 wSum = vec3(0.0);
+    vec3  cSum = vec3(0.0);
+    float fDepth = fwidth(z0);
     
-//     float w_s = 0.0;
-//     vec3 c_s = vec3(0.0);
+    for (float dy = -radius; dy <= radius + 0.001; dy += d) {
+        ivec2 offset = ivec2(0.0, dy);
+        ivec2 p = pix + offset;
 
-//     for(float i = -radius; i <= radius + 0.1; i += d){
-// 	for(float j = -radius; j <= radius + 0.1; j += d){    
-//         vec2 offset = vec2(i, j) * invViewSize;
-//         vec2 curUV = texcoord + offset;
+        if (outScreen((vec2(p) * invViewSize) * 2.0 - 1.0)) continue;
 
-//         float weight = 1.0;
-//         if(outScreen(curUV * 2)) continue;
+        vec2 gd = texelFetch(colortex6, ivec2(p - 0.5 * viewSize), 0).rg;
+        vec3  n  = unpackNormal(gd.r);
+        float z  = linearizeDepth(gd.g);
 
-//         vec4 curData = textureLod(colortex6, curUV, 0);
+        float wN = saturate(mix(1.0, dot(n, normal0), 25.0));             // 法线权重
+        float wZ = exp(-abs(z - z0) / (1.0 + fDepth * 2.0 + z0 / 2.0));      // 深度权重
+        float wS = exp(-dy * dy * invSigma2);               // 空间高斯权重
+        vec3 w  = vec3(wN * wZ * wS);
 
-//         vec3 curNormal = unpackNormal(curData.r);
-//         weight *= max(0.0, mix(1.0, dot(curNormal, normal), 5.0));
+        vec3 col = texelFetch(colortex1, p, 0).rgb;
+        cSum += col * w;
+        wSum += w;
+    }
 
-//         float curZ = curData.g;
-//         curZ = linearizeDepth(curZ);
-//         weight *= saturate(1.2 - abs(curZ - z) * 1.0);
-
-//         vec3 curColor = textureLod(colortex1, curUV, 0).rgb;
-
-//         c_s += curColor * weight;
-//         w_s += weight;
-//     }
-//     }
-//     if(w_s <= 0.001) return BLACK;
-//     return c_s / max(w_s, 0.001);
-// }
+    return cSum / max(vec3(1e-4), wSum);
+}
 
 vec3 getReflectColor(float depth, vec3 normal){
-    vec2 uv = texcoord * 0.5 + 0.5;
+    ivec2 uv = ivec2(gl_FragCoord.xy * 0.5 + 0.5 * viewSize);
     float w_max = 0.0;
-    vec2 uv_closet = uv;
+    ivec2 uv_closet = uv;
 
     float z = linearizeDepth(depth);
 
     for(int i = 0; i < 5; i++){
         float weight = 1.0;
-        vec2 offset = offsetUV5[i] * invViewSize;
-        vec2 curUV = uv + offset;
-        if(outScreen(curUV * 2 - 1.0 + vec2(-1.0) * invViewSize)) weight = 0.0;
+        ivec2 offset = ivec2(offsetUV5[i]);
+        ivec2 curUV = uv + offset;
+        if(outScreen(curUV * invViewSize * 2.0 - 1.0 + vec2(-1.0) * invViewSize)) weight = 0.0;
 
-        vec4 curData = textureLod(colortex6, curUV - 0.5, 0);
+        vec4 curData = texelFetch(colortex6, ivec2(curUV - 0.5 * viewSize), 0);
         weight *= max(0.0f, mix(1.0, dot(unpackNormal(curData.r), normal), 2.0));
 
         float curZ = linearizeDepth(curData.g);
@@ -250,7 +298,11 @@ vec3 getReflectColor(float depth, vec3 normal){
         }
     }
 
-    return texture(colortex3, uv_closet).rgb;
+    #ifdef PBR_REFLECTION_BLUR
+        return texelFetch(colortex1, ivec2(uv_closet), 0).rgb;
+    #else
+        return texelFetch(colortex3, ivec2(uv_closet), 0).rgb;
+    #endif
 }
 
 #endif

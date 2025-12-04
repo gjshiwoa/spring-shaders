@@ -110,6 +110,7 @@ uniform float frameTime;
 uniform float frameTimeCounter;
 uniform int framemod8;
 uniform float rainStrength; 
+uniform float wetness;
 
 
 

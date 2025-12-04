@@ -93,6 +93,8 @@ const int noiseTextureResolution = 64;
 #define SSS_INTENSITY 5.0           // [0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0]
 #define EMISSIVENESS_BRIGHTNESS 1.0 // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
 #define MIRROR_INTENSITY 0.5        // [0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.25 1.5 1.75 2.0]
+#define PBR_REFLECTION_DIR_COUNT 1  // [1 2 3 4 5 6 8 10 12 14 16 18 20]
+#define PBR_REFLECTION_BLUR
 #define RAINY_GROUND_WET_ENABLE
 #define TRANSLUCENT_ROUGHNESS 0.75  // [0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95]
 #define TRANSLUCENT_F0 0.75         // [0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95]
