@@ -29,7 +29,7 @@ void main() {
 	if(!outScreen(hrrUV)){
 		vec4 hrrSpecularMap = unpack2x16To4x8(texelFetch(colortex4, ivec2(gl_FragCoord.xy * 2 - viewSize), 0).ba);
 		MaterialParams params = MapMaterialParams(hrrSpecularMap);
-		if(hrrSpecularMap.r + rainStrength > 0.5 / 255.0){
+		if(hrrSpecularMap.r > 0.5 / 255.0){
 			vec4 CT6 = texelFetch(colortex6, ivec2(gl_FragCoord.xy - 0.5 * viewSize), 0);
 			float hrrZ = CT6.g;
 			vec4 hrrViewPos = screenPosToViewPos(vec4(unTAAJitter(hrrUV), hrrZ, 1.0));
@@ -43,14 +43,14 @@ void main() {
 			vec2 mcLightmap = texelFetch(colortex5, ivec2(gl_FragCoord.xy * 2 - viewSize), 0).ba;
 			vec2 lightmap = AdjustLightmap(mcLightmap);
 
-			float r = saturate(1.0 * params.roughness - 0.90 * rainStrength * smoothstep(0.90, 0.95, mcLightmap.y));
+			float r = params.roughness;
 
 			const int reflectionSamples = PBR_REFLECTION_DIR_COUNT;
 			vec3 accumulatedReflectColor = vec3(0.0);
 			for(int sampleIndex = 0; sampleIndex < reflectionSamples; ++sampleIndex){
 				vec3 sampleReflectViewDir = normalize(reflect(hrrViewDir, hrrNormalV));
-				r = 0.1;
-				sampleReflectViewDir = getScatteredReflection(hrrViewDir, hrrNormalV, r, sampleIndex);
+				// r = 0.1;
+				sampleReflectViewDir = getScatteredReflection(sampleReflectViewDir, hrrNormalV, r, sampleIndex);
 				vec3 sampleReflectWorldDir = normalize(viewPosToWorldPos(vec4(sampleReflectViewDir.xyz, 0.0)).xyz);
 
 				float NdotU = dot(upWorldDir, sampleReflectWorldDir);

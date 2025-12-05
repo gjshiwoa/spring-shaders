@@ -217,8 +217,8 @@ vec3 EnvDFGLazarov(vec3 specularColor, float gloss, float ndotv){
 
 
 vec3 getScatteredReflection(vec3 reflectDir, vec3 normal, float roughness, float sampleIndex) {
-    if (roughness < 1e-6) {
-        return normalize(reflectDir);
+    if (roughness < 1e-4) {
+        return reflectDir;
     }
 
     vec3 randVec = psuedoB(vec3(gl_FragCoord.xy, float((frameCounter + 1) % 2048)) + sampleIndex * GOLDEN_RATIO).xyz;

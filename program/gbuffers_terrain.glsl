@@ -79,26 +79,33 @@ void main() {
 	
 
 	
-	
+	float rainFactor = smoothstep(0.9, 0.95, lmcoord.y) * rainStrength;
 	vec4 color = texColor * glcolor;
 	vec3 normalTex = N;
 	vec3 sampledNormal = textureGrad(normals, parallaxUV, texGradX, texGradY).rgb * 2.0 - 1.0;
 	normalTex = normalize(tbn * sampledNormal);
 	#ifdef PARALLAX_MAPPING
+		vec3 heightBasedNormal = tbn * normalFH;
 		#if PARALLAX_TYPE == 0
-			normalTex = mix(normalTex, tbn * normalFH, PARALLAX_NORMAL_MIX_WEIGHT);
+			normalTex = mix(normalTex, heightBasedNormal, PARALLAX_NORMAL_MIX_WEIGHT);
 		#else
 			float verticalness = dot(normalFH, vec3(0.0, 0.0, 1.0));
 			const float VERTICAL_THRESHOLD = 0.95;
 			#ifdef PARALLAX_FORCE_NORMAL_VERTICAL
-				normalTex = verticalness > VERTICAL_THRESHOLD ? normalTex : (tbn * normalFH);
+				normalTex = verticalness > VERTICAL_THRESHOLD ? normalTex : (heightBasedNormal);
 			#else
-				normalTex = tbn * normalFH;
+				normalTex = heightBasedNormal;
 			#endif
 		#endif
 	#endif
+	normalTex = mix(normalTex, N, rainFactor);
+
 	vec4 specularTex = saturate(textureGrad(specular, parallaxUV, texGradX, texGradY));
-	specularTex.g = saturate(specularTex.g);
+	
+	specularTex.r = saturate(specularTex.r + 0.95 * rainFactor);
+	specularTex.g = saturate(specularTex.g + 0.02 * rainFactor);
+	specularTex = saturate(specularTex);
+
 
 /* DRAWBUFFERS:045 */
 	gl_FragData[0] = vec4(color.rgb, color.a);
