@@ -76,7 +76,7 @@ void main() {
 		if(isEyeInWater == 0){
 			#ifdef VOLUMETRIC_FOG
 				fogColor = volumtricFog(camera, hrrWorldPos.xyz);
-				useTemporal = true;
+				if(fogColor.a < 0.9999) useTemporal = true;
 			#endif
 
 			#ifdef ATMOSPHERIC_SCATTERING_FOG

@@ -14,7 +14,7 @@ float getHeigth(vec3 p){
 }
 
 float getRho(float h, float H){
-    return min(fastExp(-(h / H)), 1.0);
+    return min(exp(-(h / H)), 1.0);
 }
 
 vec3 RayleighCoefficient(float h){
@@ -78,7 +78,7 @@ vec3 Transmittance(vec3 p1, vec3 p2, int N_SAMPLE){
         p += dir * ds;
     }
 
-    return fastExp(-sum);
+    return exp(-sum);
 }
 
 void UvToTransmittanceLutParams(float bottomRadius, float topRadius, vec2 uv, out float mu, out float r){
@@ -247,7 +247,7 @@ vec3 IntegralMultiScattering(vec3 samplePoint, vec3 lightDir){
 
             vec3 t1 = TransmittanceToAtmosphere(p, lightDir);
             vec3 s  = Scattering(h, lightDir, worldDir);
-            vec3 t2 = fastExp(-opticalDepth);
+            vec3 t2 = exp(-opticalDepth);
             
             G_2  += t1 * s * t2 * uniform_phase * ds * 1.0;  
             f_ms += t2 * sigma_s * uniform_phase * ds;
@@ -337,7 +337,7 @@ mat2x3 AtmosphericScattering(vec3 worldPos, vec3 worldDirO, vec3 lightDir, vec3 
 
         getDensity(h, dRayleigh_c, dMie_c);
         vec3 opticalDepthT2 = ExtinctionT2(h, dRayleigh_c, dMie_c, dRayleigh, dMie, dOzone) * ds;
-        vec3 t2 = fastExp(-opticalDepthT2);
+        vec3 t2 = exp(-opticalDepthT2);
 
         vec3 f_in_R_new    = (t1 * t2) * dRayleigh_c;
         vec3 f_in_M_new    = (t1 * t2) * dMie_c;
@@ -437,7 +437,7 @@ vec3 AtmosphericScattering(vec3 worldDir, vec3 lightDir){
         vec3 extinction = RayleighCoefficient(h) + MieCoefficient(h) +
                         OzoneAbsorption(h) + MieAbsorption(h);
         opticalDepth += extinction * ds;
-        vec3 t2 = fastExp(-opticalDepth);
+        vec3 t2 = exp(-opticalDepth);
 
         vec3 inScattering = t1 * s * t2 * ds;
         color += inScattering;

@@ -49,7 +49,7 @@ void main() {
 			vec3 accumulatedReflectColor = vec3(0.0);
 			for(int sampleIndex = 0; sampleIndex < reflectionSamples; ++sampleIndex){
 				vec3 sampleReflectViewDir = normalize(reflect(hrrViewDir, hrrNormalV));
-				// r = 0.1;
+				// r = 0.9;
 				sampleReflectViewDir = getScatteredReflection(sampleReflectViewDir, hrrNormalV, r, sampleIndex);
 				vec3 sampleReflectWorldDir = normalize(viewPosToWorldPos(vec4(sampleReflectViewDir.xyz, 0.0)).xyz);
 

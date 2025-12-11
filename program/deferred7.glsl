@@ -181,8 +181,8 @@ void main() {
 		}
 		
 		color.rgb += artificial;
-		// color.rgb = gi.rgb;
-		// color.rgb = vec3(ao);
+		// color.rgb = sunColor * gi.rgb + lightmap.y * mix(sunColor, skyColor, SUN_SKY_BLEND - 0.05 * noRSM * lightmap.y) * mix(1.0, UoN * 0.5 + 0.5, 0.75);
+		// color.rgb *= vec3(ao);
 
 	}else{
 		float d_p2a = RaySphereIntersection(earthPos, worldDir, vec3(0.0), earth_r + atmosphere_h).y;

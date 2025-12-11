@@ -33,7 +33,6 @@ void main() {
 
 #ifdef PBR_REFLECTIVITY
 	if(specularMap.r > 0.5 / 255.0){
-		
 		vec3 viewDir = normalize(viewPos1.xyz);
 
 		vec3 normalV = normalize(normalDecode(normalEnc));

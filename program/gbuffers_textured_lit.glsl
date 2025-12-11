@@ -23,7 +23,7 @@ void main() {
 	vec4 texColor = toLinearR(color);
 	vec2 lightmap = AdjustLightmap(lmcoord);
 	color.rgb = texColor.rgb * lightmap.x * 0.4 * lightColor;
-	color.rgb += texColor.rgb * saturate(lightmap.y + 0.005) * (sunColor + skyColor);
+	color.rgb += texColor.rgb * saturate(lightmap.y + 0.0005) * (sunColor * saturate(lightmap.y) + skyColor);
 	color.rgb += nightVision * texColor.rgb * NIGHT_VISION_BRIGHTNESS / PI;
 #endif
 

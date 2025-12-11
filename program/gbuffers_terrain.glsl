@@ -17,6 +17,7 @@ in vec4 glcolor;
 in mat3 tbnMatrix;
 in vec4 viewPos;
 in vec3 N;
+in vec3 mcPos;
 
 #include "/lib/common/noise.glsl"
 float dither = temporalBayer64(ivec2(gl_FragCoord.xy));
@@ -40,6 +41,7 @@ void main() {
 	vec3 B = normalize(dp2perp * texGradX.y + dp1perp * texGradY.y);
 	float invmax = inversesqrt(max(dot(T, T), dot(B, B)));
 	mat3 tbn = mat3(T * invmax, B * invmax, N);
+	// tbn = tbnMatrix;
 
 	vec2 parallaxUV = texcoord;
 	float parallaxShadow = 1.0;
@@ -79,8 +81,16 @@ void main() {
 	
 
 	
-	float rainFactor = smoothstep(0.9, 0.95, lmcoord.y) * rainStrength;
+	#ifdef RAINY_GROUND_WET_ENABLE
+		float rainFactor = smoothstep(0.88, 0.95, lmcoord.y) * rainStrength;
+		float noiseSample = texture(depthtex2, mcPos.xz * 0.01).r;
+		float smoothedNoise = pow(smoothstep(0.0, 0.75, noiseSample), 0.5);
+		float noiseFactor = dot(N, upViewDir) > 0.95 ? smoothedNoise : 0.95;
+		rainFactor *= noiseFactor;
+	#endif
+
 	vec4 color = texColor * glcolor;
+	// color.rgb = vec3(noiseFactor);
 	vec3 normalTex = N;
 	vec3 sampledNormal = textureGrad(normals, parallaxUV, texGradX, texGradY).rgb * 2.0 - 1.0;
 	normalTex = normalize(tbn * sampledNormal);
@@ -98,14 +108,18 @@ void main() {
 			#endif
 		#endif
 	#endif
+
+#if !defined(PARALLAX_MAPPING) || PARALLAX_TYPE == 0
 	normalTex = mix(normalTex, N, rainFactor);
+#endif
 
 	vec4 specularTex = saturate(textureGrad(specular, parallaxUV, texGradX, texGradY));
 	
-	specularTex.r = saturate(specularTex.r + 0.95 * rainFactor);
-	specularTex.g = saturate(specularTex.g + 0.02 * rainFactor);
-	specularTex = saturate(specularTex);
-
+	#ifdef RAINY_GROUND_WET_ENABLE
+		specularTex.r = saturate(specularTex.r + 0.9 * rainFactor);
+		specularTex.g = saturate(specularTex.g + 0.02 * rainFactor);
+		specularTex = saturate(specularTex);
+	#endif
 
 /* DRAWBUFFERS:045 */
 	gl_FragData[0] = vec4(color.rgb, color.a);
@@ -130,6 +144,7 @@ in vec4 v_glcolor[];
 in mat3 v_tbnMatrix[];
 in vec4 v_viewPos[];
 in vec3 v_N[];
+in vec3 v_mcPos[];
 flat in float v_blockID[];
 flat in float v_isPlants[];
 
@@ -139,6 +154,7 @@ out vec4 glcolor;
 out mat3 tbnMatrix;
 out vec4 viewPos;
 out vec3 N;
+out vec3 mcPos;
 flat out float blockID;
 flat out float isPlants;
 flat out int textureResolution;
@@ -160,6 +176,7 @@ void main() {
 		tbnMatrix = v_tbnMatrix[i];
 		viewPos = v_viewPos[i];
 		N = v_N[i];
+		mcPos = v_mcPos[i];
 		blockID = v_blockID[i];
 		isPlants = v_isPlants[i];
 
@@ -179,6 +196,7 @@ out vec4 v_glcolor;
 out mat3 v_tbnMatrix;
 out vec4 v_viewPos;
 out vec3 v_N;
+out vec3 v_mcPos;
 flat out float v_blockID, v_isPlants;
 
 attribute vec4 mc_Entity;
@@ -218,7 +236,7 @@ void main() {
 	// 坐标
 	v_viewPos = gl_ModelViewMatrix * gl_Vertex;
 	vec4 vWorldPos = viewPosToWorldPos(v_viewPos);
-	vec4 vMcPos = vec4(vWorldPos.xyz + cameraPosition, 1.0);
+	vec4 mcPos = vec4(vWorldPos.xyz + cameraPosition, 1.0);
 
 	v_isPlants = 0.0;
 	if(v_blockID == PLANTS_SHORT || v_blockID == LEAVES || v_blockID == PLANTS_TALL_L || v_blockID == PLANTS_TALL_U){
@@ -228,17 +246,18 @@ void main() {
 		const float waving_rate = WAVING_RATE;
 		if(v_blockID == PLANTS_SHORT && gl_MultiTexCoord0.t < mc_midTexCoord.t){
 			// pos, normal, A, B, D_amount, y_waving_amount
-			vMcPos.xyz = wavingPlants(vMcPos.xyz, PLANTS_SHORT_AMPLITUDE, waving_rate, 0.0, 0.0);
+			mcPos.xyz = wavingPlants(mcPos.xyz, PLANTS_SHORT_AMPLITUDE, waving_rate, 0.0, 0.0);
 		}
 		if(v_blockID == LEAVES){
-			vMcPos.xyz = wavingPlants(vMcPos.xyz, LEAVES_AMPLITUDE, waving_rate, 0.0, 1.0);
+			mcPos.xyz = wavingPlants(mcPos.xyz, LEAVES_AMPLITUDE, waving_rate, 0.0, 1.0);
 		}
 		if((v_blockID == PLANTS_TALL_L && gl_MultiTexCoord0.t < mc_midTexCoord.t) || v_blockID == PLANTS_TALL_U){
-			vMcPos.xyz = wavingPlants(vMcPos.xyz, PLANTS_TALL_AMPLITUDE, waving_rate, 0.0, 0.0);
+			mcPos.xyz = wavingPlants(mcPos.xyz, PLANTS_TALL_AMPLITUDE, waving_rate, 0.0, 0.0);
 		}
 	#endif
 
-	gl_Position = gl_ProjectionMatrix * gbufferModelView * vec4(vMcPos.xyz - cameraPosition, 1.0);
+	v_mcPos = mcPos.xyz;
+	gl_Position = gl_ProjectionMatrix * gbufferModelView * vec4(mcPos.xyz - cameraPosition, 1.0);
 
 	vec2 jitter = Halton_2_3[framemod8];	//-1 to 1
 	jitter *= invViewSize;

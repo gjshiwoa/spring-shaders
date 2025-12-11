@@ -28,7 +28,7 @@ void main() {
 	if(!outScreen(hrrUV)){
 		vec4 hrrSpecularMap = unpack2x16To4x8(texelFetch(colortex4, ivec2(gl_FragCoord.xy * 2 - viewSize), 0).ba);
 		MaterialParams params = MapMaterialParams(hrrSpecularMap);
-		if(hrrSpecularMap.r + rainStrength > 0.5 / 255.0){
+		if(hrrSpecularMap.r > 0.5 / 255.0){
 			CT1.rgb = JointBilateralFiltering_Refl_Horizontal();
 		}	
 

@@ -91,7 +91,7 @@ float SchlickGGX(float NoV, float NoL, float roughness){
 }
 
 float GGX(float NoV, float k){
-    return NoV / (NoV * (1.0 - k) + k + + 0.000001);
+    return NoV / (NoV * (1.0 - k) + k + 0.000001);
 }
 
 float G_Smith(float NoV, float NoL, float roughness){
@@ -146,7 +146,7 @@ mat2x3 CalculatePBR(vec3 viewDir, vec3 N, vec3 L, vec3 albedo, MaterialParams pa
     
     float VoH = saturate(dot(V, H));
     float NoH = saturate(dot(N, H));
-    float NoV = saturate(dot(N, V));
+    float NoV = max(saturate(dot(N, V)), 1e-2);
     float NoL = saturate(dot(N, L));
     
     vec3 F0 = vec3(params.metalness);
@@ -154,10 +154,11 @@ mat2x3 CalculatePBR(vec3 viewDir, vec3 N, vec3 L, vec3 albedo, MaterialParams pa
 
     vec3 F = F_Schlick(VoH, F0);
 
-    float D = D_GGX(NoH, params.roughness);
+    float D = D_GGX(NoH, max(0.02, params.roughness));
     float G = SchlickGGX(NoV, NoL, params.roughness);
     
-    vec3 specular = D * F * G / (4.0 * NoV * NoL + 0.001);
+    vec3 specular = vec3(D * F * G) / (4.0 * NoV * NoL + 0.001);
+    specular *= 1.0 - 0.9 * rainStrength;
     
     vec3 kS = fresnelSchlickRoughness(VoH, vec3(params.metalness), params.roughness);
     vec3 kD = vec3(1.0) - kS;

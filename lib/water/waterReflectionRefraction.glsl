@@ -16,10 +16,11 @@ vec2 SSRT(vec3 viewPos, vec3 reflectViewDir, vec3 normalTex){
     float curStep = REFLECTION_STEP_SIZE;
 
     vec3 startPos = viewPos;
+    float worldDis = length(viewPos);
     #ifdef GBF
         startPos += normalTex * 0.2;
     #else
-        startPos += normalTex * clamp(length(viewPos / 60.0), 0.01, 0.2);
+        startPos += normalTex * clamp(worldDis / 60.0, 0.01, 0.2);
     #endif
 
     float jitter = temporalBayer64(gl_FragCoord.xy);
@@ -74,8 +75,9 @@ vec2 SSRT(vec3 viewPos, vec3 reflectViewDir, vec3 normalTex){
             }
 
             vec3 newTestPos = screenPosToViewPos(vec4(vec3(testScreenPos.xy, closestB), 1.0)).xyz;
-            float zDiff = abs(probePos.z - newTestPos.z);
-            if (zDiff < abs(ds.z)){
+            float tp_dist = distance(curTestPos, newTestPos);
+            float ds_len = length(ds);
+            if (tp_dist < ds_len){
                 return testScreenPos.st;
             }
             break;
@@ -163,7 +165,7 @@ vec3 temporal_Reflection(vec3 color_c, int samples, float r){
     #endif
 
     float cameraDisplacementWeight = clamp(1.2 - length(cameraPosition - previousCameraPosition) * 20.0 / depth_c, 0.5, 1.0);
-    float rWeight = remapSaturate(r, 0.0, 0.1, 0.8, 1.0);
+    float rWeight = remapSaturate(r, 0.0, 0.1, 0.9, 1.0);
     float sampleWeight = exp2(-float(samples - 1) * 0.05);
     float commonWeight = cameraDisplacementWeight * rWeight * sampleWeight;
 
