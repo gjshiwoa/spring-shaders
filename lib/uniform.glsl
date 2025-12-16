@@ -109,10 +109,17 @@ uniform int frameCounter;
 uniform float frameTime;
 uniform float frameTimeCounter;
 uniform int framemod8;
+
 uniform float rainStrength; 
 uniform float wetness;
 
-
-
 uniform ivec2 eyeBrightnessSmooth;
 uniform float nightVision;
+#ifdef IS_IRIS
+    uniform int biome_precipitation;
+#else
+    const int biome_precipitation = 1;
+#endif
+
+uniform int heldBlockLightValue;
+uniform int heldBlockLightValue2;

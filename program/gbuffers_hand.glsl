@@ -30,10 +30,14 @@ void main() {
 	vec3 normalTex = normalize(tbnMatrix * (textureGrad(normals, parallaxUV, texGradX, texGradY).rgb * 2.0 - 1.0));
 	vec4 specularTex = texture(specular, texcoord);
 
+	vec2 lmCoord = lmcoord;
+	float heldBlockLight = max(heldBlockLightValue, heldBlockLightValue2) / 15.0;
+	lmCoord.x = max(lmCoord.x, heldBlockLight);
+
 /* DRAWBUFFERS:045 */
 	gl_FragData[0] = vec4(color.rgb, color.a);
 	gl_FragData[1] = vec4(pack2x8To16(1.0, 0.0), pack2x8To16(HAND / ID_SCALE, 0.0), vec4(0.0));
-	gl_FragData[2] = vec4(normalEncode(N), lmcoord);
+	gl_FragData[2] = vec4(normalEncode(N), lmCoord);
 }
 
 #endif

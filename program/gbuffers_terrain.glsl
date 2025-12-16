@@ -7,6 +7,7 @@
 #include "/lib/camera/colorToolkit.glsl"
 #include "/lib/common/normal.glsl"
 #include "/lib/common/position.glsl"
+#include "/lib/common/noise.glsl"
 
 #ifdef FSH
 flat in float blockID, isPlants;
@@ -19,10 +20,10 @@ in vec4 viewPos;
 in vec3 N;
 in vec3 mcPos;
 
-#include "/lib/common/noise.glsl"
 float dither = temporalBayer64(ivec2(gl_FragCoord.xy));
 #include "/lib/antialiasing/anisotropicFiltering.glsl"
 #include "/lib/surface/parallaxMapping.glsl"
+#include "/lib/surface/ripple.glsl"
 
 
 
@@ -82,18 +83,23 @@ void main() {
 
 	
 	float rainFactor = 0.0;
+	bool upFace = dot(N, upViewDir) > 0.95;
+	bool isRain = rainStrength > 0.001;
 	#ifdef RAINY_GROUND_WET_ENABLE
 		rainFactor = smoothstep(0.88, 0.95, lmcoord.y) * rainStrength;
-		float noiseSample = texture(depthtex2, mcPos.xz * 0.01).r;
+		float noiseSample = texture(colortex8, mcPos.xz * 0.01).r;
 		float smoothedNoise = pow(smoothstep(0.0, 0.75, noiseSample), 0.5);
-		bool upFace = dot(N, upViewDir) > 0.95;
 		float noiseFactor = upFace ? smoothedNoise : 0.95;
-		rainFactor *= noiseFactor;
+		rainFactor *= noiseFactor * float(biome_precipitation == 1);
 	#endif
 
 	vec4 color = texColor * glcolor;
-	// color.rgb = vec3(noiseFactor);
 	vec3 normalTex = N;
+	float worldDis = length(viewPos);
+	if(upFace && worldDis < 20.0 && isRain && rainFactor > 0.0001) 
+		N = mix(N, 
+				mat3(gbufferModelView) * RippleNormalWS(mcPos.xz), 
+				rainFactor * remapSaturate(worldDis, 10.0, 20.0, 1.0, 0.0));
 	vec3 sampledNormal = textureGrad(normals, parallaxUV, texGradX, texGradY).rgb * 2.0 - 1.0;
 	normalTex = normalize(tbn * sampledNormal);
 	#ifdef PARALLAX_MAPPING
@@ -103,7 +109,8 @@ void main() {
 		#else
 			float verticalness = dot(normalFH, vec3(0.0, 0.0, 1.0));
 			const float VERTICAL_THRESHOLD = 0.95;
-			normalTex = mix(normalTex, N, saturate(max(PARALLAX_NORMAL_MIX_WEIGHT, rainFactor * float(upFace))));
+				normalTex = mix(normalTex, N, 
+								saturate(max(PARALLAX_NORMAL_MIX_WEIGHT, rainFactor * float(upFace))));
 			#ifdef PARALLAX_FORCE_NORMAL_VERTICAL
 				normalTex = verticalness > VERTICAL_THRESHOLD ? normalTex : (heightBasedNormal);
 			#else
@@ -113,16 +120,32 @@ void main() {
 	#endif
 
 	vec4 specularTex = saturate(textureGrad(specular, parallaxUV, texGradX, texGradY));
+	if(isRain && rainFactor > 0.0001){
+		#if !defined(PARALLAX_MAPPING) || PARALLAX_TYPE == 0
+			normalTex = mix(normalTex, N, saturate(rainFactor * float(upFace) * (1.0 - specularTex.g)));
+		#endif
 
-	#if !defined(PARALLAX_MAPPING) || PARALLAX_TYPE == 0
-		normalTex = mix(normalTex, N, saturate(rainFactor * float(upFace) * (1.0 - specularTex.g)));
-	#endif
+		#ifdef RAINY_GROUND_WET_ENABLE
+			specularTex.r = max(specularTex.r, 0.95 * rainFactor);
+			specularTex.g = max(specularTex.g, 0.02 * rainFactor);
+		#endif
+	}
+	specularTex = saturate(specularTex);
 
-	#ifdef RAINY_GROUND_WET_ENABLE
-		specularTex.r = max(specularTex.r, 0.95 * rainFactor);
-		specularTex.g = max(specularTex.g, 0.02 * rainFactor);
-		specularTex = saturate(specularTex);
-	#endif
+
+	// vec2 lmCoord = lmcoord;
+	// float heldBlockLight = max(heldBlockLightValue, heldBlockLightValue2) / 15.0;
+	// heldBlockLight *= remapSaturate(worldDis, 0.0, 20.0, 1.0, 0.0) * pow(saturate(dot(normalTex, -normalize(vec3(viewPos.xy, viewPos.z)))), 0.5) - 0.05;
+	// heldBlockLight = pow(saturate(heldBlockLight), 1.0);
+	// lmCoord.x = max(lmCoord.x, heldBlockLight);
+
+	// vec2 noiseCoord = mcPos.xz;
+	// noiseCoord = rotate2D(noiseCoord, 0.45);
+    // noiseCoord = vec2(noiseCoord.x * 3.0, noiseCoord.y);
+	// noiseCoord.x += frameTimeCounter * 8.0;
+	// noiseCoord /= 8.0 * noiseTextureResolution;
+    // vec3 noise = texture(noisetex, noiseCoord).rgb;
+	// color.rgb = vec3(noise.r);
 
 /* DRAWBUFFERS:045 */
 	gl_FragData[0] = vec4(color.rgb, color.a);
@@ -149,7 +172,6 @@ in vec4 v_viewPos[];
 in vec3 v_N[];
 in vec3 v_mcPos[];
 flat in float v_blockID[];
-flat in float v_isPlants[];
 
 out vec2 lmcoord;
 out vec2 texcoord;
@@ -159,7 +181,6 @@ out vec4 viewPos;
 out vec3 N;
 out vec3 mcPos;
 flat out float blockID;
-flat out float isPlants;
 flat out int textureResolution;
 
 void main() {
@@ -181,7 +202,6 @@ void main() {
 		N = v_N[i];
 		mcPos = v_mcPos[i];
 		blockID = v_blockID[i];
-		isPlants = v_isPlants[i];
 
 		gl_Position = gl_in[i].gl_Position;
 		EmitVertex();
@@ -200,14 +220,14 @@ out mat3 v_tbnMatrix;
 out vec4 v_viewPos;
 out vec3 v_N;
 out vec3 v_mcPos;
-flat out float v_blockID, v_isPlants;
+flat out float v_blockID;
 
 attribute vec4 mc_Entity;
 attribute vec4 mc_midTexCoord;
 attribute vec4 at_tangent;
 
 #include "/lib/common/materialIdMapper.glsl"
-#include "/lib/common/noise.glsl"
+#include "/lib/camera/filter.glsl"
 #include "/lib/wavingPlants.glsl"
 
 void main() {
@@ -215,19 +235,6 @@ void main() {
 	v_lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
 	v_texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 	v_glcolor = gl_Color;
-	// noAniso = v_blockID == NO_ANISO ? 1.0 : 0.0;
-
-	// 来自滑稽君
-	// textureResolution = ivec2(round(abs(gl_MultiTexCoord0.xy - mc_midTexCoord.xy) * atlasSize * 2.0));
-    // v_tcrange.zw = textureResolution / vec2(atlasSize);
-    // v_tcrange.xy = mc_midTexCoord.xy - v_tcrange.zw * 0.5;
-
-	// 来自BSL
-	// vec2 midCoord = (gl_TextureMatrix[0] *  mc_midTexCoord).st;
-	// vec2 texMinMidCoord = v_texcoord - midCoord;
-	// vTexCoordAM.pq  = abs(texMinMidCoord) * 2;
-	// vTexCoordAM.st  = min(v_texcoord, midCoord - texMinMidCoord);
-	// vTexCoord.xy    = sign(texMinMidCoord) * 0.5 + 0.5;
 
 	const float inf = uintBitsToFloat(0x7f800000u);
 	float handedness = clamp(at_tangent.w * inf, -1.0, 1.0);
@@ -239,23 +246,22 @@ void main() {
 	// 坐标
 	v_viewPos = gl_ModelViewMatrix * gl_Vertex;
 	vec4 vWorldPos = viewPosToWorldPos(v_viewPos);
+	float worldDis = length(vWorldPos.xyz);
 	vec4 mcPos = vec4(vWorldPos.xyz + cameraPosition, 1.0);
 
-	v_isPlants = 0.0;
-	if(v_blockID == PLANTS_SHORT || v_blockID == LEAVES || v_blockID == PLANTS_TALL_L || v_blockID == PLANTS_TALL_U){
-		v_isPlants = 1.0;
-	}
 	#ifdef WAVING_PLANTS
-		const float waving_rate = WAVING_RATE;
-		if(v_blockID == PLANTS_SHORT && gl_MultiTexCoord0.t < mc_midTexCoord.t){
-			// pos, normal, A, B, D_amount, y_waving_amount
-			mcPos.xyz = wavingPlants(mcPos.xyz, PLANTS_SHORT_AMPLITUDE, waving_rate, 0.0, 0.0);
-		}
-		if(v_blockID == LEAVES){
-			mcPos.xyz = wavingPlants(mcPos.xyz, LEAVES_AMPLITUDE, waving_rate, 0.0, 1.0);
-		}
-		if((v_blockID == PLANTS_TALL_L && gl_MultiTexCoord0.t < mc_midTexCoord.t) || v_blockID == PLANTS_TALL_U){
-			mcPos.xyz = wavingPlants(mcPos.xyz, PLANTS_TALL_AMPLITUDE, waving_rate, 0.0, 0.0);
+		if(worldDis < 60.0){
+			const float waving_rate = WAVING_RATE;
+			if(v_blockID == PLANTS_SHORT && gl_MultiTexCoord0.t < mc_midTexCoord.t){
+				// pos, normal, A, B, D_amount, y_waving_amount
+				mcPos.xyz = wavingPlants(mcPos.xyz, 1.0, 1.0, 0.0, 1.0);
+			}
+			if(v_blockID == LEAVES){
+				mcPos.xyz = wavingPlants(mcPos.xyz, 0.45, 1.0, 1.0, 1.0);
+			}
+			if((v_blockID == PLANTS_TALL_L && gl_MultiTexCoord0.t < mc_midTexCoord.t) || v_blockID == PLANTS_TALL_U){
+				mcPos.xyz = wavingPlants(mcPos.xyz, 0.45, 1.0, 0.0, 1.0);
+			}
 		}
 	#endif
 

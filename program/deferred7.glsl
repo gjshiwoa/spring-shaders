@@ -92,6 +92,10 @@ void main() {
 
 	if(isTerrain){	
 		vec2 lightmap = AdjustLightmap(mcLightmap);
+		float heldBlockLight = max(heldBlockLightValue, heldBlockLightValue2) / 15.0;
+		heldBlockLight *= pow(remapSaturate(worldDis1, 0.0, 10.0, 1.0, 0.0), ARTIFICIAL_LIGHT_FALLOFF);
+		heldBlockLight *= saturate(dot(normalV, -normalize(vec3(viewPos1.xy, viewPos1.z))));
+		lightmap.x = max(lightmap.x, heldBlockLight);
 
 		MaterialParams materialParams = MapMaterialParams(specularMap);
 		#ifdef PBR_REFLECTIVITY

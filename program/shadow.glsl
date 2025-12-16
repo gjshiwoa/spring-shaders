@@ -17,6 +17,7 @@ varying vec4 vMcPos;
 #include "/lib/common/noise.glsl"
 #include "/lib/water/waterNormal.glsl"
 #include "/lib/water/waterCaustics.glsl"
+#include "/lib/camera/filter.glsl"
 
 #ifdef FSH
 
@@ -74,6 +75,7 @@ void main(){
     float translucencyID = IDMappingT();
 
     vec4 vWorldPos = shadowModelViewInverse * shadowProjectionInverse * ftransform();
+    float worldDis = length(vWorldPos.xyz);
     vMcPos = vec4(vWorldPos.xyz + cameraPosition, 1.0);
 
     isWater = translucencyID == WATER ? 1.0 : 0.0;
@@ -83,16 +85,18 @@ void main(){
     //     vMcPos.xyz += 10000.0;
     // }
     #ifdef WAVING_PLANTS
-        const float waving_rate = WAVING_RATE;
-        if(blockID == PLANTS_SHORT && gl_MultiTexCoord0.t < mc_midTexCoord.t){
-            // pos, normal, A, B, D_amount, y_waving_amount
-            vMcPos.xyz = wavingPlants(vMcPos.xyz, PLANTS_SHORT_AMPLITUDE, waving_rate, 0.0, 0.0);
-        }
-        if(blockID == LEAVES){
-            vMcPos.xyz = wavingPlants(vMcPos.xyz, LEAVES_AMPLITUDE, waving_rate, 0.0, 1.0);
-        }
-        if((blockID == PLANTS_TALL_L && gl_MultiTexCoord0.t < mc_midTexCoord.t) || blockID == PLANTS_TALL_U){
-            vMcPos.xyz = wavingPlants(vMcPos.xyz, PLANTS_TALL_AMPLITUDE, waving_rate, 0.0, 0.0);
+        if(worldDis < 60.0){
+            const float waving_rate = WAVING_RATE;
+            if(blockID == PLANTS_SHORT && gl_MultiTexCoord0.t < mc_midTexCoord.t){
+                // pos, normal, A, B, D_amount, y_waving_amount
+                vMcPos.xyz = wavingPlants(vMcPos.xyz, 1.0, 1.0, 0.0, 1.0);
+            }
+            if(blockID == LEAVES){
+                vMcPos.xyz = wavingPlants(vMcPos.xyz, 0.45, 1.0, 1.0, 1.0);
+            }
+            if((blockID == PLANTS_TALL_L && gl_MultiTexCoord0.t < mc_midTexCoord.t) || blockID == PLANTS_TALL_U){
+                vMcPos.xyz = wavingPlants(vMcPos.xyz, 0.45, 1.0, 0.0, 1.0);
+            }
         }
     #endif
 

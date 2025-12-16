@@ -30,11 +30,11 @@ const bool colortex7Clear = false;
 1: hrr data
 2: rgb:TAA          		a:temporal data
 3: rgba:hrr temporal data(rsm/ao/cloud/ssr/fog)
-4: r:parallax shadow/ao		g:blockID/gbufferID		ba:specular		(df7)rg:albedo/ao	(df11)rgba:color
-5: rg:normal				ba:lmcoord													
+4: r:parallax shadow/ao		g:blockID/gbufferID		ba:specular		(df7)rg:albedo/ao	(df12)rgba:color
+5: rg:normal				ba:lmcoord													(df12)rgba:TAA pre color									
 6: hrr normal/depth (pre/cur)
 7: sky box/T1/MS/sunColor/skyColor
-8: custom texture(MS/noise3d low)														(df11)rgba:TAA pre color
+8: custom texture(MS/noise3d low)														
 9: rg:velocity
 */
 #define CPS

@@ -10,6 +10,8 @@ varying vec4 vMcPos;
 #include "/lib/common/utils.glsl"
 #include "/lib/common/normal.glsl"
 #include "/lib/common/position.glsl"
+#include "/lib/common/noise.glsl"
+#include "/lib/camera/filter.glsl"
 
 #ifdef FSH
 
@@ -60,16 +62,18 @@ void main(){
     //     vMcPos.xyz += 10000.0;
     // }
     #ifdef WAVING_PLANTS
-        const float waving_rate = WAVING_RATE;
-        if(blockID == PLANTS_SHORT && gl_MultiTexCoord0.t < mc_midTexCoord.t){
-            // pos, normal, A, B, D_amount, y_waving_amount
-            vMcPos.xyz = wavingPlants(vMcPos.xyz, PLANTS_SHORT_AMPLITUDE, waving_rate, 0.0, 0.0);
-        }
-        if(blockID == LEAVES){
-            vMcPos.xyz = wavingPlants(vMcPos.xyz, LEAVES_AMPLITUDE, waving_rate, 0.0, 1.0);
-        }
-        if((blockID == PLANTS_TALL_L && gl_MultiTexCoord0.t < mc_midTexCoord.t) || blockID == PLANTS_TALL_U){
-            vMcPos.xyz = wavingPlants(vMcPos.xyz, PLANTS_TALL_AMPLITUDE, waving_rate, 0.0, 0.0);
+        if(vWorldDis < 60.0){
+            const float waving_rate = WAVING_RATE;
+            if(blockID == PLANTS_SHORT && gl_MultiTexCoord0.t < mc_midTexCoord.t){
+                // pos, normal, A, B, D_amount, y_waving_amount
+                vMcPos.xyz = wavingPlants(vMcPos.xyz, 1.0, 1.0, 0.0, 1.0);
+            }
+            if(blockID == LEAVES){
+                vMcPos.xyz = wavingPlants(vMcPos.xyz, 0.45, 1.0, 1.0, 1.0);
+            }
+            if((blockID == PLANTS_TALL_L && gl_MultiTexCoord0.t < mc_midTexCoord.t) || blockID == PLANTS_TALL_U){
+                vMcPos.xyz = wavingPlants(vMcPos.xyz, 0.45, 1.0, 0.0, 1.0);
+            }
         }
     #endif
 

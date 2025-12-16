@@ -417,7 +417,7 @@ float traceParallaxShadow(vec3 parallaxOffset, vec3 lightDirTS, float shadowSoft
 
 
 float ParallaxShadow(vec3 parallaxOffset, vec3 lightDirTS){
-    return traceParallaxShadow(parallaxOffset, lightDirTS, PARALLAX_SHADOW_SOFTENING, false);
+    return traceParallaxShadow(parallaxOffset, lightDirTS, PARALLAX_SHADOW_SOFTENING * 2.5, false);
 }
 
 float voxelParallaxShadow(vec3 parallaxOffset, vec3 lightDirTS){

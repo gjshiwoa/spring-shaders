@@ -33,7 +33,6 @@ void main() {
 
 #ifdef PBR_REFLECTIVITY
 	if(specularMap.r > 0.5 / 255.0){
-		
 		vec3 viewDir = normalize(viewPos1.xyz);
 
 		vec3 normalV = normalize(normalDecode(normalEnc));
@@ -85,11 +84,11 @@ void main() {
 
 
 
-/* DRAWBUFFERS:0468 */
+/* DRAWBUFFERS:0456 */
 	gl_FragData[0] = color;
 	gl_FragData[1] = color1;
-	gl_FragData[2] = CT6;
-	gl_FragData[3] = vec4(texture(colortex2, texcoord).rgb / COLOR_UI_SCALE, 1.0);
+	gl_FragData[2] = vec4(texture(colortex2, texcoord).rgb, 1.0);
+	gl_FragData[3] = CT6;
 }
 
 #endif

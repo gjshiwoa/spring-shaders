@@ -61,17 +61,20 @@ MaterialParams MapMaterialParams(vec4 specularMap) {
     
     params.porosity = 0.0;
     params.subsurfaceScattering = 0.0;
-    if(specularMap.b < 0.251) {
-        params.porosity = smoothstep(0.0, 64.0/255.0, specularMap.b);
-    } else {
-        params.subsurfaceScattering = smoothstep(65.0/255.0, 1.0, specularMap.b);
-    }
-    
-    params.emissiveness = specularMap.a;
-    if(params.emissiveness * 255.0 > 254.1) {
-        params.emissiveness = 0.0;
-    }
-    
+
+    #ifndef USE_OLD_PBR
+        if(specularMap.b < 0.251) {
+            params.porosity = smoothstep(0.0, 64.0/255.0, specularMap.b);
+        } else {
+            params.subsurfaceScattering = smoothstep(65.0/255.0, 1.0, specularMap.b);
+        }
+
+        params.emissiveness = specularMap.a;
+        if(params.emissiveness * 255.0 > 254.1) {
+            params.emissiveness = 0.0;
+        }
+    #endif
+
     return params;
 }
 

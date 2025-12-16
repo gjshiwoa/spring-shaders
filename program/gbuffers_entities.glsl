@@ -22,13 +22,14 @@ void main() {
 	vec2 texGradY = dFdy(texcoord);
 
 	vec4 texColor = texture(tex, texcoord);
-	if (texColor.a <= 0.0005) discard;
 
 	vec4 color = texColor * glcolor;
-	bool lightning = entityId == 2 || entityIdMap == 3;
+	bool lightning = entityIdMap == LIGHTNING_BOLT || entityIdMap == FIREWORK_ROCKET;
 	if(entityIdMap == LIGHTNING_BOLT) {
 		color = vec4(vec3(0.0), 1.0);
 	}
+	
+	if (color.a <= 0.0005) discard;
 	color.rgb = mix(color.rgb, entityColor.rgb, entityColor.a);
 	
 	
@@ -39,7 +40,7 @@ void main() {
 
 	vec2 lightmapCoord = lmcoord;
 	if(lightning){
-		specularTex = vec4(1.0 / 255.0, 0.0, 0.0, 253.0 / 255.0);
+		specularTex = vec4(0.0, 0.0, 0.0, 253.0 / 255.0);
 		normalTex = normalize(upPosition);
 		lightmapCoord = vec2(0.0, 1.0);
 	}

@@ -105,13 +105,13 @@ void main() {
 
 		#ifdef WATER_REFLECTION
 			vec3 reflectColor = reflection(
-				colortex8, 
+				gaux2, 
 				vViewPos.xyz, 
 				reflectWorldDir, 
 				reflectViewDir, 
 				lightmapY * underwaterFactor, 
 				normalVO, 
-				COLOR_UI_SCALE, 
+				1.0, 
 				ssrTargetSampled
 			);
 

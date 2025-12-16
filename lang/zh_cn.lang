@@ -62,7 +62,7 @@ option.RSM_MAX_SAMPLES = RSM最大采样数
 option.RSM_MIN_SAMPLES = RSM最小采样数
 option.DENOISER_RADIUS = （RSM/AO）降噪半径
 option.DENOISER_QUALITY = （RSM/AO）降噪质量
-option.RSM_LEAK_FIX = 缓解RSM漏光
+option.RSM_LEAK_FIX = 缓解RSM漏光(RTAO)
 
 option.ambientOcclusionLevel = 原版AO强度
 option.AO_ENABLED = 启用光影SSAO
@@ -251,6 +251,7 @@ option.PARALLAX_NORMAL_MIX_WEIGHT = 视差混入高度图法线的权重
 option.PARALLAX_FORCE_NORMAL_VERTICAL = （体素）视差顶面启用纹理法线
 
 option.PBR_REFLECTIVITY = PBR反射
+option.USE_OLD_PBR = 使用旧版PBR（SEUS PBR）
 option.SSS_INTENSITY = 次表面散射强度
 option.EMISSIVENESS_BRIGHTNESS = 自发光亮度
 option.MIRROR_INTENSITY = PBR镜面反射强度

@@ -37,7 +37,7 @@ varying mat3 tbnMatrix;
 
 #ifdef FSH
 #include "/lib/water/translucentLighting.glsl"
-// #include "/lib/atmosphere/volumetricClouds.glsl"
+#include "/lib/surface/ripple.glsl"
 
 // const bool gaux1MipmapEnabled = true;
 
@@ -87,6 +87,12 @@ void main() {
 		vec3 waveViewNormal = normalize(tbnMatrix * getWaveNormal(waveParallaxUV));
 		vec3 waveWorldNormal = viewPosToWorldPos(vec4(waveViewNormal, 0.0)).xyz;
  
+		bool upFace = dot(normalVO, upViewDir) > 0.01;
+		if(upFace && rainStrength > 0.001 && biome_precipitation == 1){
+			waveWorldNormal = RipplePerturbNormalWS(waveParallaxUV, waveWorldNormal, worldDis0);
+			waveViewNormal = mat3(gbufferModelView) * waveWorldNormal;
+		}
+
 
 
 		// camera above water surface
@@ -166,13 +172,13 @@ void main() {
 
 		#ifdef WATER_REFLECTION
 			vec3 reflectColor = reflection(
-				colortex8, 
+				gaux2, 
 				vViewPos.xyz, 
 				reflectWorldDir, 
 				reflectViewDir, 
 				lightmapY * underwaterFactor, 
 				normalVO, 
-				COLOR_UI_SCALE, 
+				1.0, 
 				ssrTargetSampled
 			);
 			
@@ -285,8 +291,8 @@ void main() {
 			float NdotU = dot(upWorldDir, reflectWorldDir);
 			float upDirFactor = smoothstep(-1.0, 0.0, NdotU);
 			bool ssrTargetSampled = false;	
-			vec3 reflectColor = reflection(colortex8, vViewPos.xyz, reflectWorldDir, reflectViewDir, 
-											lightmap.y * upDirFactor, normalTexV, COLOR_UI_SCALE, ssrTargetSampled)
+			vec3 reflectColor = reflection(gaux2, vViewPos.xyz, reflectWorldDir, reflectViewDir, 
+											lightmap.y * upDirFactor, normalTexV, 1.0, ssrTargetSampled)
 											+ drawCelestial(reflectWorldDir, 1.0, false) * shade;
 			float NdotV = saturate(dot(normalTexV, -viewDir));
 
