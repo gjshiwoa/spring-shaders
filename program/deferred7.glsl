@@ -95,7 +95,9 @@ void main() {
 		#ifdef HELD_BLOCK_DYNAMIC_LIGHT
 			float heldBlockLight = max(heldBlockLightValue, heldBlockLightValue2) / 15.0;
 			heldBlockLight *= pow(remapSaturate(worldDis1, 0.0, DYNAMIC_LIGHT_DISTANCE, 1.0, 0.0), ARTIFICIAL_LIGHT_FALLOFF);
-			heldBlockLight *= saturate(dot(normalV, -normalize(vec3(viewPos1.xy, viewPos1.z))));
+			#ifdef HELD_BLOCK_NORMAL_AFFECT
+				heldBlockLight *= saturate(dot(normalV, -normalize(vec3(viewPos1.xyz))));
+			#endif
 			lightmap.x = max(lightmap.x, heldBlockLight);
 		#endif
 
@@ -150,13 +152,10 @@ void main() {
 			shadow = CT4R.x;
 			colorShadow = getColorShadow(shadowPos, shadow);
 		}
-		if(worldDis1 > shadowDistance * 0.75){
-			float mixFactor = smoothstep(shadowDistance * 0.75, shadowDistance * 0.90, worldDis1);
-			mixFactor = saturate(mixFactor);
-			float RTShadow = CT4R.y;
-			shadow = min(shadow, mix(1.0, RTShadow, mixFactor));
-			shadow = saturate(shadow);
-		}
+		float RTShadow = CT4R.y;
+		shadow = min(shadow, RTShadow);
+
+		shadow = saturate(shadow);
 		vec3 visibility = vec3(shadow + colorShadow * 1.0);
 		vec3 direct = sunColor * BRDF * visibility * cos_theta;
 

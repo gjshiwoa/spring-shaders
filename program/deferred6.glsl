@@ -67,15 +67,17 @@ void main() {
 
 		float shadow = 1.0;
 		float RTShadow = 1.0;
+		
 		if(!outScreen(shadowPos.xy) && cos_theta > 0.001){
 			shadow = min(parallaxShadow, shadowMapping(worldPos1, normalW, sssWrap));
 			shadow = mix(1.0, shadow, remapSaturate(worldDis1, shadowDistance * 0.9, shadowDistance, 1.0, 0.0));
 			shadow = max(shadow, 0.0);
-			
 		}
-		if(worldDis1 > shadowDistance * 0.75){
-			RTShadow = 0.9 * screenSpaceShadow(viewPos1.xyz, normalW, shadow);
-		}
+
+		RTShadow = screenSpaceShadow(viewPos1.xyz, normalW, shadow);
+		float mixFactor = remapSaturate(worldDis1, shadowDistance * 0.25, shadowDistance * 0.5, 1.0, 0.0);
+		RTShadow = 0.9 * mix(RTShadow, 1.0, saturate(sssWrap) * mixFactor * (1.0 - SSS_RT_SHADOW_VISIBILITY));
+
 		CT4.r = pack2x8To16(shadow, RTShadow);
 	}
 

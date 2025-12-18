@@ -1,20 +1,20 @@
 float screenSpaceShadow(vec3 viewPos, vec3 normal, float shadowMappingResult){
-    if(shadowMappingResult < 0.1) return 0.0; 
+    if(shadowMappingResult < 0.01) return 0.0; 
     float N_SAMPLE = SCREEN_SPACE_SHADOW_SAMPLES;
-
     float dist = length(viewPos);
 
     vec3 startPos = viewPos;
     vec3 rayDir = lightViewDir;
-    float rayLength = dist / 60.0;
+    float rayLength = remapSaturate(dist, 0.0, shadowDistance, 0.2, 10.0);
 
     float ds = rayLength / N_SAMPLE;
     vec3 dStep = ds * rayDir;
 
-    startPos += temporalBayer64(gl_FragCoord.xy) * dStep;
+    startPos += (temporalBayer64(gl_FragCoord.xy)) * dStep;
+    startPos += remapSaturate(dist, 0.0, shadowDistance, 0.01, 0.5) * rayDir;
 
     float shadow = 0.0;
-    for(int i = 1; i < N_SAMPLE; i++){
+    for(int i = 0; i < N_SAMPLE; i++){
         vec3 p = startPos + i * dStep;
 
         vec3 p_screen = viewPosToScreenPos(vec4(p, 1.0)).xyz;
@@ -35,18 +35,17 @@ float screenSpaceShadow(vec3 viewPos, vec3 normal, float shadowMappingResult){
             float z_sample = texture(depthtex1, p_screen.xy).r;
         #endif
 
-        float offset = 0.05 * fastPow(1 - saturate(dot(normal, lightWorldDir)), 1);
-        z_sample = linearizeDepth(z_sample) + offset;
-        float z_p = linearizeDepth(p_screen.z);
+        vec4 posSample = screenPosToViewPos(vec4(p_screen.xy, z_sample, 1.0));
+        float disSample = length(posSample.xyz);
+        float disP = length(p);
+        float disP_S = distance(posSample.xyz, p);
 
-        if(z_sample < z_p){
-            float weight = step(0.0, rayLength - abs(z_p - z_sample));
-            shadow += 1.0 * weight;
+        if(disSample < disP && disP_S < remapSaturate(dist, 5, shadowDistance, 0.1, 10.0)){
+            shadow = 1.0; 
+            break;
         }
     }
-
-    shadow /= N_SAMPLE * 0.5 / rayLength;
-    shadow = 1.0 - shadow;
-
+    // shadow = saturate(shadow / N_SAMPLE);
+    shadow = 1.0 - saturate(shadow);
     return saturate(shadow);
 }

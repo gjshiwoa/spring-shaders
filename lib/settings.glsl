@@ -70,10 +70,12 @@ const int noiseTextureResolution = 64;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define WAVING_PLANTS
-#define WAVING_RATE 3.0                 // [1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
-#define PLANTS_SHORT_AMPLITUDE 0.075    // [0.0125 0.025 0.0375 0.05 0.075 0.1 0.125 0.15 0.175 0.2]
-#define PLANTS_TALL_AMPLITUDE 0.025     // [0.0125 0.025 0.0375 0.05 0.075 0.1 0.125 0.15 0.175 0.2]
-#define LEAVES_AMPLITUDE 0.025          // [0.0125 0.025 0.0375 0.05 0.075 0.1 0.125 0.15 0.175 0.2]
+#define WAVING_RATE 1.0                 // [0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
+#define PLANTS_SHORT_AMPLITUDE 1.0    // [0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0]
+#define PLANTS_TALL_AMPLITUDE 0.4     // [0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0]
+#define LEAVES_AMPLITUDE 0.4          // [0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0]
+#define WAVING_NOISE_SCALE 1.0       // [0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
+
 
 
 
@@ -103,16 +105,23 @@ const int noiseTextureResolution = 64;
 #define TRANSLUCENT_F0 0.75         // [0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95]
 // #define TRANSLUCENT_USE_REASOURCESPACK_PBR
 
-#define RIPPLE
+
+
 #define RAINY_GROUND_WET_ENABLE
-#define RIPPLE_DISTANCE 20.0
-#define RIPPLE_MAX_RADIUS 1
-#define RIPPLE_UV_SCALE 3.0
-#define RIPPLE_TIME_SPEED 1.2
-#define RIPPLE_WAVE_FREQ 1.25
-#define RIPPLE_RING_INNER -0.3
-#define RIPPLE_RING_OUTER -0.15
-#define RIPPLE_NORMAL_STRENGTH 1.0
+#define RAINY_GROUND_WET_NOISE
+#define WET_GROUND_SMOOTHNESS 0.95   // [0.5 0.6 0.7 0.8 0.9 0.95 1.0]
+#define WET_GROUND_F0 0.02           // [0.01 0.02 0.05 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9]
+
+#define RIPPLE
+#define RIPPLE_DISTANCE 20.0        // [10.0 15.0 20.0 25.0 30.0 35.0 40.0 45.0 50.0]
+#define RIPPLE_MAX_RADIUS 1         // [1 2 3]
+#define RIPPLE_UV_SCALE 3.0         // [1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
+#define RIPPLE_TIME_SPEED 1.25       // [0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.5 3.0]
+#define RIPPLE_WAVE_FREQ 25.0
+#define RIPPLE_RING_INNER -0.6
+#define RIPPLE_RING_OUTER -0.3
+#define RIPPLE_NORMAL_STRENGTH 0.05 // [0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.15 0.2]
+
 
 
 
@@ -308,7 +317,9 @@ const vec2 fogHeight = vec2(FOG_REF_HEIGHT - FOG_THICKNESS * 0.5, FOG_REF_HEIGHT
 #define SUN_SKY_BLEND 0.97          // [0.9 0.91 0.92 0.93 0.94 0.95 0.96 0.97 0.98 0.99 1.0]
 
 #define HELD_BLOCK_DYNAMIC_LIGHT
+#define HELD_BLOCK_NORMAL_AFFECT
 #define DYNAMIC_LIGHT_DISTANCE 10.0
+
 #define GLOWING_BRIGHTNESS 2.0      // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
 #define SKY_LIGHT_BRIGHTNESS 4.0    // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0]
 #define ARTIFICIAL_COLOR_RED 0.9    // [0.0 0.025 0.05 0.075 0.1 0.125 0.15 0.175 0.2 0.225 0.25 0.275 0.3 0.325 0.35 0.375 0.4 0.425 0.45 0.475 0.5 0.525 0.55 0.575 0.6 0.625 0.65 0.675 0.7 0.725 0.75 0.775 0.8 0.825 0.85 0.875 0.9 0.925 0.95 0.975 1.0]
@@ -341,6 +352,7 @@ const float shadowDistance = 160.0;    // [40.0 80.0 120.0 160.0 200.0 240.0 280
 #define SHADOW_SAMPLES 6.0    // [3.0 5.0 6.0 7.0 8.0 9.0 12.0 15.0 18.0 21.0 24.0 27.0 30.0 33.0 36.0]
 #define COLOR_SHADOW_SAMPLES 5.0 // [3.0 5.0 7.0 9.0 12.0 15.0 18.0 21.0 24.0 27.0 30.0 33.0 36.0]
 #define SCREEN_SPACE_SHADOW_SAMPLES 5.0 // [3.0 5.0 7.0 9.0 12.0 15.0 18.0 21.0 24.0 27.0 30.0 33.0 36.0]
+#define SSS_RT_SHADOW_VISIBILITY 0.0    // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 
 float shadowMapScale = (120.0 / shadowDistance) * (shadowMapResolution / 2048.0);
 
@@ -428,7 +440,7 @@ const vec3 waterFogColor = vec3(WATER_FOG_COLOR_RED, WATER_FOG_COLOR_GREEN, WATE
 
 
 #define WATER_REFRACTION
-#define WAVE_REFRACTION_INTENSITY 1.5   // [0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0]
+#define WAVE_REFRACTION_INTENSITY 1.0   // [0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0]
 #define WATER_REFRAT_IOR 1.2        // [1.0 1.1 1.2 1.3 1.33 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
 #define WATER_REFLECTION
 #define UNDERWATER_REFLECTION

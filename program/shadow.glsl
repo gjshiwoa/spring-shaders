@@ -89,13 +89,13 @@ void main(){
             const float waving_rate = WAVING_RATE;
             if(blockID == PLANTS_SHORT && gl_MultiTexCoord0.t < mc_midTexCoord.t){
                 // pos, normal, A, B, D_amount, y_waving_amount
-                vMcPos.xyz = wavingPlants(vMcPos.xyz, 1.0, 1.0, 0.0, 1.0);
+                vMcPos.xyz = wavingPlants(vMcPos.xyz, PLANTS_SHORT_AMPLITUDE, waving_rate, 0.0, WAVING_NOISE_SCALE);
             }
             if(blockID == LEAVES){
-                vMcPos.xyz = wavingPlants(vMcPos.xyz, 0.45, 1.0, 1.0, 1.0);
+                vMcPos.xyz = wavingPlants(vMcPos.xyz, LEAVES_AMPLITUDE, waving_rate, 1.0, WAVING_NOISE_SCALE);
             }
             if((blockID == PLANTS_TALL_L && gl_MultiTexCoord0.t < mc_midTexCoord.t) || blockID == PLANTS_TALL_U){
-                vMcPos.xyz = wavingPlants(vMcPos.xyz, 0.45, 1.0, 0.0, 1.0);
+                vMcPos.xyz = wavingPlants(vMcPos.xyz, PLANTS_TALL_AMPLITUDE, waving_rate, 0.0, WAVING_NOISE_SCALE);
             }
         }
     #endif

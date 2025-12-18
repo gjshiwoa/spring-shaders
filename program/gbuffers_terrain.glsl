@@ -89,6 +89,8 @@ void main() {
 	
 
 
+	vec3 normalFinal = normalize(tbn * (textureGrad(normals, parallaxUV, texGradX, texGradY).rgb * 2.0 - 1.0));
+	vec3 N1 = N;
 
 	float wetFactor = 0.0;
 	bool upFace = dot(N, upViewDir) > 0.95;
@@ -96,22 +98,21 @@ void main() {
 
 	#ifdef RAINY_GROUND_WET_ENABLE
 		if(isRain){
-			wetFactor = smoothstep(0.88, 0.95, lmcoord.y) * rainStrength;
-			float noiseSample = texture(colortex8, mcPos.xz * 0.01).r;
-			float smoothedNoise = pow(smoothstep(0.0, 0.75, noiseSample), 0.5);
-			float noiseFactor = upFace ? smoothedNoise : 0.95;
-			wetFactor *= noiseFactor * float(biome_precipitation == 1);
-		}
-	#endif
-
-	vec3 normalFinal = normalize(tbn * (textureGrad(normals, parallaxUV, texGradX, texGradY).rgb * 2.0 - 1.0));
-
-	vec3 N1 = N;
-	#ifdef RIPPLE
-		float worldDis = length(viewPos);
-		if(upFace && worldDis < RIPPLE_DISTANCE && isRain && wetFactor > 0.0001) 
-			N1 = mix(N, mat3(gbufferModelView) * RippleNormalWS(mcPos.xz), 
-				wetFactor * remapSaturate(worldDis, RIPPLE_DISTANCE * 0.66, RIPPLE_DISTANCE, 1.0, 0.0));
+            wetFactor = smoothstep(0.88, 0.95, lmcoord.y) * rainStrength;
+            #ifdef RAINY_GROUND_WET_NOISE
+                float noiseSample = texture(colortex8, mcPos.xz * 0.01).r;
+                float smoothedNoise = pow(smoothstep(0.0, 0.75, noiseSample), 0.5);
+                float noiseFactor = upFace ? smoothedNoise : 0.95;
+                wetFactor *= noiseFactor * float(biome_precipitation == 1);
+            #endif
+			wetFactor *= float(biome_precipitation == 1);
+        }
+			
+		#ifdef RIPPLE
+			float worldDis = length(viewPos);
+			if(upFace && worldDis < RIPPLE_DISTANCE && isRain && wetFactor > 0.0001) 
+				N1 = normalize(mat3(gbufferModelView) * RippleNormalWS(mcPos.xz, worldDis, wetFactor));
+		#endif
 	#endif
 
 	#ifdef PARALLAX_MAPPING
@@ -139,10 +140,11 @@ void main() {
 		#endif
 
 		#ifdef RAINY_GROUND_WET_ENABLE
-			specularTex.r = max(specularTex.r, 0.95 * wetFactor);
-			specularTex.g = max(specularTex.g, 0.02 * wetFactor);
+			specularTex.r = max(specularTex.r, WET_GROUND_SMOOTHNESS * wetFactor);
+			specularTex.g = max(specularTex.g, WET_GROUND_F0 * wetFactor);
 		#endif
 	}
+	normalFinal = normalize(normalFinal);
 	specularTex = saturate(specularTex);
 
 
@@ -263,13 +265,13 @@ void main() {
 		if(worldDis < 60.0){
 			const float waving_rate = WAVING_RATE;
 			if(v_blockID == PLANTS_SHORT && gl_MultiTexCoord0.t < mc_midTexCoord.t){
-				mcPos.xyz = wavingPlants(mcPos.xyz, 1.0, 1.0, 0.0, 1.0);
+				mcPos.xyz = wavingPlants(mcPos.xyz, PLANTS_SHORT_AMPLITUDE, waving_rate, 0.0, WAVING_NOISE_SCALE);
 			}
 			if(v_blockID == LEAVES){
-				mcPos.xyz = wavingPlants(mcPos.xyz, 0.45, 1.0, 1.0, 1.0);
+				mcPos.xyz = wavingPlants(mcPos.xyz, LEAVES_AMPLITUDE, waving_rate, 1.0, WAVING_NOISE_SCALE);
 			}
 			if((v_blockID == PLANTS_TALL_L && gl_MultiTexCoord0.t < mc_midTexCoord.t) || v_blockID == PLANTS_TALL_U){
-				mcPos.xyz = wavingPlants(mcPos.xyz, 0.45, 1.0, 0.0, 1.0);
+				mcPos.xyz = wavingPlants(mcPos.xyz, PLANTS_TALL_AMPLITUDE, waving_rate, 0.0, WAVING_NOISE_SCALE);
 			}
 		}
 	#endif

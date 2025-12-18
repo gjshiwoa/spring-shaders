@@ -406,7 +406,7 @@ float traceParallaxShadow(vec3 parallaxOffset, vec3 lightDirTS, float shadowSoft
         if (currHeight > rayHeight + bias){
             float occlusion = (currHeight - rayHeight) / dist * shadowSoftening;
             shadow = max(shadow, occlusion);
-            if (shadow >= 0.999) break;
+            if (shadow >= 0.99) break;
         }
 
         rayHeight += dHeight;

@@ -46,6 +46,8 @@ option.SHADOW_SOFTNESS = 阴影柔和度
 option.SHADOW_SAMPLES = 阴影采样数
 option.COLOR_SHADOW_SAMPLES = 彩色阴影采样数
 option.SCREEN_SPACE_SHADOW_SAMPLES = 屏幕空间阴影采样数
+option.SSS_RT_SHADOW_VISIBILITY = 透光物的屏幕空间阴影可见度
+
 
 option.RSM_ENABLED = 启用RSM
 option.RSM_BRIGHTNESS = RSM亮度
@@ -229,6 +231,7 @@ option.WAVING_RATE = 晃动速率
 option.PLANTS_SHORT_AMPLITUDE = 一格植物振幅
 option.PLANTS_TALL_AMPLITUDE = 两格植物振幅
 option.LEAVES_AMPLITUDE = 树叶振幅
+option.WAVING_NOISE_SCALE = 晃动噪声缩放（整齐度）
 
 screen.Material = 材质
 screen.parallax_mapping = 视差映射
@@ -245,7 +248,7 @@ option.PARALLAX_DISTANCE = 视差渲染距离
 option.PARALLAX_LERP = 视差插值
 option.PARALLAX_SHADOW = 视差阴影
 option.PARALLAX_SHADOW_SAMPPLES = 视差阴影采样数
-option.PARALLAX_SHADOW_SOFTENING = 视差阴影柔化程度
+option.PARALLAX_SHADOW_SOFTENING = 视差阴影锐利程度
 option.PARALLAX_SHADOW_SOFTENING.comment = 数值越小，阴影越软
 option.PARALLAX_NORMAL_MIX_WEIGHT = 视差混入高度图法线的权重
 option.PARALLAX_FORCE_NORMAL_VERTICAL = （体素）视差顶面启用纹理法线
@@ -259,7 +262,18 @@ option.PBR_REFLECTION_DIR_COUNT = PBR反射方向数
 option.PBR_REFLECTION_BLUR = PBR反射模糊
 option.TRANSLUCENT_ROUGHNESS = （硬编码）半透明物粗糙度
 option.TRANSLUCENT_F0 = （硬编码）半透明物F0
+
+screen.rainy_ground_wet_ripple = 雨天地面湿滑与涟漪
 option.RAINY_GROUND_WET_ENABLE = 下雨地面湿润效果
+option.RAINY_GROUND_WET_NOISE = 雨天地面湿润噪波
+option.WET_GROUND_SMOOTHNESS = 湿润地面平滑度
+option.WET_GROUND_F0 = 湿润地面F0
+option.RIPPLE = 启用雨滴涟漪
+option.RIPPLE_DISTANCE = 波纹渲染距离
+option.RIPPLE_MAX_RADIUS = 波纹最大搜索半径
+option.RIPPLE_UV_SCALE = 波纹缩放
+option.RIPPLE_TIME_SPEED = 波纹时间速度
+option.RIPPLE_NORMAL_STRENGTH = 波纹法线强度
 
 screen.Camera = 后处理
 option.GAMMA = 伽马（Gamma）

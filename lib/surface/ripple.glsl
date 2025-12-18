@@ -30,7 +30,7 @@ vec2 ripple_gradient_uv(vec2 uv, float time){
 
             float d = lenV - travel;
 
-            float h  = 0.01;
+            float h  = 0.001;
             float p1 = ripple_profile(d - h);
             float p2 = ripple_profile(d + h);
             float dp_dd = (p2 - p1) / (2.0 * h);
@@ -48,7 +48,7 @@ vec2 ripple_gradient_uv(vec2 uv, float time){
     return grad;
 }
 
-vec2 RippleSlopeXZ_WS(vec2 posXZ){
+vec2 RippleSlopeXZ_WS(vec2 posXZ, float dis, float wetFactor){
     vec2 uv = posXZ * RIPPLE_UV_SCALE;
 
     vec2 g_uv = ripple_gradient_uv(uv, frameTimeCounter);
@@ -56,20 +56,23 @@ vec2 RippleSlopeXZ_WS(vec2 posXZ){
     float dHdx = g_uv.x * RIPPLE_UV_SCALE * RIPPLE_NORMAL_STRENGTH;
     float dHdz = g_uv.y * RIPPLE_UV_SCALE * RIPPLE_NORMAL_STRENGTH;
 
-    return vec2(dHdx, dHdz);
+    vec2 slope = vec2(dHdx, dHdz) 
+                * remapSaturate(dis, RIPPLE_DISTANCE * 0.66, RIPPLE_DISTANCE, 1.0, 0.0)
+                * wetFactor;
+
+    return slope;
 }
 
-vec3 RippleNormalWS(vec2 posXZ){
-    vec2 slope = RippleSlopeXZ_WS(posXZ);
+vec3 RippleNormalWS(vec2 posXZ, float dis, float wetFactor){
+    vec2 slope = RippleSlopeXZ_WS(posXZ, dis, wetFactor);
     return normalize(vec3(-slope.x, 1.0, -slope.y));
 }
 
-vec3 RipplePerturbNormalWS(vec2 posXZ, vec3 baseNWS, float dis){
+vec3 RipplePerturbNormalWS(vec2 posXZ, vec3 baseNWS, float dis, float wetFactor){
     vec3 N = normalize(baseNWS);
-    if(dis > 20.0) return N;
+    if(dis > RIPPLE_DISTANCE) return N;
 
-    vec2 slope = RippleSlopeXZ_WS(posXZ) * rainStrength * 0.25
-        * remapSaturate(dis, RIPPLE_DISTANCE * 0.66, RIPPLE_DISTANCE, 1.0, 0.0);
+    vec2 slope = RippleSlopeXZ_WS(posXZ, dis, wetFactor);
 
     vec3 worldX = vec3(1.0, 0.0, 0.0);
     vec3 worldZ = vec3(0.0, 0.0, 1.0);

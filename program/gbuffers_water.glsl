@@ -68,7 +68,7 @@ void main() {
 	vec4 mcPos = vMcPos;
 
 	vec4 texColor = texture(tex, texcoord) * glcolor;
-	if(texColor.a < 0.005) discard;
+	if(texColor.a < 0.5 / 255.0) discard;
 	vec4 color = vec4(BLACK, 1.0);
 
 	vec3 normalTexV = normalize(tbnMatrix * (textureGrad(normals, parallaxUV, texGradX, texGradY).rgb * 2.0 - 1.0));
@@ -88,9 +88,10 @@ void main() {
 		vec3 waveWorldNormal = viewPosToWorldPos(vec4(waveViewNormal, 0.0)).xyz;
  
 		#ifdef RIPPLE
-			bool upFace = dot(normalVO, upViewDir) > 0.01;
-			if(upFace && rainStrength > 0.001 && biome_precipitation == 1){
-				waveWorldNormal = RipplePerturbNormalWS(waveParallaxUV, waveWorldNormal, worldDis0);
+			bool upFace = dot(normalVO, upViewDir) > 0.1;
+			float wetFactor = smoothstep(0.88, 0.95, lmcoord.y) * rainStrength * float(biome_precipitation == 1);
+			if(upFace && wetFactor > 0.001 && worldDis0 < RIPPLE_DISTANCE){
+				waveWorldNormal = RipplePerturbNormalWS(waveParallaxUV, waveWorldNormal, worldDis0, wetFactor);
 				waveViewNormal = mat3(gbufferModelView) * waveWorldNormal;
 			}
 		#endif
