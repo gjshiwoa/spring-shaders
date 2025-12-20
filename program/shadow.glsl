@@ -40,10 +40,11 @@ void main(){
             color.rgb = vec3(1.0);
         #endif
     }else{
-        color = texture(tex, texcoord.st) * glColor;
-        if(color.a < 0.005){
-            discard;
-        }
+        color = textureLod(tex, texcoord.st, 0.0) * glColor;
+    }
+
+    if(color.a < 0.1){
+        discard;
     }
 
     float isTranslucent = color.a > 0.01 && color.a < 0.99 ? 1.0 : 0.0;

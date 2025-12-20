@@ -12,6 +12,11 @@ varying vec2 texcoord;
 #include "/lib/common/normal.glsl"
 
 #ifdef FSH
+
+const bool shadowtex0Mipmap = false;
+const bool shadowtex1Mipmap = false;
+const bool shadowcolor0Mipmap = false;
+const bool shadowcolor1Mipmap = false;
 #include "/lib/lighting/RSM.glsl"
 
 void main() {

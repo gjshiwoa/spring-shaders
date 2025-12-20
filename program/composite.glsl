@@ -55,6 +55,11 @@ varying vec2 texcoord;
 
 
 #ifdef FSH
+
+const bool shadowtex0Mipmap = false;
+const bool shadowtex1Mipmap = false;
+const bool shadowcolor0Mipmap = false;
+const bool shadowcolor1Mipmap = false;
 void main() {
 	vec4 CT6 = texelFetch(colortex6, ivec2(gl_FragCoord.xy), 0);
 	vec2 uv = texcoord * 2.0 - vec2(0.0, 1.0);

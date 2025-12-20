@@ -13,6 +13,11 @@ varying vec2 texcoord;
 
 #ifdef FSH
 
+const bool shadowtex0Mipmap = false;
+const bool shadowtex1Mipmap = false;
+const bool shadowcolor0Mipmap = false;
+const bool shadowcolor1Mipmap = false;
+
 // #include "/lib/common/gbufferData.glsl"
 // #include "/lib/common/materialIdMapper.glsl"
 

@@ -149,7 +149,7 @@ vec3 TransmittanceToAtmosphere(vec3 p, vec3 dir){
               remap(uv.y, 0.0, 1.0, T1_I.y - 1, T1_I.w + 1));
     uv /= 512.0;
 
-    return texture(colortex7, uv).rgb;
+    return textureLod(colortex7, uv, 0.0).rgb;
 }
 
 vec3 IntegralMultiScattering(vec3 samplePoint, vec3 lightDir){
@@ -282,7 +282,7 @@ vec3 GetMultiScattering(float h, vec3 p, vec3 lightDir){
               remap(uv.y, 0.0, 1.0, MS_I.y - 1, MS_I.w + 1));
     uv /= 512.0;
 
-    return texture(colortex7, uv).rgb * 0.02;
+    return textureLod(colortex7, uv, 0.0).rgb * 0.02;
 }
 
 void getDensity(float h, out float dRayleigh_c, out float dMie_c){

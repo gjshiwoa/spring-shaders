@@ -9,7 +9,7 @@ vec3 clipAABB(vec3 nowColor, vec3 preColor){
     for(int i = -1; i <= 1; i++){
     for(int j = -1; j <= 1; j++){
         vec2 newUV = texcoord.st + invViewSize * vec2(i, j);
-        vec3 C = RGB2YCoCgR(ToneMap(texture(colortex0, newUV).rgb));
+        vec3 C = RGB2YCoCgR(ToneMap(textureLod(colortex0, newUV, 0.0).rgb));
         m1 += C;
         m2 += C * C;
     }

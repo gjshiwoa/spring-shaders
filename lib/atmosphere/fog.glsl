@@ -359,7 +359,7 @@ vec4 getFog(float depth){
         float weight = 1.0;
         ivec2 offset = ivec2(offsetUV5[i]);
         ivec2 curUV = uv + offset;
-        if(outScreen((curUV * invViewSize) * 2.0 + vec2(0.0, -1.0))) return vec4(0.0, 0.0, 0.0, 1.0);
+        if(outScreen((curUV * invViewSize) * 2.0 + vec2(0.0, -1.0))) continue;
 
         vec4 curData = texelFetch(colortex6, curUV, 0);
 

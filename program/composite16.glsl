@@ -18,7 +18,11 @@ varying float isNoon, isNight, sunRiseSet;
 #include "/lib/camera/filter.glsl"
 
 #ifdef FSH
-// const bool colortex0MipmapEnabled = true;
+
+const bool shadowtex0Mipmap = false;
+const bool shadowtex1Mipmap = false;
+const bool shadowcolor0Mipmap = false;
+const bool shadowcolor1Mipmap = false;
 
 
 #include "/lib/camera/depthOfField.glsl"

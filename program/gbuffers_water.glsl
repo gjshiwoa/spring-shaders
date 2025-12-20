@@ -39,7 +39,6 @@ varying mat3 tbnMatrix;
 #include "/lib/water/translucentLighting.glsl"
 #include "/lib/surface/ripple.glsl"
 
-// const bool gaux1MipmapEnabled = true;
 
 flat in float isWater, isIce;
 

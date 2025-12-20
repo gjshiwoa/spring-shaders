@@ -18,6 +18,11 @@ varying float isNoon, isNight, sunRiseSet;
 
 #ifdef FSH
 
+const bool shadowtex0Mipmap = false;
+const bool shadowtex1Mipmap = false;
+const bool shadowcolor0Mipmap = false;
+const bool shadowcolor1Mipmap = false;
+
 void main() {
 	vec3 nowColor = texture(colortex0, texcoord).rgb;
 	TAA(nowColor);

@@ -16,6 +16,11 @@ varying vec3 sunColor, skyColor;
 
 #ifdef FSH
 
+const bool shadowtex0Mipmap = false;
+const bool shadowtex1Mipmap = false;
+const bool shadowcolor0Mipmap = false;
+const bool shadowcolor1Mipmap = false;
+
 void main() {
 	vec4 CT7 = texture(colortex7, texcoord);
 	

@@ -12,6 +12,11 @@ varying vec2 texcoord;
 
 #ifdef FSH
 
+const bool shadowtex0Mipmap = false;
+const bool shadowtex1Mipmap = false;
+const bool shadowcolor0Mipmap = false;
+const bool shadowcolor1Mipmap = false;
+
 void main() {
 	#define BLOOM_DOWNSAMPLE
     #include "/lib/camera/bloom1.glsl"

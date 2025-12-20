@@ -70,7 +70,7 @@ float blockerSearch(sampler2D shadowMap, vec3 shadowPos, float radius, float qua
     for (int i = 0; i < quality; i++) {
         vec2 offset = curDir * pow(radius, 0.75);
 
-        float dBlocker = textureLod(shadowMap, shadowPos.xy + offset / shadowMapResolution, 0).r;
+        float dBlocker = textureLod(shadowMap, shadowPos.xy + offset / shadowMapResolution, 0.0).r;
         if(shadowPos.z > dBlocker){
             blocker += dBlocker;
             c++;
@@ -104,7 +104,7 @@ float PCF(sampler2DShadow shadowMap, vec3 shadowPos, float radius, float quality
     for (int i = 0; i < quality; i++) {
         vec2 offset = curDir * pow(radius, 0.75);
 
-        shade += texture(shadowMap, vec3(shadowPos.xy + offset / shadowMapResolution, shadowPos.z)).r;
+        shade += textureLod(shadowMap, vec3(shadowPos.xy + offset / shadowMapResolution, shadowPos.z), 0.0).r;
         c++;
 
         radius += radiusStep;

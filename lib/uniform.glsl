@@ -121,5 +121,6 @@ uniform float nightVision;
     const int biome_precipitation = 1;
 #endif
 
+
 uniform int heldBlockLightValue;
 uniform int heldBlockLightValue2;

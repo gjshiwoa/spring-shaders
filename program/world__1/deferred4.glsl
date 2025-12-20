@@ -18,13 +18,11 @@ varying vec3 sunViewDir, moonViewDir, lightViewDir;
 #include "/lib/atmosphere/atmosphericScattering.glsl"
 
 #ifdef FSH
-// const bool shadowtex1Mipmap = true;
-// const bool shadowtex1Nearest = false;
 
-// const bool shadowcolor0Mipmap = true;
-// const bool shadowcolor0Nearest = false;
-// const bool shadowcolor1Mipmap = true;
-// const bool shadowcolor1Nearest = false;
+const bool shadowtex0Mipmap = false;
+const bool shadowtex1Mipmap = false;
+const bool shadowcolor0Mipmap = false;
+const bool shadowcolor1Mipmap = false;
 
 
 

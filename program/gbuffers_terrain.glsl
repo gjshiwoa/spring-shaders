@@ -81,7 +81,7 @@ void main() {
 			texColor = texture(tex,parallaxUV);
 		#endif
 	#endif
-	if(texColor.a < 0.005) discard;
+	if(texColor.a < 0.05) discard;
 	vec4 color = texColor * glcolor;
 
 

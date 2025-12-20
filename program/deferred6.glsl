@@ -14,6 +14,11 @@ varying vec3 sunViewDir, moonViewDir, lightViewDir;
 
 #ifdef FSH
 
+const bool shadowtex0Mipmap = false;
+const bool shadowtex1Mipmap = false;
+const bool shadowcolor0Mipmap = false;
+const bool shadowcolor1Mipmap = false;
+
 #include "/lib/common/gbufferData.glsl"
 
 #include "/lib/surface/PBR.glsl"
@@ -74,7 +79,7 @@ void main() {
 			shadow = max(shadow, 0.0);
 		}
 
-		RTShadow = screenSpaceShadow(viewPos1.xyz, normalW, shadow);
+		RTShadow = screenSpaceShadow(viewPos1.xyz, normalV, shadow);
 		float mixFactor = remapSaturate(worldDis1, shadowDistance * 0.25, shadowDistance * 0.5, 1.0, 0.0);
 		RTShadow = 0.9 * mix(RTShadow, 1.0, saturate(sssWrap) * mixFactor * (1.0 - SSS_RT_SHADOW_VISIBILITY));
 

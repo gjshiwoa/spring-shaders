@@ -17,6 +17,11 @@ varying vec3 sunViewDir, moonViewDir, lightViewDir;
 #include "/lib/atmosphere/atmosphericScattering.glsl"
 
 #ifdef FSH
+
+const bool shadowtex0Mipmap = false;
+const bool shadowtex1Mipmap = false;
+const bool shadowcolor0Mipmap = false;
+const bool shadowcolor1Mipmap = false;
 #include "/lib/common/gbufferData.glsl"
 // #include "/lib/common/materialIdMapper.glsl"
 // #include "/lib/lighting/lightmap.glsl"
