@@ -17,6 +17,8 @@ const bool shadowtex0Mipmap = false;
 const bool shadowtex1Mipmap = false;
 const bool shadowcolor0Mipmap = false;
 const bool shadowcolor1Mipmap = false;
+
+#include "/lib/lighting/voxelization.glsl"
 #include "/lib/lighting/RSM.glsl"
 
 void main() {

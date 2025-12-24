@@ -2,5 +2,4 @@
 
 #define FSH
 
-
 #include "/program/deferred3.glsl"

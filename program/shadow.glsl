@@ -1,13 +1,4 @@
-varying vec4 texcoord;
-varying vec4 lmcoord;
-varying vec4 glColor;
-varying vec3 normal;
 
-varying vec4 vMcPos;
-
-#ifdef DH
-    varying float vWorldDis;
-#endif
 
 #include "/lib/uniform.glsl"
 #include "/lib/settings.glsl"
@@ -20,21 +11,22 @@ varying vec4 vMcPos;
 #include "/lib/camera/filter.glsl"
 
 #ifdef FSH
-
+in vec4 texcoord;
+in vec4 lmcoord;
+in vec4 glColor;
+in vec3 normal;
+in vec4 mcPos;
 flat in float isWater;
-
 
 void main(){
     #ifdef DH
-        // if(vWorldDis < shadowDistance){
-            discard;
-        // }
+        discard;
     #endif
 
     vec4 color = vec4(BLACK, 1.0);
     if(isWater > 0.5){
         #ifdef CAUSTICS
-            color.rgb = computeCausticsWithDispersion(vMcPos.xyz);
+            color.rgb = computeCausticsWithDispersion(mcPos.xyz);
             color.a = 0.5;
         #else
             color.rgb = vec3(1.0);
@@ -60,48 +52,154 @@ void main(){
 ///////////////////////////////////////////////////BY ZYPanDa/////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef GSH
+layout(triangles) in;
+layout(triangle_strip, max_vertices = 3) out;
+
+in vec4 v_texcoord[];
+in vec4 v_lmcoord[];
+in vec4 v_glColor[];
+in vec3 v_normal[];
+in vec4 v_mcPos[];
+in vec4 worldPos[];
+in vec4 midBlock[];
+in vec2 midTexCoord[];
+flat in float v_isWater[];
+
+out vec4 texcoord;
+out vec4 lmcoord;
+out vec4 glColor;
+out vec3 normal;
+out vec4 mcPos;
+flat out float isWater;
+
+#include "/lib/lighting/voxelization.glsl"
+
+layout(rgba8) uniform image3D voxel;
+
+void main(){
+    float maxLength = max3(distance(worldPos[0].xyz, worldPos[1].xyz), 
+                            distance(worldPos[1].xyz, worldPos[2].xyz), 
+                            distance(worldPos[2].xyz, worldPos[0].xyz));
+
+    for(int i = 0; i < 3; ++i){
+        texcoord = v_texcoord[i];
+        lmcoord = v_lmcoord[i];
+        glColor = v_glColor[i];
+        normal = v_normal[i];
+        mcPos = v_mcPos[i];
+        isWater = v_isWater[i];
+
+        if(i == 0){
+            if(maxLength > 0.5){
+                vec3 relBlockCenter = worldPos[0].xyz + midBlock[0].xyz / 64.0;
+                ivec3 vc = relWorldToVoxelCoord(relBlockCenter);
+                // From Photon
+                bool is_terrain = any(equal(ivec4(renderStage), ivec4(MC_RENDER_STAGE_TERRAIN_SOLID, 
+                MC_RENDER_STAGE_TERRAIN_TRANSLUCENT, MC_RENDER_STAGE_TERRAIN_CUTOUT, MC_RENDER_STAGE_TERRAIN_CUTOUT_MIPPED)));
+                
+                if (voxelInBounds(vc) && is_terrain) {
+                    float lightBri = (midBlock[0].w - 1.0) / 15.0;
+                    float spe = texture(specular, midTexCoord[0].xy).a;
+                    lightBri = saturate(max(lightBri, spe < 254.1 / 255.0 ? spe : 0.0));
+
+                    vec2 bias = abs(v_texcoord[0].xy - midTexCoord[0]) * 0.5;
+                    const vec2 biasArr[5] = vec2[](
+                        vec2(0.0, 0.0),
+                        vec2(bias.x, bias.y),
+                        vec2(-bias.x, bias.y),
+                        vec2(-bias.x, -bias.y),
+                        vec2(bias.x, -bias.y)
+                    );
+                    vec3 lightCol = vec3(0.0);
+                    float weight = 0.0;
+                    for(int i = 0; i < 5; i++){
+                        vec4 litTexCol = texture(tex, midTexCoord[0] + biasArr[i]);
+                        lightCol += litTexCol.rgb * litTexCol.a;
+                        weight += litTexCol.a;
+                    }
+                    lightCol /= max(weight, 0.01);
+
+                    vec3 outCol = vec3(lightCol * glColor[0] * lightBri);
+                    if(dot(outCol, vec3(0.3333)) < 0.01 && lightBri > 0.1)
+                        outCol = vec3(0.66);
+                    lightBri = saturate(lightBri - 0.05);
+
+                    imageStore(voxel, vc, vec4(outCol, 0.5));
+                }
+            }
+        }
+
+        gl_Position = gl_in[i].gl_Position;
+        EmitVertex();
+    }
+    EndPrimitive();
+}
+
+#endif
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////BY ZYPanDa/////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 #ifdef VSH
 attribute vec4 mc_Entity;
 attribute vec4 mc_midTexCoord;
+attribute vec4 at_midBlock;
 
-flat out float isWater;
+out vec4 v_texcoord;
+out vec4 v_lmcoord;
+out vec4 v_glColor;
+out vec3 v_normal;
+out vec4 v_mcPos;
+out vec4 worldPos;
+out vec4 midBlock;
+flat out float v_isWater;
+out vec2 midTexCoord;
+
 
 
 #include "/lib/common/materialIdMapper.glsl"
 #include "/lib/wavingPlants.glsl"
 
+layout(rgba8) uniform image3D voxel;
+
 void main(){
+    v_texcoord = gl_TextureMatrix[0] * gl_MultiTexCoord0;
+    v_lmcoord = gl_TextureMatrix[1] * gl_MultiTexCoord1;
+    v_glColor = gl_Color;
+    v_lmcoord = (v_lmcoord * 33.05 / 32.0) - 1.05 / 32.0;
+    v_normal = normalize(gl_NormalMatrix * gl_Normal);
+    midBlock = at_midBlock;
+    midTexCoord = mc_midTexCoord.xy;
+
+
     float blockID = IDMapping();
     float translucencyID = IDMappingT();
 
-    vec4 vWorldPos = shadowModelViewInverse * shadowProjectionInverse * ftransform();
-    float worldDis = length(vWorldPos.xyz);
-    vMcPos = vec4(vWorldPos.xyz + cameraPosition, 1.0);
+    worldPos = shadowModelViewInverse * shadowProjectionInverse * ftransform();
+    float worldDis = length(worldPos.xyz);
+    v_mcPos = vec4(worldPos.xyz + cameraPosition, 1.0);
 
-    isWater = translucencyID == WATER ? 1.0 : 0.0;
+    v_isWater = translucencyID == WATER ? 1.0 : 0.0;
 
-    // 水面剔除
-    // if(translucencyID == WATER){
-    //     vMcPos.xyz += 10000.0;
-    // }
     #ifdef WAVING_PLANTS
         if(worldDis < 60.0){
             const float waving_rate = WAVING_RATE;
             if(blockID == PLANTS_SHORT && gl_MultiTexCoord0.t < mc_midTexCoord.t){
-                // pos, normal, A, B, D_amount, y_waving_amount
-                vMcPos.xyz = wavingPlants(vMcPos.xyz, PLANTS_SHORT_AMPLITUDE, waving_rate, 0.0, WAVING_NOISE_SCALE);
+                v_mcPos.xyz = wavingPlants(v_mcPos.xyz, PLANTS_SHORT_AMPLITUDE, waving_rate, 0.0, WAVING_NOISE_SCALE);
             }
             if(blockID == LEAVES){
-                vMcPos.xyz = wavingPlants(vMcPos.xyz, LEAVES_AMPLITUDE, waving_rate, 1.0, WAVING_NOISE_SCALE);
+                v_mcPos.xyz = wavingPlants(v_mcPos.xyz, LEAVES_AMPLITUDE, waving_rate, 1.0, WAVING_NOISE_SCALE);    
             }
             if((blockID == PLANTS_TALL_L && gl_MultiTexCoord0.t < mc_midTexCoord.t) || blockID == PLANTS_TALL_U){
-                vMcPos.xyz = wavingPlants(vMcPos.xyz, PLANTS_TALL_AMPLITUDE, waving_rate, 0.0, WAVING_NOISE_SCALE);
+                v_mcPos.xyz = wavingPlants(v_mcPos.xyz, PLANTS_TALL_AMPLITUDE, waving_rate, 0.0, WAVING_NOISE_SCALE);
             }
         }
     #endif
 
-    vec4 sViewPos = shadowModelView * vec4(vMcPos.xyz - cameraPosition, 1.0);
+    vec4 sViewPos = shadowModelView * vec4(v_mcPos.xyz - cameraPosition, 1.0);
     #ifdef DH
         vWorldDis = length(sViewPos.xy);
     #endif
@@ -111,10 +209,5 @@ void main(){
     gl_Position.xy = shadowDistort(gl_Position.xy);
     gl_Position.z = mix(gl_Position.z, 0.5, 0.8);
 
-    texcoord = gl_TextureMatrix[0] * gl_MultiTexCoord0;
-    lmcoord = gl_TextureMatrix[1] * gl_MultiTexCoord1;
-    lmcoord = (lmcoord * 33.05 / 32.0) - 1.05 / 32.0;
-    glColor = gl_Color;
-    normal = normalize(gl_NormalMatrix * gl_Normal);
 }
 #endif

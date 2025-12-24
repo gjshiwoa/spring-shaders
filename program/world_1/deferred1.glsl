@@ -29,6 +29,7 @@ const bool shadowcolor1Mipmap = false;
 
 #include "/lib/common/gbufferData.glsl"
 #include "/lib/common/materialIdMapper.glsl"
+#include "/lib/lighting/voxelization.glsl"
 #include "/lib/lighting/RSM.glsl"
 #include "/lib/lighting/SSAO.glsl"
 

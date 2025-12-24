@@ -35,11 +35,15 @@ uniform sampler2D colortex7;
 #endif
 
 uniform sampler2D colortex9;
+uniform sampler2D colortex10;
+uniform sampler2D colortex11;
 
 uniform sampler2DShadow shadowtex0;
 uniform sampler2D shadowtex1;
 uniform sampler2D shadowcolor0;
 uniform sampler2D shadowcolor1;
+
+uniform sampler3D customimg0;
 
 uniform float alphaTestRef; 
 
@@ -71,7 +75,11 @@ uniform vec3 upPosition;
 vec3 upViewDir = normalize(upPosition);
 uniform vec3 upWorldDir;
 uniform vec3 cameraPosition;
+uniform ivec3 cameraPositionInt;
+uniform ivec3 cameraPositionFract;
 uniform vec3 previousCameraPosition;
+uniform ivec3 previousCameraPositionInt;
+uniform vec3 previousCameraPositionFract;
 
 uniform float centerDepthSmooth;
 
@@ -124,3 +132,5 @@ uniform float nightVision;
 
 uniform int heldBlockLightValue;
 uniform int heldBlockLightValue2;
+
+uniform int renderStage;

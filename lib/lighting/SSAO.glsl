@@ -45,8 +45,6 @@ float SSAO(vec3 viewPos, vec3 normal){
     return saturate(ao);
 }
 
-
-
 float HBAO(vec3 viewPos, vec3 normal){
     const int N_SAMPLES = 64;
     float dist = length(viewPos);

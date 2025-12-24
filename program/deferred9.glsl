@@ -7,13 +7,10 @@ varying vec3 sunViewDir, moonViewDir, lightViewDir;
 #include "/lib/settings.glsl"
 #include "/lib/common/utils.glsl"
 #include "/lib/camera/colorToolkit.glsl"
-#include "/lib/common/noise.glsl"
-#include "/lib/common/position.glsl"
-#include "/lib/common/normal.glsl"
-
 #include "/lib/camera/filter.glsl"
-
-#include "/lib/atmosphere/atmosphericScattering.glsl"
+#include "/lib/common/position.glsl"
+#include "/lib/common/noise.glsl"
+#include "/lib/common/normal.glsl"
 
 #ifdef FSH
 
@@ -21,64 +18,77 @@ const bool shadowtex0Mipmap = false;
 const bool shadowtex1Mipmap = false;
 const bool shadowcolor0Mipmap = false;
 const bool shadowcolor1Mipmap = false;
-#include "/lib/lighting/lightmap.glsl"
-#include "/lib/water/waterReflectionRefraction.glsl"
+
+#include "/lib/common/gbufferData.glsl"
+
 #include "/lib/surface/PBR.glsl"
+#include "/lib/common/materialIdMapper.glsl"
+#include "/lib/lighting/lightmap.glsl"
+#include "/lib/lighting/shadowMapping.glsl"
+#include "/lib/lighting/screenSpaceShadow.glsl"
+
+
 
 void main() {
-	vec4 CT3 = texelFetch(colortex3, ivec2(gl_FragCoord.xy), 0);
-	
-#ifdef PBR_REFLECTIVITY
-	vec2 hrrUV = texcoord * 2.0 - 1.0;
-	vec3 reflectColor = BLACK;
-	if(!outScreen(hrrUV)){
-		vec4 hrrSpecularMap = unpack2x16To4x8(texelFetch(colortex4, ivec2(gl_FragCoord.xy * 2 - viewSize), 0).ba);
-		MaterialParams params = MapMaterialParams(hrrSpecularMap);
-		if(hrrSpecularMap.r > 0.5 / 255.0){
-			vec4 CT6 = texelFetch(colortex6, ivec2(gl_FragCoord.xy - 0.5 * viewSize), 0);
-			float hrrZ = CT6.g;
-			vec4 hrrViewPos = screenPosToViewPos(vec4(unTAAJitter(hrrUV), hrrZ, 1.0));
-			vec3 hrrViewDir = normalize(hrrViewPos.xyz);
-			vec4 hrrWorldPos = viewPosToWorldPos(hrrViewPos);
-			vec3 hrrWorldDir = normalize(hrrWorldPos.xyz);
+	#if defined DISTANT_HORIZONS && !defined NETHER && !defined END
+		bool isTerrain = skyB < 0.5;
 
-			vec3 hrrNormalW = unpackNormal(CT6.r);
-			vec3 hrrNormalV = normalize(gbufferModelView * vec4(hrrNormalW, 0.0)).xyz;
+		float depth1;
+		vec4 viewPos1;
+		if(dhTerrain > 0.5){ 
+			float dhDepth = texture(dhDepthTex0, texcoord).r;
+			viewPos1 = screenPosToViewPosDH(vec4(unTAAJitter(texcoord), dhDepth, 1.0));
+			depth1 = viewPosToScreenPos(viewPos1).z;
+		}else{
+			depth1 = texture(depthtex1, texcoord).r;
+			viewPos1 = screenPosToViewPos(vec4(unTAAJitter(texcoord), depth1, 1.0));	
+		}
+	#else 
+		bool isTerrain = skyB < 0.5;
 
-			vec2 mcLightmap = texelFetch(colortex5, ivec2(gl_FragCoord.xy * 2 - viewSize), 0).ba;
-			vec2 lightmap = AdjustLightmap(mcLightmap);
+		float depth1 = texture(depthtex1, texcoord).r;
+		vec4 viewPos1 = screenPosToViewPos(vec4(unTAAJitter(texcoord), depth1, 1.0));	
+	#endif
 
-			float r = params.roughness;
+	vec3 viewDir = normalize(viewPos1.xyz);
+	vec4 worldPos1 = viewPosToWorldPos(viewPos1);
+	vec3 worldDir = normalize(worldPos1.xyz);
+	vec3 shadowPos = getShadowPos(worldPos1).xyz;
+	float worldDis1 = length(worldPos1);
 
-			const int reflectionSamples = PBR_REFLECTION_DIR_COUNT;
-			vec3 accumulatedReflectColor = vec3(0.0);
-			for(int sampleIndex = 0; sampleIndex < reflectionSamples; ++sampleIndex){
-				vec3 sampleReflectViewDir = normalize(reflect(hrrViewDir, hrrNormalV));
-				// r = 0.9;
-				sampleReflectViewDir = getScatteredReflection(sampleReflectViewDir, hrrNormalV, r, sampleIndex);
-				vec3 sampleReflectWorldDir = normalize(viewPosToWorldPos(vec4(sampleReflectViewDir.xyz, 0.0)).xyz);
+	if(isTerrain){	
+		MaterialParams materialParams = MapMaterialParams(specularMap);
 
-				float NdotU = dot(upWorldDir, sampleReflectWorldDir);
-				float sampleLightmapY = lightmap.y * smoothstep(-1.0, 1.0, NdotU);
+		vec3 normalV = normalize(normalDecode(normalEnc));
+		vec3 normalW = normalize(viewPosToWorldPos(vec4(normalV, 0.0)).xyz);
+		float cos_theta_O = dot(normalV, lightViewDir);
+		float cos_theta = max(cos_theta_O, 0.0);
 
-				bool ssrTargetSampled = false;
-				vec3 sampleColor = reflection(colortex2, hrrViewPos.xyz, sampleReflectWorldDir, sampleReflectViewDir, sampleLightmapY, hrrNormalV, 1.0, ssrTargetSampled);
-				sampleColor = clamp(sampleColor, 0.001, 10.0);
-				accumulatedReflectColor += sampleColor;
-			}
+		// bzyzhang: 练习项目(十一)：次表面散射的近似实现
+		// https://zhuanlan.zhihu.com/p/348106844
+		float sssWrap = SSS_INTENSITY * materialParams.subsurfaceScattering;
+		if(plants > 0.5) sssWrap = 20.0;
+		cos_theta = saturate((cos_theta_O + sssWrap) / (1 + sssWrap));
 
-			reflectColor = accumulatedReflectColor / float(reflectionSamples);
-			reflectColor = temporal_Reflection(reflectColor, reflectionSamples, r);
-			
-			CT3.rgb = reflectColor;
-		}	
+		float shadow = 1.0;
+		float RTShadow = 1.0;
+		
+		if(!outScreen(shadowPos.xy) && cos_theta > 0.001){
+			shadow = min(parallaxShadow, shadowMapping(worldPos1, normalW, sssWrap));
+			shadow = mix(1.0, shadow, remapSaturate(worldDis1, shadowDistance * 0.9, shadowDistance, 1.0, 0.0));
+			shadow = max(shadow, 0.0);
+		}
 
-		CT3.rgb = max(vec3(0.0), CT3.rgb);
+		RTShadow = screenSpaceShadow(viewPos1.xyz, normalV, shadow);
+		float mixFactor = remapSaturate(worldDis1, shadowDistance * 0.33, shadowDistance * 0.66, 1.0, 0.0);
+		RTShadow = 0.9 * mix(RTShadow, 1.0, saturate(sssWrap) * mixFactor * (1.0 - SSS_RT_SHADOW_VISIBILITY));
+
+		CT4.r = pack2x8To16(shadow, RTShadow);
 	}
-#endif
 
-/* DRAWBUFFERS:3 */
-	gl_FragData[0] = CT3;
+
+/* DRAWBUFFERS:4 */
+	gl_FragData[0] = CT4;
 }
 
 #endif

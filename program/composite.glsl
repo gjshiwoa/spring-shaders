@@ -16,6 +16,8 @@ const int colortex6Format = RG32F;
 const int colortex7Format = RGBA16F;
 const int colortex8Format = RGBA16F;
 const int colortex9Format = RG16F;
+const int colortex10Format = RGBA16F;
+const int colortex11Format = RGBA16F;
 
 const int shadowcolor0Format = RGBA16F;
 const int shadowcolor1Format = RGBA8;
@@ -24,14 +26,15 @@ const bool colortex2Clear = false;
 const bool colortex3Clear = false;
 const bool colortex6Clear = false;
 const bool colortex7Clear = false;
+const bool colortex10Clear = false;
 
 /*
 0: rgb:color
 1: hrr data
 2: rgb:TAA          		a:temporal data
 3: rgba:hrr temporal data(rsm/ao/cloud/ssr/fog)
-4: r:parallax shadow/ao		g:blockID/gbufferID		ba:specular		(df7)rg:albedo/ao	(df12)rgba:color
-5: rg:normal				ba:lmcoord													(df12)rgba:TAA pre color									
+4: r:parallax shadow/ao		g:blockID/gbufferID		ba:specular		(df10)rg:albedo/ao	(df15)rgba:color
+5: rg:normal				ba:lmcoord													(df15)rgba:TAA pre color									
 6: hrr normal/depth (pre/cur)
 7: sky box/T1/MS/sunColor/skyColor
 8: custom texture(MS/noise3d low)														

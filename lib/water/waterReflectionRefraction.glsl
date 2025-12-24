@@ -77,7 +77,8 @@ vec2 SSRT(vec3 viewPos, vec3 reflectViewDir, vec3 normalTex){
             vec3 newTestPos = screenPosToViewPos(vec4(vec3(testScreenPos.xy, closestB), 1.0)).xyz;
             float tp_dist = distance(curTestPos, newTestPos);
             float ds_len = length(ds);
-            if (tp_dist < ds_len){
+            float cosA = dot(reflectViewDir, normalize(normalTex));
+            if (tp_dist < ds_len * saturate(sqrt(1.0 - cosA * cosA))){
                 return testScreenPos.st;
             }
             break;

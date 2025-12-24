@@ -1,5 +1,6 @@
 #version 450 compatibility  
 
 #define VSH
+#define END
 
-#include "/program/deferred12.glsl"
+#include "/program/world_1/deferred12.glsl"

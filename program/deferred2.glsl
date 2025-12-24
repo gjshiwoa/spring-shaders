@@ -122,7 +122,7 @@ void main() {
 		#endif
 	}
 
-/* RENDERTARGETS: 10,11 */
+/* DRAWBUFFERS:13 */
 	gl_FragData[0] = CT1;
 	gl_FragData[1] = CT3;
 }

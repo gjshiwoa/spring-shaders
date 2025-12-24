@@ -310,6 +310,10 @@ const vec2 fogHeight = vec2(FOG_REF_HEIGHT - FOG_THICKNESS * 0.5, FOG_REF_HEIGHT
 
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+const ivec3 VOXEL_DIM  = ivec3(256, 128, 256);
+const ivec3 VOXEL_HALF = VOXEL_DIM / 2;
+const float voxelDistance = 128.0;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define ARTIFICIAL_LIGHT_FALLOFF 2.0    // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
@@ -372,8 +376,8 @@ float shadowMapScale = (120.0 / shadowDistance) * (shadowMapResolution / 2048.0)
 #define RSM_LEAK_FIX
 
 
-#define DENOISER_RADIUS 12.0     // [2.0 4.0 6.0 8.0 10.0 12.0 14.0 16.0 18.0 20.0]
-#define DENOISER_QUALITY 12.0    // [2.0 4.0 6.0 8.0 10.0 12.0 14.0 16.0 18.0 20.0]
+#define DENOISER_RADIUS 12.0     // [2.0 4.0 6.0 8.0 10.0 12.0 14.0 16.0 18.0 20.0 24.0 28.0 32.0]
+#define DENOISER_QUALITY 12.0    // [2.0 4.0 6.0 8.0 10.0 12.0 14.0 16.0 18.0 20.0 24.0 28.0 32.0]
 
 
 

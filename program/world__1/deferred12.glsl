@@ -3,7 +3,6 @@ varying vec2 texcoord;
 varying vec3 sunWorldDir, moonWorldDir, lightWorldDir;
 varying vec3 sunViewDir, moonViewDir, lightViewDir;
 
-
 #include "/lib/uniform.glsl"
 #include "/lib/settings.glsl"
 #include "/lib/common/utils.glsl"
@@ -22,83 +21,69 @@ const bool shadowtex0Mipmap = false;
 const bool shadowtex1Mipmap = false;
 const bool shadowcolor0Mipmap = false;
 const bool shadowcolor1Mipmap = false;
-#include "/lib/common/gbufferData.glsl"
-// #include "/lib/common/materialIdMapper.glsl"
-// #include "/lib/lighting/lightmap.glsl"
-// #include "/lib/atmosphere/celestial.glsl"
-
+#include "/lib/lighting/lightmap.glsl"
 #include "/lib/water/waterReflectionRefraction.glsl"
 #include "/lib/surface/PBR.glsl"
-#include "/lib/common/octahedralMapping.glsl"
 
 void main() {
-	vec4 color = texture(colortex0, texcoord);
-	float depth1 = texture(depthtex1, texcoord).r;
-	vec4 viewPos1 = screenPosToViewPos(vec4(unTAAJitter(texcoord), depth1, 1.0));
-
+	vec4 CT3 = texelFetch(colortex3, ivec2(gl_FragCoord.xy), 0);
+	
 #ifdef PBR_REFLECTIVITY
-	if(specularMap.r > 0.5 / 255.0){
-		vec3 viewDir = normalize(viewPos1.xyz);
+	vec2 hrrUV = texcoord * 2.0 - 1.0;
+	vec3 reflectColor = BLACK;
+	if(!outScreen(hrrUV)){
+		vec4 hrrSpecularMap = unpack2x16To4x8(texelFetch(colortex4, ivec2(gl_FragCoord.xy * 2 - viewSize), 0).ba);
+		MaterialParams params = MapMaterialParams(hrrSpecularMap);
+		if(hrrSpecularMap.r > 0.5 / 255.0){
+			vec4 CT6 = texelFetch(colortex6, ivec2(gl_FragCoord.xy - 0.5 * viewSize), 0);
+			float hrrZ = CT6.g;
+			vec4 hrrViewPos = screenPosToViewPos(vec4(unTAAJitter(hrrUV), hrrZ, 1.0));
+			vec3 hrrViewDir = normalize(hrrViewPos.xyz);
+			vec4 hrrWorldPos = viewPosToWorldPos(hrrViewPos);
+			vec3 hrrWorldDir = normalize(hrrWorldPos.xyz);
 
-		vec3 normalV = normalize(normalDecode(normalEnc));
-		vec3 normalW = normalize(viewPosToWorldPos(vec4(normalV, 0.0)).xyz);	
+			vec3 hrrNormalW = unpackNormal(CT6.r);
+			vec3 hrrNormalV = normalize(gbufferModelView * vec4(hrrNormalW, 0.0)).xyz;
 
-		vec4 CT4RG = vec4(CT4R, CT4G);
-		vec3 albedo = CT4RG.rgb;
-		float ao = CT4RG.a;
+			vec2 mcLightmap = texelFetch(colortex5, ivec2(gl_FragCoord.xy * 2 - viewSize), 0).ba;
+			vec2 lightmap = AdjustLightmap(mcLightmap);
 
-		MaterialParams params = MapMaterialParams(specularMap);
+			float r = params.roughness;
 
-		vec3 N = params.N;
-		vec3 K = params.K;
+			const int reflectionSamples = PBR_REFLECTION_DIR_COUNT;
+			vec3 accumulatedReflectColor = vec3(0.0);
+			for(int sampleIndex = 0; sampleIndex < reflectionSamples; ++sampleIndex){
+				vec3 sampleReflectViewDir = normalize(reflect(hrrViewDir, hrrNormalV));
+				// r = 0.9;
+				sampleReflectViewDir = getScatteredReflection(sampleReflectViewDir, hrrNormalV, r, sampleIndex);
+				vec3 sampleReflectWorldDir = normalize(viewPosToWorldPos(vec4(sampleReflectViewDir.xyz, 0.0)).xyz);
 
-		float NdotV = saturate(dot(normalV, -viewDir));
+				float NdotU = dot(upWorldDir, sampleReflectWorldDir);
+				float sampleLightmapY = lightmap.y * smoothstep(-1.0, 1.0, NdotU);
 
-		vec3 reflectColor = getReflectColor(depth1, normalW);
+				bool ssrTargetSampled = false;
+				vec3 sampleColor = reflection(colortex2, hrrViewPos.xyz, sampleReflectWorldDir, sampleReflectViewDir, sampleLightmapY, hrrNormalV, 1.0, ssrTargetSampled);
+				sampleColor = clamp(sampleColor, 0.001, 10.0);
+				accumulatedReflectColor += sampleColor;
+			}
 
-		vec3 F0 = mix(vec3(0.04), albedo, params.metalness); 
-		if(params.metalness > 0.9) F0 += max(vec3(0.0), ComplexFresnel(params.N, params.K));
-		vec3 BRDF = EnvDFGLazarov(F0, params.smoothness, NdotV) * pow(params.smoothness, 1.0 / MIRROR_INTENSITY);
+			reflectColor = accumulatedReflectColor / float(reflectionSamples);
+			reflectColor = temporal_Reflection(reflectColor, reflectionSamples, r);
+			
+			CT3.rgb = reflectColor;
+		}	
 
-		color.rgb += reflectColor * BRDF * ao;
+		CT3.rgb = max(vec3(0.0), CT3.rgb);
 	}
 #endif
-	
 
-	vec4 CT1 = texelFetch(colortex1, ivec2(gl_FragCoord.xy), 0);
-	// color.rgb = texture(colortex1, texcoord * 0.5).rgb;
-
-	vec4 color1 = vec4(color.rgb / COLOR_UI_SCALE, 1.0);
-
-	vec4 CT6 = texelFetch(colortex6, ivec2(gl_FragCoord.xy), 0);            
-	vec2 uv1 = texcoord * 2.0 - 1.0;
-	if(!outScreen(uv1)){
-		CT6 = texelFetch(colortex6, ivec2(gl_FragCoord.xy - 0.5 * viewSize), 0);;
-	}
-
-	// vec4 viewPos1R = screenPosToViewPos(vec4(texcoord.st, depth1, 1.0));
-	// vec4 worldPos1R = viewPosToWorldPos(viewPos1R);
-	// vec2 prePos = getPrePos(worldPos1R).xy;
-	// vec2 velocity = texcoord - prePos;
-
-	// vec3 worldDir = normalize(mat3(gbufferModelViewInverse) * viewPos1.xyz);
-	// color.rgb = texture(colortex7, clamp(0.5 * directionToOctahedral(worldDir), 0.0, 0.5 - 1.0 / 512.0)).rgb;
-	// color.rgb = vec3(texture(colortex1, texcoord * 0.5 + vec2(0.5, 0.0)).rgb);
-	// color.rgb = texture(colortex3, texcoord).rgb;
-
-
-
-
-/* DRAWBUFFERS:0456 */
-	gl_FragData[0] = color;
-	gl_FragData[1] = color1;
-	gl_FragData[2] = vec4(texture(colortex2, texcoord).rgb, 1.0);
-	gl_FragData[3] = CT6;
+/* DRAWBUFFERS:3 */
+	gl_FragData[0] = CT3;
 }
 
 #endif
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////BY ZY//////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////BY ZYPanDa gjshiwoa////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef VSH
 

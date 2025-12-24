@@ -26,59 +26,23 @@ const bool shadowcolor1Mipmap = false;
 #include "/lib/surface/PBR.glsl"
 
 void main() {
-	vec4 CT3 = texelFetch(colortex3, ivec2(gl_FragCoord.xy), 0);
+	vec4 CT1 = texelFetch(colortex1, ivec2(gl_FragCoord.xy), 0);
 	
 #ifdef PBR_REFLECTIVITY
 	vec2 hrrUV = texcoord * 2.0 - 1.0;
-	vec3 reflectColor = BLACK;
 	if(!outScreen(hrrUV)){
 		vec4 hrrSpecularMap = unpack2x16To4x8(texelFetch(colortex4, ivec2(gl_FragCoord.xy * 2 - viewSize), 0).ba);
 		MaterialParams params = MapMaterialParams(hrrSpecularMap);
 		if(hrrSpecularMap.r > 0.5 / 255.0){
-			vec4 CT6 = texelFetch(colortex6, ivec2(gl_FragCoord.xy - 0.5 * viewSize), 0);
-			float hrrZ = CT6.g;
-			vec4 hrrViewPos = screenPosToViewPos(vec4(unTAAJitter(hrrUV), hrrZ, 1.0));
-			vec3 hrrViewDir = normalize(hrrViewPos.xyz);
-			vec4 hrrWorldPos = viewPosToWorldPos(hrrViewPos);
-			vec3 hrrWorldDir = normalize(hrrWorldPos.xyz);
-
-			vec3 hrrNormalW = unpackNormal(CT6.r);
-			vec3 hrrNormalV = normalize(gbufferModelView * vec4(hrrNormalW, 0.0)).xyz;
-
-			vec2 mcLightmap = texelFetch(colortex5, ivec2(gl_FragCoord.xy * 2 - viewSize), 0).ba;
-			vec2 lightmap = AdjustLightmap(mcLightmap);
-
-			float r = params.roughness;
-
-			const int reflectionSamples = PBR_REFLECTION_DIR_COUNT;
-			vec3 accumulatedReflectColor = vec3(0.0);
-			for(int sampleIndex = 0; sampleIndex < reflectionSamples; ++sampleIndex){
-				vec3 sampleReflectViewDir = normalize(reflect(hrrViewDir, hrrNormalV));
-				// r = 0.9;
-				sampleReflectViewDir = getScatteredReflection(sampleReflectViewDir, hrrNormalV, r, sampleIndex);
-				vec3 sampleReflectWorldDir = normalize(viewPosToWorldPos(vec4(sampleReflectViewDir.xyz, 0.0)).xyz);
-
-				float NdotU = dot(upWorldDir, sampleReflectWorldDir);
-				float sampleLightmapY = lightmap.y * smoothstep(-1.0, 1.0, NdotU);
-
-				bool ssrTargetSampled = false;
-				vec3 sampleColor = reflection(colortex2, hrrViewPos.xyz, sampleReflectWorldDir, sampleReflectViewDir, sampleLightmapY, hrrNormalV, 1.0, ssrTargetSampled);
-				sampleColor = clamp(sampleColor, 0.001, 10.0);
-				accumulatedReflectColor += sampleColor;
-			}
-
-			reflectColor = accumulatedReflectColor / float(reflectionSamples);
-			reflectColor = temporal_Reflection(reflectColor, reflectionSamples, r);
-			
-			CT3.rgb = reflectColor;
+			CT1.rgb = JointBilateralFiltering_Refl_Horizontal();
 		}	
 
-		CT3.rgb = max(vec3(0.0), CT3.rgb);
+		CT1.rgb = max(vec3(0.0), CT1.rgb);
 	}
 #endif
 
-/* DRAWBUFFERS:3 */
-	gl_FragData[0] = CT3;
+/* DRAWBUFFERS:1 */
+	gl_FragData[0] = CT1;
 }
 
 #endif

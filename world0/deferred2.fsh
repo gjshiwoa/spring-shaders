@@ -3,4 +3,4 @@
 #define FSH
 
 
-#include "/program/deferred8.glsl"
+#include "/program/deferred2.glsl"

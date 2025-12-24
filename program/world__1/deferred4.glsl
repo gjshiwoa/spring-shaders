@@ -32,6 +32,7 @@ const bool shadowcolor1Mipmap = false;
 #include "/lib/lighting/lightmap.glsl"
 #include "/lib/lighting/shadowMapping.glsl"
 #include "/lib/lighting/screenSpaceShadow.glsl"
+#include "/lib/lighting/voxelization.glsl"
 #include "/lib/lighting/RSM.glsl"
 #include "/lib/lighting/SSAO.glsl"
 #include "/lib/surface/PBR.glsl"

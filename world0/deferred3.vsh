@@ -2,5 +2,4 @@
 
 #define VSH
 
-
 #include "/program/deferred3.glsl"
