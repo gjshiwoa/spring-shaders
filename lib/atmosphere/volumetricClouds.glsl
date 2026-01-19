@@ -140,7 +140,7 @@ vec3 sunLuminance(vec3 pos, float VoL, float iVoL, float extinction){
     attenuation += 0.15 * upAttenuation * isNoonS;
 
     float phase = GetDirectScatterProbability(VoL, 0.2, 0.75, 0.25);
-    float phase1 = GetDirectScatterProbability(iVoL, 0.3, 0.0, 0.0) * 0.5;
+    float phase1 = GetDirectScatterProbability(iVoL, 0.2, 0.0, 0.0) * 0.4;
     phase = max(phase, phase1);
 
     float inScatter = GetInScatterProbability(height_fraction, density, attenuation, VoL);

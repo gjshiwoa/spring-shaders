@@ -132,7 +132,7 @@ void main() {
 	skyColor = getSkyColor();
 
 	#ifdef NETHER
-		skyColor = vec3(0.5, 0.4, 0.9) * 0.3;
+		skyColor = vec3(0.5, 0.4, 0.9) * 0.4;
 	#elif defined END
 		skyColor = endColor * 1.0;
 		sunColor = endColor * vec3(0.9, 0.45, 0.65) * 3.0;

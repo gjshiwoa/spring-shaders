@@ -93,8 +93,6 @@ void main(){
             
             if (voxelInBounds(vc) && is_terrain) {
                 float lightBri = (midBlock[0].w) / 15.0;
-                float spe = texture(specular, midTexCoord[0].xy).a;
-                lightBri = saturate(max(lightBri, spe < 254.1 / 255.0 ? spe : 0.0));
 
                 vec2 bias = abs(v_texcoord[0].xy - midTexCoord[0]) * 0.5;
                 const vec2 biasArr[7] = vec2[](
@@ -107,13 +105,18 @@ void main(){
                     vec2(0.0, -bias.y * 1.9)
                 );
                 vec3 lightCol = vec3(0.0);
+                float spe = 0.0;
                 float weight = 0.0;
                 for(int j = 0; j < 7; j++){
-                    vec4 litTexCol = texture(tex, midTexCoord[0] + biasArr[j]);
+                    vec2 sampleCoord = midTexCoord[0] + biasArr[j];
+                    vec4 litTexCol = texture(tex, sampleCoord);
+                    spe += texture(specular, sampleCoord).a;
                     lightCol += litTexCol.rgb * litTexCol.a;
                     weight += litTexCol.a;
                 }
                 lightCol /= max(weight, 0.01);
+                spe /= max(weight, 0.01);
+                lightBri = saturate(max(lightBri, spe < 254.1 / 255.0 ? spe : 0.0));
 
                 vec3 outCol = lightCol * v_glColor[0].rgb;
                 if(dot(outCol, vec3(0.3333)) < 0.01 && lightBri > 0.1)

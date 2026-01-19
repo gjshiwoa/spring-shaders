@@ -163,7 +163,8 @@ mat2x3 CalculatePBR(vec3 viewDir, vec3 N, vec3 L, vec3 albedo, MaterialParams pa
     vec3 specular = vec3(D * F * G) / (4.0 * NoV * NoL + 0.001);
     specular *= 1.0 - 0.9 * rainStrength;
     
-    vec3 kS = fresnelSchlickRoughness(VoH, vec3(params.metalness), params.roughness);
+    F0 = mix(vec3(0.04), vec3(0.96), params.metalness);
+    vec3 kS = fresnelSchlickRoughness(VoH, F0, params.roughness);
     vec3 kD = vec3(1.0) - kS;
     
     // vec3 diffuse = BurleyDiffuse(kD, albedo, params.roughness, NoL, NoV, VoH);
@@ -177,15 +178,16 @@ mat2x3 CalculatePBR(vec3 viewDir, vec3 N, vec3 L, vec3 albedo, MaterialParams pa
 
 
 
-vec3 BRDF_Diffuse(vec3 normalV, vec3 viewDir, vec3 albedo, MaterialParams params){
-	vec3 F0 = mix(vec3(0.04), vec3(0.9), params.metalness);
-	vec3 kS = fresnelSchlickRoughness(max(dot(normalV, -viewDir), 0.0), F0, params.roughness); 
-	vec3 kD = 1.0 - kS;
-    // kD *= 1.0 - params.metalness;
-    // vec3 kD = vec3(1.0 - params.metalness);
-    vec3 BRDF = kD * albedo / PI;
+vec3 reflectDiffuse(vec3 viewDir, vec3 N, vec3 albedo, MaterialParams params){
+    vec3 V = -normalize(viewDir);
     
-	return BRDF;
+    vec3 F0 = mix(vec3(0.04), vec3(0.96), params.metalness);
+    vec3 kS = fresnelSchlickRoughness(saturate(dot(V, N)), F0, params.roughness);
+    vec3 kD = vec3(1.0) - kS;
+    
+    vec3 diffuse = kD * albedo / PI;
+
+    return diffuse;
 }
 
 vec3 reflectPBR(vec3 viewDir, vec3 N, vec3 L, MaterialParams params) {

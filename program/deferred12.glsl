@@ -47,6 +47,7 @@ void main() {
 
 			vec3 hrrNormalW = unpackNormal(CT6.r);
 			vec3 hrrNormalV = normalize(gbufferModelView * vec4(hrrNormalW, 0.0)).xyz;
+			vec3 hrrNormalVO = normalize(normalDecode(texelFetch(colortex9, ivec2(gl_FragCoord.xy * 2.0 - viewSize), 0).ba));
 
 			vec2 mcLightmap = texelFetch(colortex5, ivec2(gl_FragCoord.xy * 2 - viewSize), 0).ba;
 			vec2 lightmap = AdjustLightmap(mcLightmap);
@@ -57,18 +58,14 @@ void main() {
 			vec3 accumulatedReflectColor = vec3(0.0);
 			for(int sampleIndex = 0; sampleIndex < reflectionSamples; ++sampleIndex){
 				vec3 sampleReflectViewDir = normalize(reflect(hrrViewDir, hrrNormalV));
-				// r = 0.9;
-				sampleReflectViewDir = getScatteredReflection(sampleReflectViewDir, hrrNormalV, r, sampleIndex);
+				sampleReflectViewDir = getScatteredReflection(sampleReflectViewDir, hrrNormalVO, r, sampleIndex);
 				vec3 sampleReflectWorldDir = normalize(viewPosToWorldPos(vec4(sampleReflectViewDir.xyz, 0.0)).xyz);
 
 				float NdotU = dot(upWorldDir, sampleReflectWorldDir);
 				float sampleLightmapY = lightmap.y * smoothstep(-1.0, 1.0, NdotU);
 
 				bool ssrTargetSampled = false;
-				#ifdef PATH_TRACING
-					hrrNormalV = normalize(normalDecode(texelFetch(colortex9, ivec2(gl_FragCoord.xy * 2.0 - viewSize), 0).ba));
-				#endif
-				vec3 sampleColor = reflection(colortex2, hrrViewPos.xyz, sampleReflectWorldDir, sampleReflectViewDir, sampleLightmapY, hrrNormalV, 1.0, ssrTargetSampled);
+				vec3 sampleColor = reflection(colortex2, hrrViewPos.xyz, sampleReflectWorldDir, sampleReflectViewDir, sampleLightmapY, hrrNormalVO, 1.0, ssrTargetSampled);
 				sampleColor = clamp(sampleColor, 0.001, 10.0);
 				accumulatedReflectColor += sampleColor;
 			}

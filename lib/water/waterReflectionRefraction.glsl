@@ -159,7 +159,8 @@ vec3 reflection(sampler2D tex, vec3 viewPos, vec3 reflectWorldDir, vec3 reflectV
             );
 
             if(!vxHit){
-                reflectColor = skyReflection(reflectWorldDir) * float(dot(reflectWorldDir, upWorldDir) > 0.01);
+                reflectColor = skyReflection(reflectWorldDir) * float(dot(reflectWorldDir, upWorldDir) > 0.01)
+                             * remapSaturate(lightmap, 0.0, 0.01, 0.0, 1.0);
             } else{
                 #ifdef PATH_TRACING_REFLECTION_VOXEL
                     vec3 shadowPos = getShadowPos(vec4(hitPosRel, 1.0)).xyz;
@@ -172,11 +173,11 @@ vec3 reflection(sampler2D tex, vec3 viewPos, vec3 reflectWorldDir, vec3 reflectV
                     float hitLoN = saturate(dot(hitNormal, lightWorldDir));
                     reflectColor += DIRECT_LUMINANCE * sunColor * hitShadow * hitDiffuse * hitLoN;
 
-                    // float hitLMC_y = texelFetch(customimg4, hitVoxel, 0).x;
-                    // hitLMC_y = saturate(pow(hitLMC_y, 2.2 + SKY_LIGHT_FALLOFF) * lightmap);
-                    // reflectColor += hitLMC_y * mix(sunColor, skyColor, mix(0.5, 1.0, hitLMC_y)) * 
-                    //                 SKY_LIGHT_BRIGHTNESS * 0.5 * hitDiffuse;
-                    // reflectColor += hitCol.a * hitDiffuse;
+                    float hitLMC_y = texelFetch(customimg4, hitVoxel, 0).x;
+                    hitLMC_y = saturate(pow(hitLMC_y, 2.2 + SKY_LIGHT_FALLOFF) * lightmap);
+                    reflectColor += hitLMC_y * mix(sunColor, skyColor, mix(0.5, 1.0, hitLMC_y)) * 
+                                    SKY_LIGHT_BRIGHTNESS * 0.5 * hitDiffuse;
+                    reflectColor += hitCol.a * hitDiffuse;
                 #else
                     reflectColor = vec3(0.0);
                 #endif

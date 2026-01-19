@@ -36,7 +36,7 @@ vec3 coloredLight(vec3 worldPos, vec3 normalV, vec3 normalW){
     #elif PATH_TRACING_QUALITY == 2
         const int DIR_SAMPLES = 4;
     #elif PATH_TRACING_QUALITY == 3
-        const int DIR_SAMPLES = 8;
+        const int DIR_SAMPLES = 12;
     #endif
 
     for(int i = 0; i < DIR_SAMPLES; ++i){
@@ -55,7 +55,11 @@ vec3 coloredLight(vec3 worldPos, vec3 normalV, vec3 normalW){
         ivec3 oriVp = relWorldToVoxelCoord(worldPos + normalW * 0.05);
         
         vec3 rayOrigin = worldPos + stepVec * noise + normalW * 0.05;
-        const int N_SAMPLES = 12;
+        #ifndef NETHER
+            const int N_SAMPLES = 12;
+        #else
+            const int N_SAMPLES = 20;
+        #endif
 
         vec3 Li = vec3(0.0);
         for(int j = 0; j < N_SAMPLES; ++j){
@@ -434,7 +438,7 @@ vec3 pathTracing(vec3 viewPos, vec3 worldPos, vec3 normalV, vec3 normalW){
     #elif PATH_TRACING_QUALITY == 2
         const int DIR_SAMPLES = 4;
     #elif PATH_TRACING_QUALITY == 3
-        const int DIR_SAMPLES = 8;
+        const int DIR_SAMPLES = 12;
     #endif
 
     for(int i = 0; i < DIR_SAMPLES; ++i){
@@ -592,8 +596,8 @@ vec4 temporal_RT(vec4 color_c){
     const float PT_F_R = 16.0;
     const float PT_F_Q = 16.0;
 #elif PATH_TRACING_QUALITY == 3
-    const float PT_F_R = 16.0;
-    const float PT_F_Q = 16.0;
+    const float PT_F_R = 12.0;
+    const float PT_F_Q = 12.0;
 #endif
 
 vec4 JointBilateralFiltering_PT_Horizontal(){

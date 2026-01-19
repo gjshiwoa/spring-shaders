@@ -28,12 +28,12 @@ void main() {
 	vec2 uv = texcoord * 2;
 	float hrrZ = texelFetch(colortex6, ivec2(gl_FragCoord.xy), 0).g;
 
-	// #if defined RSM_ENABLED || defined AO_ENABLED
+	#if defined RSM_ENABLED || defined AO_ENABLED
 		if(!outScreen(uv) && hrrZ < 1.0){
 			gi = JointBilateralFiltering_RSM_Vertical();
 			CT1 = gi;
 		}
-	// #endif
+	#endif
 	
 /* DRAWBUFFERS:1 */
 	gl_FragData[0] = CT1;

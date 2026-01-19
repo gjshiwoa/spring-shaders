@@ -47,6 +47,7 @@ void main() {
 
 			vec3 hrrNormalW = unpackNormal(CT6.r);
 			vec3 hrrNormalV = normalize(gbufferModelView * vec4(hrrNormalW, 0.0)).xyz;
+			vec3 hrrNormalVO = normalize(normalDecode(texelFetch(colortex9, ivec2(gl_FragCoord.xy * 2.0 - viewSize), 0).ba));
 
 			vec2 mcLightmap = texelFetch(colortex5, ivec2(gl_FragCoord.xy * 2 - viewSize), 0).ba;
 			vec2 lightmap = AdjustLightmap(mcLightmap);
@@ -65,7 +66,7 @@ void main() {
 				float sampleLightmapY = lightmap.y * smoothstep(-1.0, 1.0, NdotU);
 
 				bool ssrTargetSampled = false;
-				vec3 sampleColor = reflection(colortex2, hrrViewPos.xyz, sampleReflectWorldDir, sampleReflectViewDir, sampleLightmapY, hrrNormalV, 1.0, ssrTargetSampled);
+				vec3 sampleColor = reflection(colortex2, hrrViewPos.xyz, sampleReflectWorldDir, sampleReflectViewDir, sampleLightmapY, hrrNormalVO, 1.0, ssrTargetSampled);
 				sampleColor = clamp(sampleColor, 0.001, 10.0);
 				accumulatedReflectColor += sampleColor;
 			}
@@ -98,6 +99,9 @@ void main() {
 	sunWorldDir = normalize(viewPosToWorldPos(vec4(sunPosition, 0.0)).xyz);
     moonWorldDir = normalize(viewPosToWorldPos(vec4(moonPosition, 0.0)).xyz);
     lightWorldDir = normalize(viewPosToWorldPos(vec4(shadowLightPosition, 0.0)).xyz);
+
+	sunColor = getSunColor();
+	skyColor = getSkyColor();
 
 	gl_Position = ftransform();
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;

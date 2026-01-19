@@ -97,7 +97,7 @@ void main() {
 		#ifdef PBR_REFLECTIVITY
 			mat2x3 PBR = CalculatePBR(viewDir, normalV, lightViewDir, albedo, materialParams);
 			vec3 BRDF = PBR[0] + PBR[1];
-			vec3 BRDF_D = BRDF_Diffuse(normalV, viewDir, albedo, materialParams);
+			vec3 BRDF_D = PBR[0];
 		#else
 			vec3 BRDF = albedo / PI;
 			vec3 BRDF_D = BRDF;

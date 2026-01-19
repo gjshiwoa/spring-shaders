@@ -1,20 +1,17 @@
 varying vec2 texcoord;
 
-varying vec3 sunWorldDir, moonWorldDir, lightWorldDir;
-varying vec3 sunViewDir, moonViewDir, lightViewDir;
+// varying vec3 sunWorldDir, moonWorldDir, lightWorldDir;
+// varying vec3 sunViewDir, moonViewDir, lightViewDir;
 
+// varying float isNoon, isNight, sunRiseSet;
 // varying vec3 sunColor, skyColor;
-
 
 #include "/lib/uniform.glsl"
 #include "/lib/settings.glsl"
 #include "/lib/common/utils.glsl"
-#include "/lib/camera/colorToolkit.glsl"
-#include "/lib/camera/filter.glsl"
-#include "/lib/common/position.glsl"
-#include "/lib/common/normal.glsl"
-#include "/lib/common/noise.glsl"
 
+#include "/lib/common/position.glsl"
+#include "/lib/camera/colorToolkit.glsl"
 #include "/lib/atmosphere/atmosphericScattering.glsl"
 
 #ifdef FSH
@@ -24,111 +21,68 @@ const bool shadowtex1Mipmap = false;
 const bool shadowcolor0Mipmap = false;
 const bool shadowcolor1Mipmap = false;
 
-
-
-#include "/lib/common/gbufferData.glsl"
-
-#include "/lib/common/materialIdMapper.glsl"
-#include "/lib/lighting/lightmap.glsl"
-#include "/lib/lighting/shadowMapping.glsl"
-#include "/lib/lighting/screenSpaceShadow.glsl"
-#include "/lib/lighting/voxelization.glsl"
-#include "/lib/lighting/RSM.glsl"
-#include "/lib/lighting/SSAO.glsl"
-#include "/lib/surface/PBR.glsl"
-
-
-
 void main() {
-	vec4 color = texture(colortex0, texcoord);	// albedo
-	vec3 texColor = color.rgb;
-	vec3 albedo = pow(texColor, vec3(2.2));
-	vec3 diffuse = albedo / PI;
+	vec4 CT7 = texture(colortex7, texcoord);
 	
-	float depth1 = texture(depthtex1, texcoord).r;
-    vec4 viewPos1 = screenPosToViewPos(vec4(unTAAJitter(texcoord), depth1, 1.0));
-	vec3 viewDir = normalize(viewPos1.xyz);
-	vec4 worldPos1 = viewPosToWorldPos(viewPos1);
-	vec3 shadowPos = getShadowPos(worldPos1).xyz;
-	float worldDis1 = length(worldPos1);
+	ivec2 iTexcoord = ivec2(gl_FragCoord.xy);
 
-	vec3 normalV = normalize(normalDecode(normalEnc));
-	vec3 normalW = normalize(viewPosToWorldPos(vec4(normalV, 0.0)).xyz);
-
-	vec3 L2 = BLACK;
-	vec3 ao = vec3(1.0);
-
-	if(skyB < 0.5){	
-		vec2 lightmap = AdjustLightmap(mcLightmap);
-
-		float noRSM = entities + block + hand > 0.5 ? 1.0 : 0.0;
-		vec3 skyLight = 0.0025 * albedo;
+	if(ivec2(gl_FragCoord.xy) == rightLitPreUV){
+		vec4 newColor = texelFetch(colortex7, rightLitUV, 0);
+		vec4 preColor = texelFetch(colortex7, rightLitPreUV, 0);
+		CT7 = mix(preColor, newColor, 0.05);
+	}
 		
-		vec4 gi = getGI(depth1, normalW);
-		if(noRSM < 0.5) {
-			#ifdef AO_ENABLED
-				#ifdef AO_MULTI_BOUNCE
-					ao = AOMultiBounce(albedo, saturate(gi.a));
-				#else 
-					ao = vec3(saturate(gi.a));
-				#endif
-			#endif
-		}
-
-		vec3 direct = vec3(0.0);
-
-		MaterialParams materialParams = MapMaterialParams(specularMap);
-		// vec3 artificial = lightmap.x * netherColor * (1. + GLOWING_BRIGHTNESS * glowingB) * diffuse;
-		// artificial += saturate(materialParams.emissiveness - lightmap.x) * diffuse * EMISSIVENESS_BRIGHTNESS;
-		vec3 artificial = max(lightmap.x, materialParams.emissiveness) * diffuse * 1.0;
-		
-		
-		color.rgb = albedo * 0.005;
-		// color.rgb += skyLight * SKY_LIGHT_BRIGHTNESS;
-		// color.rgb *= ao /*+ aoMultiBounce * 0.2*/;
-		// color.rgb += direct;
-		color.rgb += artificial;
-		color.rgb += gi.rgb * diffuse * 6.0;
-
-		// color.rgb = vec3(texture(colortex1, texcoord * 0.5).rgb);
+	if(ivec2(gl_FragCoord.xy) == LeftLitPreUV){
+		vec4 newColor = texelFetch(colortex7, LeftLitUV, 0);
+		vec4 preColor = texelFetch(colortex7, LeftLitPreUV, 0);
+		CT7 = mix(preColor, newColor, 0.05);
 	}
 
-	// color.rgb = vec3(texture(colortex1, texcoord * 0.5).rgb);
-	color.rgb = max(BLACK, color.rgb);
 
-	CT4.rg = pack4x8To2x16(vec4(albedo, ao));
-
-	vec4 viewPos1R = screenPosToViewPos(vec4(texcoord.st, depth1, 1.0));
-	vec4 worldPos1R = viewPosToWorldPos(viewPos1R);
-	vec2 prePos = getPrePos(worldPos1R).xy;
-	vec2 velocity = texcoord - prePos;
-
-/* DRAWBUFFERS:049 */
-	gl_FragData[0] = color;
-	gl_FragData[1] = CT4;
-	gl_FragData[2] = vec4(velocity, 0.0, 0.0);
+/* DRAWBUFFERS:7 */
+	gl_FragData[0] = CT7;
 }
 
 #endif
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////BY ZYPanDa/////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////ZYPanDa/////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef VSH
 
 void main() {
-	sunViewDir = normalize(sunPosition);
-	moonViewDir = normalize(moonPosition);
-	lightViewDir = normalize(shadowLightPosition);
-
-	sunWorldDir = normalize(viewPosToWorldPos(vec4(sunPosition, 0.0)).xyz);
-    moonWorldDir = normalize(viewPosToWorldPos(vec4(moonPosition, 0.0)).xyz);
-    lightWorldDir = normalize(viewPosToWorldPos(vec4(shadowLightPosition, 0.0)).xyz);
-
-	// sunColor = getSunColor();
-	// skyColor = getSkyColor();
-
 	gl_Position = ftransform();
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+
+	// sunViewDir = normalize(sunPosition);
+	// moonViewDir = normalize(moonPosition);
+	// lightViewDir = normalize(shadowLightPosition);
+
+	// sunWorldDir = normalize(viewPosToWorldPos(vec4(sunPosition, 0.0)).xyz);
+    // moonWorldDir = normalize(viewPosToWorldPos(vec4(moonPosition, 0.0)).xyz);
+    // lightWorldDir = normalize(viewPosToWorldPos(vec4(shadowLightPosition, 0.0)).xyz);
+
+	// isNoon = saturate(dot(sunWorldDir, upWorldDir) * NOON_DURATION);
+	// isNight = saturate(dot(moonWorldDir, upWorldDir) * NIGHT_DURATION);
+	// sunRiseSet = saturate(1 - isNoon - isNight);
+
+	// float isNoonS = saturate(dot(sunWorldDir, upWorldDir) * NOON_DURATION_SLOW);
+	// float isNightS = saturate(dot(moonWorldDir, upWorldDir) * NIGHT_DURATION_SLOW);
+	// float sunRiseSetS = saturate(1 - isNoonS - isNightS);
+
+	// float d1 = RaySphereIntersection(earthPos, upWorldDir, vec3(0.0), earth_r + atmosphere_h).y;
+	// // vec3 worldPos, vec3 lightDir, vec3 I, float mieAmount, const int N_SAMPLES, const int lutSampleGap
+	// mat2x3 atmosphericScattering = AtmosphericScattering(upWorldDir * d1, upWorldDir, sunWorldDir, IncomingLight, 0.0, ATMOSPHERE_SCATTERING_SAMPLES);
+	// vec3 zenithColor = atmosphericScattering[0] + atmosphericScattering[1];
+	// atmosphericScattering = AtmosphericScattering(upWorldDir * d1, upWorldDir, moonWorldDir, IncomingLight_N * 1.5, 0.0, int(ATMOSPHERE_SCATTERING_SAMPLES * 0.5));
+	// zenithColor += atmosphericScattering[0] + atmosphericScattering[1];
+
+	// sunColor = isNoon * TransmittanceToAtmosphere(earthPos, sunWorldDir) * IncomingLight;
+	// sunColor += isNight * TransmittanceToAtmosphere(earthPos, moonWorldDir) * IncomingLight_N;
+	// sunColor *= 1.0 - 0.75 * rainStrength;
+	
+	// skyColor = zenithColor;
+	// skyColor *= 3.0;
+	// skyColor *= 1.0 - 0.3 * rainStrength;
 }
 
 #endif

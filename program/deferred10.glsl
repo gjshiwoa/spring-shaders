@@ -100,7 +100,7 @@ void main() {
 		#ifdef PBR_REFLECTIVITY
 			mat2x3 PBR = CalculatePBR(viewDir, normalV, lightViewDir, albedo, materialParams);
 			vec3 BRDF = PBR[0] + PBR[1];
-			vec3 BRDF_D = BRDF_Diffuse(normalV, viewDir, albedo, materialParams);
+			vec3 BRDF_D = reflectDiffuse(viewDir, normalV, albedo, materialParams);
 		#else
 			vec3 BRDF = albedo / PI;
 			vec3 BRDF_D = BRDF;
@@ -172,14 +172,14 @@ void main() {
 				artificial = gi_PT;
 			#endif
 
-			artificial += (LeftLitDiff + RightLitDiff) * heldBlockLight * diffuse;
+			artificial += (LeftLitDiff + RightLitDiff) * heldBlockLight * BRDF_D;
 
 			artificial += max(lightmap.x, materialParams.emissiveness) * diffuse * 2.0;
 		#else
 			float heldLightIntensity = max(heldBlockLightValue, heldBlockLightValue2) / 15.0;
 			lightmap.x = max(lightmap.x, heldLightIntensity * heldBlockLight);
 
-			artificial = lightmap.x * artificial_color * (1.0 + GLOWING_BRIGHTNESS * glowingB) * diffuse;
+			artificial = lightmap.x * artificial_color * (1.0 + GLOWING_BRIGHTNESS * glowingB) * BRDF_D;
 			artificial += saturate(materialParams.emissiveness - lightmap.x) * diffuse * EMISSIVENESS_BRIGHTNESS;
 			
 			if (lightningBolt > 0.5) {
@@ -276,6 +276,7 @@ void main() {
 					* remapSaturate(camera.y, 600.0, 1000.0, 1.0, 0.0);
 		// color.rgb = vec3(computeCrepuscularLight(viewPos1));
 		// color.rgb = vec3(crepuscularLight);
+		// color.rgb = normalize(normalDecode(texelFetch(colortex9, ivec2(gl_FragCoord.xy * 2.0 - viewSize), 0).ba));
 	}
 	
 	color.rgb = max(BLACK, color.rgb);

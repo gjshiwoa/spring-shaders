@@ -3,6 +3,8 @@ varying vec2 texcoord;
 varying vec3 sunWorldDir, moonWorldDir, lightWorldDir;
 varying vec3 sunViewDir, moonViewDir, lightViewDir;
 
+varying vec3 sunColor, skyColor;
+
 
 #include "/lib/uniform.glsl"
 #include "/lib/settings.glsl"
@@ -26,6 +28,7 @@ const bool shadowcolor1Mipmap = false;
 // #include "/lib/common/materialIdMapper.glsl"
 // #include "/lib/lighting/lightmap.glsl"
 // #include "/lib/atmosphere/celestial.glsl"
+
 #include "/lib/lighting/pathTracing.glsl"
 #include "/lib/water/waterReflectionRefraction.glsl"
 #include "/lib/surface/PBR.glsl"

@@ -37,14 +37,14 @@ void main() {
 	vec3 dp1 = dFdx(viewPos.xyz);
 	vec3 dp2 = dFdy(viewPos.xyz);
 
-	vec3 N = normalize(cross(dp1, dp2));
-	vec3 dp2perp = cross(dp2, N);
-	vec3 dp1perp = cross(N, dp1);
+	vec3 normal = normalize(cross(dp1, dp2));
+	vec3 dp2perp = cross(dp2, normal);
+	vec3 dp1perp = cross(normal, dp1);
 
 	vec3 T = normalize(dp2perp * texGradX.x + dp1perp * texGradY.x);
 	vec3 B = normalize(dp2perp * texGradX.y + dp1perp * texGradY.y);
 	float invmax = inversesqrt(max(dot(T, T), dot(B, B)));
-	mat3 tbn = mat3(T * invmax, B * invmax, N);
+	mat3 tbn = mat3(T * invmax, B * invmax, normal);
 	// tbn = tbnMatrix;
 
 	vec2 parallaxUV = texcoord;
@@ -76,6 +76,7 @@ void main() {
 	#endif
 
 	vec4 texColor;
+	if(abs(blockID - NO_ANISO) < 0.5) parallaxUV = texcoord;
 	#ifdef ANISOTROPIC_FILTERING
 		if(abs(blockID - NO_ANISO) > 0.5){
 			#if ANISOTROPIC_FILTERING_MODE == 0

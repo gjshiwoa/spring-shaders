@@ -143,7 +143,7 @@ void main() {
 	gl_Position = ftransform();
 	v_viewPos = gl_ModelViewMatrix * gl_Vertex;
 	v_lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
-	#ifdef PATH_TRACING
+	#if defined PATH_TRACING || defined COLORED_LIGHT
 		v_lmcoord.x = (at_midBlock.a - 1.0) / 15.0;
 	#endif
 	v_texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
