@@ -138,12 +138,18 @@ void main() {
 		sunViewDir = normalize((gbufferModelView * vec4(sunWorldDir, 0.0)).xyz);
 		moonViewDir = sunViewDir;
 		lightViewDir = sunViewDir;
+	#elif defined NETHER
+		sunWorldDir = normalize(vec3(0.0, 1.0, 0.0));
+		moonWorldDir = sunWorldDir;
+		lightWorldDir = sunWorldDir;
 
-		sunColor = endColor * 1.5;
-		skyColor = endColor * 0.2 + vec3(0.2);
+		sunViewDir = normalize((gbufferModelView * vec4(sunWorldDir, 0.0)).xyz);
+		moonViewDir = sunViewDir;
+		lightViewDir = sunViewDir;
 	#endif
 
 	#ifdef NETHER
+		sunColor = vec3(0.0);
 		skyColor = vec3(0.5, 0.4, 0.9) * 0.4;
 	#elif defined END
 		skyColor = endColor * 1.0;
@@ -158,6 +164,12 @@ void main() {
 	isNoonS = saturate(dot(sunWorldDir, upWorldDir) * NOON_DURATION_SLOW);
 	isNightS = saturate(dot(moonWorldDir, upWorldDir) * NIGHT_DURATION_SLOW);
 	sunRiseSetS = saturate(1 - isNoonS - isNightS);
+
+	#if defined NETHER && defined END
+		isNoon = 0.0;
+		isNight = 1.0;
+		sunRiseSet = 0.0;
+	#endif
 
 	gl_Position = ftransform();
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;

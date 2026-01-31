@@ -113,6 +113,14 @@ void main() {
 		sunViewDir = normalize((gbufferModelView * vec4(sunWorldDir, 0.0)).xyz);
 		moonViewDir = sunViewDir;
 		lightViewDir = sunViewDir;
+	#elif defined NETHER
+		sunWorldDir = normalize(vec3(0.0, 1.0, 0.0));
+		moonWorldDir = sunWorldDir;
+		lightWorldDir = sunWorldDir;
+
+		sunViewDir = normalize((gbufferModelView * vec4(sunWorldDir, 0.0)).xyz);
+		moonViewDir = sunViewDir;
+		lightViewDir = sunViewDir;
 	#endif
 
 	isNoon = saturate(dot(sunWorldDir, upWorldDir) * NOON_DURATION);

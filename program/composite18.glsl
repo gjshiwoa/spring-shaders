@@ -73,7 +73,7 @@ void main() {
 	// color.rgb = textureORB(depthtex2, texcoord).rgb;
 	// color.rgb = getNormal(texcoord);
 	// color.rgb = normalize(viewPosToWorldPos(vec4(color.rgb, 0.0)).xyz);
-	// color.rgb = texture(colortex6, texcoord).rgb;
+	// color.rgb = texture(colortex1, texcoord).rgb;
 	// color.rgb = textureLod(shadowcolor0, texcoord, 0.0).rgb;
 	// color.rgb = vec3(textureLod(shadowcolor1, texcoord, 0.0).a);
 	// color.rgb = normalize((shadowProjection * vec4(color.rgb, 0.0)).xyz);
@@ -114,6 +114,14 @@ void main() {
 
 	#ifdef END
 		sunWorldDir = normalize(vec3(0.0, 1.0, tan(-sunPathRotation * PI / 180.0)));
+		moonWorldDir = sunWorldDir;
+		lightWorldDir = sunWorldDir;
+
+		sunViewDir = normalize((gbufferModelView * vec4(sunWorldDir, 0.0)).xyz);
+		moonViewDir = sunViewDir;
+		lightViewDir = sunViewDir;
+	#elif defined NETHER
+		sunWorldDir = normalize(vec3(0.0, 1.0, 0.0));
 		moonWorldDir = sunWorldDir;
 		lightWorldDir = sunWorldDir;
 

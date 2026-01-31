@@ -83,8 +83,10 @@ void main() {
 				color.rgb += fogColor.rgb;
 			}
 		#endif
-		// color.rgb = fogColor.rgb;
+		// color.rgb = vec3(fogColor.rgb);
 	#endif
+
+	// color.rgb = texture(colortex1, texcoord).rgb;
 	
 /* DRAWBUFFERS:0 */
 	gl_FragData[0] = color;
@@ -116,9 +118,14 @@ void main() {
 		sunViewDir = normalize((gbufferModelView * vec4(sunWorldDir, 0.0)).xyz);
 		moonViewDir = sunViewDir;
 		lightViewDir = sunViewDir;
+	#elif defined NETHER
+		sunWorldDir = normalize(vec3(0.0, 1.0, 0.0));
+		moonWorldDir = sunWorldDir;
+		lightWorldDir = sunWorldDir;
 
-		sunColor = endColor * 1.5;
-		skyColor = endColor * 0.2 + vec3(0.2);
+		sunViewDir = normalize((gbufferModelView * vec4(sunWorldDir, 0.0)).xyz);
+		moonViewDir = sunViewDir;
+		lightViewDir = sunViewDir;
 	#endif
 
 	gl_Position = ftransform();

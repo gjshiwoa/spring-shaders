@@ -8,6 +8,8 @@ varying vec3 sunViewDir, moonViewDir, lightViewDir;
 
 // varying vec3 sunColor, skyColor;
 
+varying vec3 LeftLitDiff, RightLitDiff;
+
 
 
 #include "/lib/uniform.glsl"
@@ -29,6 +31,7 @@ const bool shadowcolor0Mipmap = false;
 const bool shadowcolor1Mipmap = false;
 
 
+const vec3 sunColor = vec3(0.0);
 
 #include "/lib/common/gbufferData.glsl"
 
@@ -42,6 +45,8 @@ const bool shadowcolor1Mipmap = false;
 #include "/lib/surface/PBR.glsl"
 #include "/lib/water/translucentLighting.glsl"
 #include "/lib/atmosphere/endFog.glsl"
+#include "/lib/lighting/voxelization.glsl"
+#include "/lib/lighting/pathTracing.glsl"
 
 void main() {
 	vec4 color = texture(colortex0, texcoord);
@@ -95,10 +100,33 @@ void main() {
 			shade = shadowMappingTranslucent(worldPos1, normalW, 0.5, 5.0);
 		vec3 direct = 1.5 * BRDF * endColor * shade * pow(fakeCaustics(worldPos1.xyz + cameraPosition), 1.0)* saturate(dot(lightViewDir, normalV));
 
-		// diffuse = mix(diffuse, vec3(getLuminance(diffuse)), 0.5);
-		vec3 artificial = lightmap.x * artificial_color * diffuse;
-		artificial += saturate(materialParams.emissiveness - lightmap.x) * diffuse * EMISSIVENESS_BRIGHTNESS;
-		artificial *= 5.0;
+		vec3 gi_PT = vec3(0.0);
+		#if defined PATH_TRACING || defined COLORED_LIGHT
+			gi_PT = getGI_PT(depth1, normalW).rgb * BRDF_D * PI;
+		#endif
+
+		vec3 artificial = vec3(0.0);
+
+		float heldBlockLight = 0.5 * ARTIFICIAL_COLOR_ALPHA * 
+					pow(remapSaturate(worldDis1, 0.0, DYNAMIC_LIGHT_DISTANCE, 1.0, 0.0), ARTIFICIAL_LIGHT_FALLOFF);
+		#ifdef HELD_BLOCK_NORMAL_AFFECT
+			heldBlockLight *= saturate(dot(normalV, -normalize(vec3(viewPos1.xyz))));
+		#endif
+
+		#if defined PATH_TRACING || defined COLORED_LIGHT
+			artificial = gi_PT;
+
+			artificial += (LeftLitDiff + RightLitDiff) * heldBlockLight * BRDF_D;
+
+			artificial += max(lightmap.x, materialParams.emissiveness) * diffuse * GLOWING_BRIGHTNESS;
+		#else
+			float heldLightIntensity = max(heldBlockLightValue, heldBlockLightValue2) / 15.0;
+			lightmap.x = max(lightmap.x, heldLightIntensity * heldBlockLight);
+
+			artificial = lightmap.x * artificial_color * BRDF_D;
+			artificial += lightmap.x * artificial_color * GLOWING_BRIGHTNESS * glowingB * diffuse;
+			artificial += saturate(materialParams.emissiveness - lightmap.x) * diffuse * EMISSIVENESS_BRIGHTNESS;
+		#endif
 
 		
 		
@@ -141,6 +169,11 @@ void main() {
 	sunViewDir = normalize((gbufferModelView * vec4(sunWorldDir, 0.0)).xyz);
 	moonViewDir = sunViewDir;
 	lightViewDir = sunViewDir;
+
+	vec4 LeftLitCol = texelFetch(colortex7, LeftLitPreUV, 0);
+	vec4 RightLitCol = texelFetch(colortex7, rightLitPreUV, 0);
+	LeftLitDiff = toLinearR(LeftLitCol.rgb * LeftLitCol.a);
+	RightLitDiff = toLinearR(RightLitCol.rgb * RightLitCol.a);
 
 	gl_Position = ftransform();
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
