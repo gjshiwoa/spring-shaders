@@ -86,7 +86,7 @@ Full License Text: https://creativecommons.org/licenses/by-nc-sa/4.0/
 
 1.  **Core Theory**: This shader is a practice work created while studying the course "Games202 - High Quality Real-Time Rendering".
     *   Course Link: [Games202 - High Quality Real-Time Rendering](https://sites.cs.ucsb.edu/~lingqi/teaching/games202.html)
-2.  **Technical Documentation**: Algorithm logic is detailed in the code comments. The following materials were consulted during development:
+2.  **Technical Documentation**: The sources of the algorithms and logic are detailed in the code comments. The following materials were consulted during development:
     *   [LearnOpenGL](https://learnopengl.com/)
     *   [Iris Docs](https://shaders.properties/)
     *   [Optifine Shader Documentation](https://optifine.readthedocs.io/shaders_dev.html)
