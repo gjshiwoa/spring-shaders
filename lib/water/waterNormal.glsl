@@ -151,11 +151,18 @@ vec3 normalFromHeights(vec2 centerXZ, float hC, float hX, float hZ, float eps){
     return normalFrom3Points(pC, pX, pZ);
 }
 
-vec3 getWaveNormalDH(vec2 centerXZ, const int quality){
+vec3 getWaveNormalDH(vec2 centerXZ, const int quality, float worldDis){
     const float eps = 0.05;
     float hC = getWaveHeight(centerXZ, quality);
     float hX = getWaveHeight(centerXZ + vec2(eps, 0.0), quality);
     float hZ = getWaveHeight(centerXZ + vec2(0.0, eps), quality);
 
-    return normalFromHeights(centerXZ, hC, hX, hZ, eps);
+    vec3 normalW = normalFromHeights(centerXZ, hC, hX, hZ, eps);
+
+    // #if defined VOXY || defined DISTANT_HORIZONS
+    //     float mixFactor = remapSaturate(worldDis, 1000.0, 2000.0, 0.0, 1.0);
+    //     normalW = mix(normalW, vec3(0.0, 1.0, 0.0), mixFactor);
+    // #endif
+
+    return normalW;
 }

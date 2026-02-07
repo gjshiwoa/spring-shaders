@@ -19,8 +19,10 @@ vec2 SSRT(vec3 viewPos, vec3 reflectViewDir, vec3 normalTex, out vec3 outMissPos
     float worldDis = length(viewPos);
     #ifdef GBF
         startPos += normalTex * 0.2;
+    #elif defined VOXY_WATER
+        startPos += normalTex * clamp(worldDis / 60.0, 0.1, 5.0);
     #else
-        startPos += normalTex * clamp(worldDis / 60.0, 0.01, 1.0);
+        startPos += normalTex * clamp(worldDis / 60.0, 0.01, 0.33);
     #endif
 
     float jitter = temporalBayer64(gl_FragCoord.xy);
@@ -35,9 +37,9 @@ vec2 SSRT(vec3 viewPos, vec3 reflectViewDir, vec3 normalTex, out vec3 outMissPos
     vec3 curTestPos = startPos;
 
     float N_SAMPLES = REFLECTION_SAMPLES;
-    #if defined VOXY || defined DISTANT_HORIZONS
-        N_SAMPLES *= 1.5;
-    #endif
+    // #if defined VOXY || defined DISTANT_HORIZONS
+    //     N_SAMPLES *= 1.5;
+    // #endif
     for (int i = 0; i < int(N_SAMPLES); ++i){
         cumUnjittered += curStep;
         float adjustedDist = cumUnjittered - jitter * curStep;
@@ -103,6 +105,8 @@ vec2 SSRT(vec3 viewPos, vec3 reflectViewDir, vec3 normalTex, out vec3 outMissPos
     // #if !defined END && !defined NETHER
         #ifdef DISTANT_HORIZONS
             depthCondition = texture(dhDepthTex0, testScreenPos.xy).r < 1.0 || texture(depthtex1, testScreenPos.xy).r < 1.0;
+        #elif defined VOXY
+            depthCondition = texture(depthtex1, testScreenPos.xy).r < 1.0 || texture(vxDepthTexOpaque, testScreenPos.xy).r < 1.0;
         #else
             depthCondition = texture(depthtex1, testScreenPos.xy).r < 1.0;
         #endif
@@ -144,7 +148,7 @@ vec3 reflection(sampler2D tex, vec3 viewPos, vec3 reflectWorldDir, vec3 reflectV
     vec2 velocity = texture(colortex9, testScreenPos.xy).xy;
     testScreenPos.xy = testScreenPos.xy - velocity;
 
-    if(testScreenPos.x >= 0.0){
+    if(testScreenPos.x >= 0.0 && testScreenPos.y >= 0.0){
         ssrTargetSampled = true;
         
         reflectColor = texture(tex, testScreenPos.xy).rgb * colorScale;

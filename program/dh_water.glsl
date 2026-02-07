@@ -49,7 +49,7 @@ void main() {
 	bool isAbovewater = (isEyeInWater == 0);
 
 	if(isWater > 0.5){
-		vec3 waveWorldNormal = getWaveNormalDH(vMcPos.xz, WAVE_NORMAL_ITERATIONS);
+		vec3 waveWorldNormal = getWaveNormalDH(vMcPos.xz, WAVE_NORMAL_ITERATIONS, worldDis0);
 		vec3 waveViewNormal = mat3(gbufferModelView) * waveWorldNormal;
 		
 		vec2 refractCoord = saturate(waterRefractionCoord(normalVO, waveViewNormal, worldDis0, WAVE_REFRACTION_INTENSITY));

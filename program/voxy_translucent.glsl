@@ -26,9 +26,10 @@ void voxy_emitFragment(VoxyFragmentParameters parameters){
 
     vec4 viewPos0 = screenPosToViewPosVX(vec4(fragCoord, vxDepth, 1.0));
     vec4 worldPos0 = viewPosToWorldPos(viewPos0);
+    float worldDis0 = length(worldPos0.xyz);
     vec3 mcPos = worldPos0.xyz + cameraPosition;
 
-    bool isWater = abs(parameters.customId - 8) < 0.1;
+    bool isWater = abs(parameters.customId - 8) < 0.5;
 
     vec4 color = vec4(0.0);
 
@@ -38,7 +39,7 @@ void voxy_emitFragment(VoxyFragmentParameters parameters){
     vec3 outNormal = normalV;
 
     if (isWater) {
-        vec3 waveWorldNormal = getWaveNormalDH(mcPos.xz, WAVE_NORMAL_ITERATIONS);
+        vec3 waveWorldNormal = getWaveNormalDH(mcPos.xz, WAVE_NORMAL_ITERATIONS, worldDis0);
         vec3 waveViewNormal = mat3(gbufferModelView) * waveWorldNormal;
 
         if(normalW.y > 0.9) outNormal = waveViewNormal;

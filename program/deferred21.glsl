@@ -54,7 +54,7 @@ void main() {
 	float depth1 = texelFetch(depthtex1, ivec2(gl_FragCoord.xy), 0).r;
 	float vxDepth1 = texelFetch(vxDepthTexOpaque, ivec2(gl_FragCoord.xy), 0).r;
 	bool vxTemp = CT19 < 0.9;
-	bool vxWater = abs(vxTransColor.a - 0.97) < 0.01 && vxTemp;
+	bool vxWater = abs(vxTransColor.a - 0.97) < 0.015 && vxTemp;
 	bool vxTrans = vxTransColor.a < 0.96 && vxTransColor.a > 0.005 && vxTemp;
 
 	bool isUnderwater = (isEyeInWater == 1);
@@ -152,7 +152,7 @@ void main() {
 		vxTrans += nightVision * texColor.rgb * NIGHT_VISION_BRIGHTNESS / PI;
 		color.rgb = mix(color.rgb, vxTrans, vxTransColor.a);
 	}
-	// color.rgb = vec3(texelFetch(colortex19, ivec2(gl_FragCoord.xy), 0).r);
+	// color.rgb = vec3(vxWater);
 
 /* DRAWBUFFERS:0 */
 	gl_FragData[0] = color;
