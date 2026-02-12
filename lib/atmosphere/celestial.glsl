@@ -2,6 +2,9 @@ vec3 drawSun(vec3 worldDir){
     float wds = dot(worldDir, sunWorldDir);
     float mixAmount = wds > (1.0 - SUN_RADIUS) ? 1.0 : 0.0;
     vec3 color = sunColor * SUN_BRIGHTNESS;
+    float radial = saturate((1.0 - wds) / SUN_RADIUS);
+    float limbDarkening = mix(1.0, 0.5, radial * radial);
+    color *= limbDarkening;
     if(isEyeInWater == 1) color *= (0.001 * eyeBrightnessSmooth.y / 240.0 + 0.01);
     return mix(BLACK, color, mixAmount);
 }

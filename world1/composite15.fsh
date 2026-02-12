@@ -2,6 +2,6 @@
 #define FSH
 #define END
 
-#define BLOOM_LOD 8
+#define BLOOM_LOD 3
 
-#include "/program/composite8.glsl"
+#include "/program/composite13.glsl"

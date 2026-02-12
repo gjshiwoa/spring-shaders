@@ -39,7 +39,7 @@ float sampleCloudDensityLow(vec3 cameraPos, float height_fraction){
 float sampleCloudDensityHigh(vec3 cameraPos, float base_cloud, float height_fraction, vec3 wind_direction){
     float final_cloud = base_cloud;
 
-    vec4 high_frequency_noises = texture(colortex2, cameraPos * 0.004 - 0.045 * wind_direction * frameTimeCounter);
+    vec4 high_frequency_noises = texture(colortex2, cameraPos * 0.004 - 0.045 * wind_direction * frameTimeCounter * CLOUD_SPEED);
     float high_freq_FBM = high_frequency_noises.r * 0.625 + high_frequency_noises.g * 0.25 + high_frequency_noises.b * 0.125;
     float high_freq_noise_modifier = lerp(high_freq_FBM * 4.0, 1.0 - high_freq_FBM, saturate(height_fraction * 5.0));  
     // float height_factor = remapSaturate(pow(height_fraction, 1.0), 0.0, 1.0, 0.66, 1.0);
@@ -53,7 +53,7 @@ float sampleCloudDensity(vec3 cameraPos, bool doCheaply){
     if(height_fraction < 0.0 || height_fraction > 1.0) return 0.0;
 
     vec3 wind_direction = normalize(vec3(1.0, 0.0, 1.0));
-    cameraPos += wind_direction * frameTimeCounter * 10.0;
+    cameraPos += wind_direction * frameTimeCounter * CLOUD_SPEED * 10.0;
     cameraPos += wind_direction * height_fraction * 100.0;
 
     // cameraPos *= 0.0045;
@@ -181,6 +181,11 @@ void cloudRayMarching(vec3 startPos, vec3 worldPos, inout vec4 intScattTrans, in
     #ifdef SKY_BOX
         N_COARSE = int(N_COARSE * 0.35);
     #endif
+
+    if(camera.y > cloudHeight.x && camera.y < cloudHeight.y) {
+        N_COARSE *= 2;
+        stepDis.y = min(stepDis.y, 10000.0);
+    }
 
     float rayLength = stepDis.y;
     float coarseStep = rayLength / float(max(N_COARSE, 1));

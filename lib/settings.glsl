@@ -247,6 +247,8 @@ const float cloudHeightMin = VOLUMETRIC_CLOUDS_MIN_HEIGHT + CAMERA_HEIGHT;
 #define CLOUD_THICKNESS 800.0               // [50.0 100.0 200.0 300.0 400.0 500.0 600.0 700.0 800.0 900.0 1000.0]
 const vec2 cloudHeight = vec2(cloudHeightMin, cloudHeightMin + CLOUD_THICKNESS);
 
+#define CLOUD_SPEED 1.0         // [0.0 0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 2.4 2.8 3.2 3.6 4.0 4.4 4.8 5.2 5.6 6.0]
+
 #define VOLUMETRIC_CLOUDS_MAX_SAMPLES 18    // [3 6 9 12 15 18 21 24 27 30]
 #define VOLUMETRIC_CLOUDS_MIN_SAMPLES 9     // [1 3 6 9 12 15 18 21 24 27 30]
 #define CLOUD_SMALL_STEP 2.0            // [2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
@@ -603,6 +605,8 @@ const vec3 filterPower = vec3(1.0, 1.0, 1.0) * FILTER_CONTRAST;
 // #define DEPTH_OF_FIELD
 
 const float centerDepthHalflife = 0.5; // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+
+#define MAX_COC 1.0
 
 #define DOF_BOKEH_RADIUS 8.0    // [2.0 4.0 6.0 8.0 10.0 12.0 14.0 16.0 18.0 20.0]
 #define DOF_BLUR_WEIGHT_MODE 0  // [0 1]

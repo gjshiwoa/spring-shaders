@@ -4,7 +4,9 @@
 // 月光下的旅行: Vulkan TAA实现与细节
 // https://qiutang98.github.io/post/%E5%9B%BE%E5%BD%A2%E7%A1%AC%E4%BB%B6api/vulkan-taa%E5%AE%9E%E7%8E%B0%E4%B8%8E%E7%BB%86%E8%8A%82
 
-vec3 clipAABB(vec3 nowColor, vec3 preColor){
+vec3 clipAABB(vec3 nowColor, vec3 preColor, float depthConfidence){
+    // if(depthConfidence > 0.99) return preColor;
+    
     vec3 m1 = vec3(0), m2 = vec3(0);
     for(int i = -1; i <= 1; i++){
     for(int j = -1; j <= 1; j++){
@@ -15,7 +17,10 @@ vec3 clipAABB(vec3 nowColor, vec3 preColor){
     }
     }
 
-    const float TAA_variance_clip_gamma = TAA_VARIANCE_CLIP_GAMMA;
+    float TAA_variance_clip_gamma = TAA_VARIANCE_CLIP_GAMMA;
+    TAA_variance_clip_gamma += depthConfidence * 2.0;
+    // TAA_variance_clip_gamma += 2.0;
+
     vec3 aabbMin = nowColor, aabbMax = nowColor;
     const int N = 9;
     vec3 mu = m1 / N;
@@ -52,9 +57,35 @@ float getBlendFactor(vec2 velocity, vec3 preColor, vec3 nowColor){
     return clamp(blendFactor, 0.01, 0.10);
 }
 
+float depth_confidence(){
+    float depth0 = texelFetch(depthtex0, ivec2(gl_FragCoord.xy), 0).r;
+    vec4 viewPos = screenPosToViewPos(vec4(texcoord, depth0, 1.0));
+    vec4 worldPos = viewPosToWorldPos(viewPos);
+    vec3 cameraOffset = cameraPosition - previousCameraPosition;
+    vec4 preWorldPos = worldPos + vec4(cameraOffset, 0.0);
+	vec4 preViewPos = gbufferPreviousModelView * preWorldPos;
+    vec4 prePos = gbufferPreviousProjection * preViewPos;
+    prePos /= prePos.w;
+    prePos.xyz = 0.5 * prePos.xyz + 0.5;
+    if(outScreen(prePos.xy)) return 0.0;
+
+    float pDepth0 = texelFetch(depthtex0, ivec2(prePos.xy * viewSize), 0).r;
+    vec4 pScreenPos = vec4(prePos.xy, pDepth0, 1.0);
+    vec4 pViewPos = inverse(gbufferPreviousProjection) * vec4(pScreenPos.xyz * 2.0 - 1.0, pScreenPos.w);
+    pViewPos /= pViewPos.w;
+
+    float dis = distance(preViewPos.xyz, pViewPos.xyz);
+    dis = abs(preViewPos.z - pViewPos.z);
+    float result = remapSaturate(dis, 0.0, 0.1, 1.0, 0.0);
+
+    return result;
+}
+
 void TAA(inout vec3 nowColor){
-    vec2 velocity = getVelocity();
+    vec4 nearFar = getClosestOffsetWithFarthest(texcoord.st, 1.0);
+    vec2 velocity = texture(colortex9, nearFar.xy).rg;
     vec2 offsetUV = saturate(texcoord - velocity);
+
     // vec3 preColor = max(BLACK, texture(colortex2, offsetUV).rgb);
     // vec3 preColor = max(BLACK, catmullRom(colortex2, offsetUV).rgb);
     vec3 preColor = max(BLACK, catmullRom5(colortex2, offsetUV, SHARPENING_FACTOR).rgb);
@@ -62,7 +93,8 @@ void TAA(inout vec3 nowColor){
     nowColor = RGB2YCoCgR(ToneMap(nowColor));
     preColor = RGB2YCoCgR(ToneMap(preColor));
 
-    preColor = clipAABB(nowColor, preColor);
+    float depthConfidence = depth_confidence();
+    preColor = clipAABB(nowColor, preColor, depthConfidence);
 
     preColor = UnToneMap(YCoCgR2RGB(preColor));
     nowColor = UnToneMap(YCoCgR2RGB(nowColor));

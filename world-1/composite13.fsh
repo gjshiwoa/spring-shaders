@@ -1,7 +1,8 @@
-#version 450 compatibility
+#version 450 compatibility  
+
 #define FSH
 #define NETHER
 
-#define BLOOM_LOD 6
+#define BLOOM_LOD 1
 
-#include "/program/composite8.glsl"
+#include "/program/composite13.glsl"

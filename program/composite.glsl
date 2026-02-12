@@ -5,6 +5,7 @@ const int RG16F = 0;
 const int RGBA16F = 0;
 const int RGBA32 = 0;
 const int RG32F = 0;
+const int R32F = 0;
 
 const int colortex0Format = RGBA16F;
 const int colortex1Format = RGBA16F;
@@ -18,6 +19,8 @@ const int colortex8Format = RGBA16F;
 const int colortex9Format = RGBA16F;
 const int colortex10Format = RGBA16F;
 const int colortex11Format = RGBA16F;
+const int colortex12Format = R32F;
+
 const int colortex16Format = RGBA8;
 const int colortex17Format = RGBA16;
 const int colortex18Format = RGBA16F;
@@ -30,6 +33,7 @@ const bool colortex3Clear = false;
 const bool colortex6Clear = false;
 const bool colortex7Clear = false;
 const bool colortex10Clear = false;
+const bool colortex12Clear = false;
 
 /*
 0: rgb:color
@@ -48,6 +52,7 @@ const bool colortex10Clear = false;
 ci0:rgb:voxel color			a:voxel bri
 ci1-3:SDF
 */
+
 #define CPS
 
 varying vec2 texcoord;

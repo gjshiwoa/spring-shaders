@@ -266,7 +266,7 @@ void main() {
 		#ifdef CREPUSCULAR_LIGHT
 			if(phase > 0.01 && sunRiseSetS + isNoonS > 0.001) crepuscularLight = computeCrepuscularLight(viewPos1) * phase;
 		#endif
-		if(cloudTransmittance < 1.0){
+		if(cloudTransmittance < 1.0 && (camera.y < cloudHeight.x || camera.y > cloudHeight.y)){
 
 			color.rgb = 
 				mix((skyBaseColor + celestial), color.rgb, 

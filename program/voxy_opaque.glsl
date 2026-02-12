@@ -26,5 +26,8 @@ void voxy_emitFragment(VoxyFragmentParameters parameters){
 
     gbufferData1.rg = normalEncode(normalV);
     gbufferData1.ba = parameters.lightMap;
+    // #ifdef PATH_Tracing
+    //     gbufferData1.b = pow(gbufferData1.b, 10.0);
+    // #endif
     gbufferData2 = vec4(0.0, 0.0, gbufferData1.rg);
 }

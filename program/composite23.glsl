@@ -27,15 +27,10 @@ const bool shadowcolor0Mipmap = false;
 const bool shadowcolor1Mipmap = false;
 
 #include "/lib/camera/postFX.glsl"
-#include "/lib/camera/depthOfField.glsl"
 
 
 void main() {
 	vec4 color = max(texture(colortex0, texcoord), 0.0);
-	
-	#ifdef DEPTH_OF_FIELD
-		color.rgb = tentFilter(color.rgb);
-	#endif
 
 	#ifdef EXPOSURE
 		avgExposure(color.rgb);

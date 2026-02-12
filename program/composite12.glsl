@@ -1,13 +1,9 @@
-
-
 varying vec2 texcoord;
-varying float curLum, preLum;
 
 varying vec3 sunWorldDir, moonWorldDir, lightWorldDir;
 varying vec3 sunViewDir, moonViewDir, lightViewDir;
 
 varying float isNoon, isNight, sunRiseSet;
-// varying float isNoonS, isNightS, sunRiseSetS;
 
 #include "/lib/uniform.glsl"
 #include "/lib/settings.glsl"
@@ -15,88 +11,54 @@ varying float isNoon, isNight, sunRiseSet;
 #include "/lib/common/position.glsl"
 
 #include "/lib/camera/colorToolkit.glsl"
+#include "/lib/camera/toneMapping.glsl"
 #include "/lib/camera/filter.glsl"
 
+
 #ifdef FSH
+
+#include "/lib/antialiasing/TAA.glsl"
 
 const bool shadowtex0Mipmap = false;
 const bool shadowtex1Mipmap = false;
 const bool shadowcolor0Mipmap = false;
 const bool shadowcolor1Mipmap = false;
 
-
-#include "/lib/camera/depthOfField.glsl"
-
 void main() {
-	vec4 color = texture(colortex0, texcoord);
+	vec3 nowColor = texture(colortex0, texcoord).rgb;
+	TAA(nowColor);
+	nowColor = max(nowColor, BLACK);
 
-	#define BLOOM_UPSAMPLE
-	vec3 blur = vec3(0.0);
-	#ifdef BLOOM
-		#include "/lib/camera/bloom1.glsl"
-	#endif
+	vec4 CT2 = texelFetch(colortex2, ivec2(gl_FragCoord.xy), 0);
+	CT2.rgb = nowColor;
 
-	float bloomAmount = BLOOM_AMOUNT;
-	#if defined NETHER
-		bloomAmount += NETHER_ADDITIONAL_BLOOM;
+	
+
+	#ifdef NETHER
+		nowColor = pow(nowColor, vec3(1.0)) * 1.5;
 	#elif defined END
-		bloomAmount += END_ADDITIONAL_BLOOM;
+		nowColor = pow(nowColor, vec3(1.1)) * 1.25;
 	#else
-		bloomAmount += rainStrength * RAIN_ADDITIONAL_BLOOM;
-		bloomAmount += isNight * NIGHT_ADDITIONAL_BLOOM;
-		// bloomAmount += max(isNight, 1.0 - eyeBrightnessSmooth.y/240.0) * 0.05;
+		nowColor = nowColor * (1.0 - 0.15 * isNight);
 
 		if(isEyeInWater == 1){
-			bloomAmount += UNDERWATER_ADD_BLOOM;
+			nowColor.rgb = pow(nowColor.rgb, vec3(UNDERWATER_CANTRAST)) * UNDERWATER_BRI;
 		}
 	#endif
 
-	color.rgb += blur * bloomAmount;
-
-	color.rgb = max(color.rgb, BLACK);
-	
-
-
-	vec4 CT2 = texture(colortex2, texcoord);
-    if(ivec2(gl_FragCoord.xy) == vec2(0.0)){
-        float AverageLum = mix(preLum, curLum, saturate(frameTime*2.0));
-        CT2.a = AverageLum;
-    }
-
-	
-
-	vec4 CT1 = texelFetch(colortex1, ivec2(gl_FragCoord.xy), 0);
-	#ifdef DEPTH_OF_FIELD
-		CT1.r = calculateCoC();
-	#endif
-
-
-/* DRAWBUFFERS:012 */
-	gl_FragData[0] = color;
-	gl_FragData[1] = CT1;
-	gl_FragData[2] = CT2;
-
+/* RENDERTARGETS: 0,2,12 */
+	gl_FragData[0] = vec4(nowColor, 1.0);
+	gl_FragData[1] = CT2;
+	gl_FragData[2] = texelFetch(depthtex0, ivec2(gl_FragCoord.xy), 0);
 }
 
 #endif
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////ZYPanDa////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////BY ZYPanDa gjshiwoa////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef VSH
 
-#include "/lib/camera/bloom1.glsl"
-#define CALCULATE_AVERAGE_LUMINANCE
-#include "/lib/camera/exposure.glsl"
-
 void main() {
-	
-	#if EXPOSURE_MODE == 0
-		curLum = calculateAverageLuminance();
-	#else
-		curLum = calculateAverageLuminance1();
-	#endif
-	preLum = texelFetch(colortex2, averageLumUV, 0).a;
-
 	sunViewDir = normalize(sunPosition);
 	moonViewDir = normalize(moonPosition);
 	lightViewDir = normalize(shadowLightPosition);
@@ -127,9 +89,7 @@ void main() {
 	isNight = saturate(dot(moonWorldDir, upWorldDir) * NIGHT_DURATION);
 	sunRiseSet = saturate(1 - isNoon - isNight);
 
-	// isNoonS = saturate(dot(sunWorldDir, upWorldDir) * NOON_DURATION_SLOW);
-	// isNightS = saturate(dot(moonWorldDir, upWorldDir) * NIGHT_DURATION_SLOW);
-	// sunRiseSetS = saturate(1 - isNoonS - isNightS);
+	
 
 	gl_Position = ftransform();
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;

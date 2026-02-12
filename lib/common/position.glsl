@@ -117,12 +117,38 @@ vec3 getClosestOffset(vec2 uv, float scale){
         vec2 nowUV = uv + scale * invViewSize * offsetUV5[i];
         float nowDepth = texture(depthtex1, nowUV).r;
 
-        if(nowDepth < closestDepth){
-            closestDepth = nowDepth;
-            closestUV = nowUV;
-        }
+        float isCloser = step(nowDepth, closestDepth);
+        closestUV = mix(closestUV, nowUV, isCloser);
+        closestDepth = min(closestDepth, nowDepth);
     }
     return vec3(closestUV, closestDepth);
+}
+
+vec4 getClosestOffsetWithFarthest(vec2 uv, float scale){
+    float closestDepth = 1.0f;
+    float farthestDepth = 0.0f;
+    vec2 closestUV = uv;
+    const vec2 offsetUV5[9] = vec2[](
+        vec2(0.0, 0.0),
+        vec2(1.0, 1.0),
+        vec2(1.0, -1.0),
+        vec2(-1.0, -1.0),
+        vec2(-1.0, 1.0),
+        vec2(0.0, 1.0),
+        vec2(0.0, -1.0),
+        vec2(1.0, 0.0),
+        vec2(-1.0, 0.0)
+    );
+    for(int i = 0; i < 9; i++){
+        vec2 nowUV = uv + scale * invViewSize * offsetUV5[i];
+        float nowDepth = texture(depthtex1, nowUV).r;
+
+        float isCloser = step(nowDepth, closestDepth);
+        closestUV = mix(closestUV, nowUV, isCloser);
+        closestDepth = min(closestDepth, nowDepth);
+        farthestDepth = max(farthestDepth, nowDepth);
+    }
+    return vec4(closestUV, closestDepth, farthestDepth);
 }
 
 #if !defined GBF && !defined SHD

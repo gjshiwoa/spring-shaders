@@ -141,6 +141,7 @@ option.VOLUMETRIC_CLOUDS_MIN_SAMPLES = 体积云最小采样数
 option.VOLUMETRIC_CLOUDS_MIN_HEIGHT = 体积云云底高度
 option.CLOUD_THICKNESS = 云厚度
 option.VOLUME_CLOUD_NOISE_SEED = 体积云噪波种子
+option.CLOUD_SPEED = 云移动速度
 option.CLOUD_SPEED_LOW = 移动速度
 option.CLOUD_LOW_FREQUENCY = 低频频率
 option.CLOUD_WEATHER_FREQUENCY = 天气纹理频率

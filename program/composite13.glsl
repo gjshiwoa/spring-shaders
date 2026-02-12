@@ -5,7 +5,6 @@ varying vec2 texcoord;
 #include "/lib/uniform.glsl"
 #include "/lib/settings.glsl"
 #include "/lib/common/utils.glsl"
-#include "/lib/common/position.glsl"
 
 // #include "/lib/camera/colorToolkit.glsl"
 #include "/lib/camera/filter.glsl"
@@ -17,22 +16,18 @@ const bool shadowtex0Mipmap = false;
 const bool shadowtex1Mipmap = false;
 const bool shadowcolor0Mipmap = false;
 const bool shadowcolor1Mipmap = false;
-#include "/lib/camera/depthOfField.glsl"
 
 void main() {
-	vec4 color = texture2D(colortex0, texcoord);
-	// color.rgb = color.rgb = textureLod(shadowcolor0, texcoord, 0.0).rgb;
-	#ifdef DEPTH_OF_FIELD
-		color.rgb = sampleWithKernel();
-	#endif
+	#define BLOOM_DOWNSAMPLE
+    #include "/lib/camera/bloom1.glsl"
 
-/* DRAWBUFFERS:0 */
-	gl_FragData[0] = color;
+/* DRAWBUFFERS:1 */
+	gl_FragData[0] = vec4(color.rgb, 1.0);
 }
 
 #endif
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////BY ZYPanDa/////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////BY ZYPanDa gjshiwoa////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef VSH
 

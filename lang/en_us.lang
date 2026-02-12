@@ -140,6 +140,7 @@ option.VOLUMETRIC_CLOUDS_MIN_SAMPLES = Volumetric Clouds Min Samples
 option.VOLUMETRIC_CLOUDS_MIN_HEIGHT = Volumetric Cloud Base Height
 option.CLOUD_THICKNESS = Cloud Thickness
 option.VOLUME_CLOUD_NOISE_SEED = Volumetric Cloud Noise Seed
+option.CLOUD_SPEED = Cloud Speed
 option.CLOUD_SPEED_LOW = Movement Speed
 option.CLOUD_LOW_FREQUENCY = Low Frequency
 option.CLOUD_WEATHER_FREQUENCY = Weather Texture Frequency
