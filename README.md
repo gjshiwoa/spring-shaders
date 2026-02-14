@@ -31,7 +31,7 @@
 3.  **教程致谢**：主要参考了以下两位前辈的光影编写教程：
     *   AKGWSB - [从零开始编写Minecraft光影包](https://blog.csdn.net/weixin_44176696/category_10388318.html)
     *   szszss - [如何编写Shadersmod光影包](http://blog.hakugyokurou.net/?p=1364)
-4.  **工具声明**：光影编写过程中使用了 GPT、Claude、Gemini、DeepSeek 等 AI 工具辅助学习、提供思路及生成部分代码片段。
+4.  **工具声明**：光影编写过程中使用了 GPT、Claude、Gemini、DeepSeek、Kimi 等 AI 工具辅助学习、提供思路及生成部分代码片段。
 5.  **架构参考**：文件命名规范与文件夹管理方式参考了 BSL Shader。
 
 ---
@@ -45,9 +45,9 @@
 *   **意见反馈**：欢迎任何建议、Bug 反馈或单纯的聊天！
 
 **你可以通过以下方式找到我：**
-*   **Bilibili主页**：[中影ZY](https://space.bilibili.com/87622349)
 *   **QQ**：2767334552
 *   **QQ交流群**：650101489 (密码：w8gf)
+*   **Bilibili主页**：[中影ZY](https://space.bilibili.com/87622349)
 *   **爱发电**：[ZY-PANDA](https://afdian.com/a/zypanda) (仅限自愿赞助，本作品完全免费下载)
 
 **作品官方发布链接（分享时请使用）：**
@@ -94,7 +94,7 @@ Full License Text: https://creativecommons.org/licenses/by-nc-sa/4.0/
 3.  **Tutorial Credits**: Huge thanks to the tutorials provided by these predecessors:
     *   AKGWSB - [Writing Minecraft Shaderpacks from Scratch](https://blog.csdn.net/weixin_44176696/category_10388318.html)
     *   szszss - [How to Write Shadersmod Packs](http://blog.hakugyokurou.net/?p=1364)
-4.  **AI Tools Declaration**: AI tools including GPT, Claude, Gemini, and DeepSeek were used to assist in learning, brainstorming, and generating code snippets during the development process.
+4.  **AI Tools Declaration**: AI tools including GPT, Claude, Gemini, DeepSeek, and Kimi were used to assist in learning, brainstorming, and generating code snippets during the development process.
 5.  **Structure Reference**: File naming conventions and folder structure reference BSL Shaders.
 
 ---
@@ -108,9 +108,9 @@ Due to limited personal capability, there may be bugs or oversights in the code.
 *   **Feedback**: Suggestions, bug reports, or casual chats are all welcome!
 
 **You can find me here:**
-*   **Bilibili**: [中影ZY](https://space.bilibili.com/87622349)
 *   **QQ**: 2767334552
 *   **QQ Group**: 650101489 (Password: w8gf)
+*   **Bilibili**: [中影ZY](https://space.bilibili.com/87622349)
 *   **Afdian**: [ZY-PANDA](https://afdian.com/a/zypanda) (Voluntary donations only; this work is free to download).
 
 **Official Download Links (Please use these when sharing):**
