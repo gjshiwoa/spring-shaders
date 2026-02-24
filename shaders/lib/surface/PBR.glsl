@@ -251,9 +251,13 @@ vec3 getScatteredReflection(vec3 reflectDir, vec3 normal, float roughness, float
 
     vec3 scatteredDir = tbn * hemisphere;
 
-    return dot(scatteredDir, normal) > 0.0 
-        ? normalize(scatteredDir)
-        : reflectDir;
+    #ifndef PATH_TRACING
+        return normalize(scatteredDir);
+    #else
+        return dot(scatteredDir, normal) > 0.0 
+            ? normalize(scatteredDir)
+            : reflectDir;
+    #endif
 }
 
 mat3 buildTangentBasis(vec3 N) {

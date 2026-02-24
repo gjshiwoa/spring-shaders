@@ -202,14 +202,17 @@ vec3 reflection(sampler2D tex, vec3 viewPos, vec3 reflectWorldDir, vec3 reflectV
     return max(reflectColor, BLACK);
 }
 
-#ifndef GBF
+#if !defined GBF && defined FSH
 vec3 temporal_Reflection(vec3 color_c, int samples, float r){
-    vec2 uv = texcoord * 2 - 1.0;
+    vec2 uv = texcoord * 2.0 - 1.0;
     float z = texture(depthtex1, uv).r;
     vec4 screenPos = vec4(uv, z, 1.0);
     vec4 viewPos = screenPosToViewPos(screenPos);
     vec4 worldPos = viewPosToWorldPos(viewPos);
     vec3 prePos = getPrePos(worldPos);
+
+    bool isHand = texture(depthtex2, uv).r > z;
+    if(isHand) color_c = vec3(0.0);
 
     prePos.xy = (prePos.xy * 0.5 + 0.5) * viewSize - vec2(0.5);
     vec2 fPrePos = floor(prePos.xy);

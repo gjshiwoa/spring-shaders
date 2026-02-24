@@ -123,6 +123,7 @@ void main() {
 			vec3 skyLight = lightmap.y * BRDF_D
 						* mix(sunColor, skyColor, SUN_SKY_BLEND - 0.05 * noRSM * lightmap.y)
 						* mix(1.0, UoN * 0.5 + 0.5, 0.75);
+			if(isEyeInWater == 1) skyLight = pow(skyLight, vec3(0.7));
 			
 
 			vec4 gi = getGI(depth1, normalW);

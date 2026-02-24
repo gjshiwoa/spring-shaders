@@ -6,13 +6,12 @@ float calculateAverageLuminance() {
 }
 
 float calculateAverageLuminance1() {
-    int samplerLod = int(log2(min(viewWidth, viewHeight))) - 2;
     vec3 c_s = vec3(0.0);
     for(int i = 0; i < 16; i++){
         vec2 offsetUV = offsetUV16[i] * 0.5 + 0.5;
         offsetUV.x = remapSaturate(offsetUV.x, 0.0, 1.0, uvTable[8].x, uvTable[8].z);
         offsetUV.y = remapSaturate(offsetUV.y, 0.0, 1.0, uvTable[8].y, uvTable[8].w);
-        c_s += textureLod(colortex1, offsetUV, samplerLod).rgb;
+        c_s += textureLod(colortex1, offsetUV, 0).rgb;
     }
     c_s /= 16.0;
     return max(getLuminance(c_s), 0.001);

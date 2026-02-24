@@ -57,7 +57,7 @@ void main() {
 	// color.rgb = vec3(temporalBayer64(gl_FragCoord.xy));
 	// color.rgb = vec3(textureLod(shadowtex1, texcoord, 0).r);
 	
-/* DRAWBUFFERS:0 */
+/* RENDERTARGETS: 0 */
 	gl_FragData[0] = saturate(vec4(color.rgb, 1.0));
 }
 

@@ -5,23 +5,11 @@
 // https://zhuanlan.zhihu.com/p/630570619
 
 float calculateCoC(){
-    // if(texture(depthtex0, vec2(0.5, 0.5)).r >= 0.99999) return 0.0;
-
     float depth = texture(depthtex0, texcoord).r;
     float linearDepth = min(far, linearizeDepth(depth));
     float focusDistance = min(far, linearizeDepth(centerDepthSmooth));
 
     float coc = (1.0 - focusDistance / linearDepth);
-
-    // linearDepth /= far;
-    // focusDistance /= far;
-    // float dis = linearDepth - focusDistance;
-    // float farCoC = saturate(dis / (dis + 1.0));
-    // float nearCoC = remapSaturate(linearDepth, 0.0, focusDistance, -0.49, 0.0);
-    // nearCoC = clamp(nearCoC / (nearCoC + 1.0), -1.0, 0.0);
-    // coc = farCoC + nearCoC;
-    // coc *= 2.0;
-
     coc = clamp(coc, -1.0, 1.0);
     
     return coc;

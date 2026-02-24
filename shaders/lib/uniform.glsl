@@ -72,7 +72,8 @@ uniform ivec2 atlasSize;
 uniform vec2 viewSize;
 uniform vec2 invViewSize;
 
-
+// vec2 viewSize = 0.5 * vec2(viewWidth, viewHeight);
+// vec2 invViewSize = 1.0 / viewSize;
 
 uniform float near;
 uniform float far;
