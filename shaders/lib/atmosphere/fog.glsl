@@ -79,7 +79,7 @@ float computeCrepuscularLight(vec4 viewPos){
 
 #ifdef PROGRAM_VLF
 float sampleFogDensityLow(vec3 cameraPos, float height_fraction){
-    vec4 weatherData = texture(noisetex, cameraPos.xz * 0.00045 + vec2(0.17325, 0.17325));
+    vec4 weatherData = textureNice(noisetex, cameraPos.xz * 0.00045 + vec2(0.17325, 0.17325), 128);
     float coverage = saturate(mix(weatherData.r, weatherData.g, 0.5));
     coverage = pow(coverage, remapSaturate(height_fraction, 0.1, 0.75, 0.6, 1.2));
     float fogBaseCoverage = max4(FOG_BASE_COVERAGE_RAIN * rainStrength, 

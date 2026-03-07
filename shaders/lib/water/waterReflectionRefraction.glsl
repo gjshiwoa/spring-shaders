@@ -170,25 +170,22 @@ vec3 reflection(sampler2D tex, vec3 viewPos, vec3 reflectWorldDir, vec3 reflectV
                 reflectColor = skyReflection(reflectWorldDir) * float(dot(reflectWorldDir, upWorldDir) > 0.01)
                              * remapSaturate(lightmap, 0.0, 0.01, 0.0, 1.0);
             } else{
-                #ifdef PATH_TRACING_REFLECTION_VOXEL
-                    vec3 shadowPos = getShadowPos(vec4(hitPosRel, 1.0)).xyz;
-                    float hitShadow = textureLod(shadowtex0, shadowPos, 0).r;
+                vec3 shadowPos = getShadowPos(vec4(hitPosRel, 1.0)).xyz;
+                float hitShadow = textureLod(shadowtex0, shadowPos, 0).r;
 
-                    vec4 hitCol = texelFetch(customimg0, hitVoxel, 0);
-                    vec3 hitAlbedo  = pow(hitCol.rgb, vec3(2.2));
-                    vec3 hitDiffuse = hitAlbedo / PI;
+                vec4 hitCol = texelFetch(customimg0, hitVoxel, 0);
+                vec3 hitAlbedo  = pow(hitCol.rgb, vec3(2.2));
+                vec3 hitDiffuse = hitAlbedo / PI;
 
-                    float hitLoN = saturate(dot(hitNormal, lightWorldDir));
-                    reflectColor += DIRECT_LUMINANCE * sunColor * hitShadow * hitDiffuse * hitLoN;
+                float hitLoN = saturate(dot(hitNormal, lightWorldDir));
+                reflectColor += DIRECT_LUMINANCE * sunColor * hitShadow * hitDiffuse * hitLoN;
 
-                    float hitLMC_y = texelFetch(customimg4, hitVoxel, 0).x;
-                    hitLMC_y = saturate(pow(hitLMC_y, 2.2 + SKY_LIGHT_FALLOFF) * lightmap);
-                    reflectColor += hitLMC_y * mix(sunColor, skyColor, mix(0.5, 1.0, hitLMC_y)) * 
-                                    SKY_LIGHT_BRIGHTNESS * 0.5 * hitDiffuse;
-                    reflectColor += hitCol.a * hitDiffuse;
-                #else
-                    reflectColor = vec3(0.0);
-                #endif
+                float hitLMC_y = texelFetch(customimg4, hitVoxel, 0).x;
+                hitLMC_y = saturate(pow(hitLMC_y, 2.2 + SKY_LIGHT_FALLOFF) * lightmap);
+                reflectColor += hitLMC_y * mix(sunColor, skyColor, mix(0.5, 1.0, hitLMC_y)) * 
+                                SKY_LIGHT_BRIGHTNESS * 0.5 * hitDiffuse;
+                reflectColor += hitCol.a * hitDiffuse;
+                reflectColor = vec3(0.0);
             }
         #else
             if(isEyeInWater == 0){

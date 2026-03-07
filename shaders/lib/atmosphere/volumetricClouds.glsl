@@ -16,7 +16,7 @@
 
 
 float sampleCloudDensityLow(vec3 cameraPos, float height_fraction){
-    vec4 weatherData = texture(noisetex, cameraPos.xz * 0.000025 + vec2(0.17325, 0.17325));
+    vec4 weatherData = textureNice(noisetex, cameraPos.xz * 0.000025 + vec2(0.17325, 0.17325), 128);
     float coverage = mix(weatherData.r, weatherData.g, 0.0);
     coverage = saturate(1.5 * coverage - 0.5 * height_fraction);
     coverage = saturate(1.0 - CLOUD_COVERAGE * coverage - CLOUD_RAIN_ADD_COVERAGE * rainStrength + 0.05);

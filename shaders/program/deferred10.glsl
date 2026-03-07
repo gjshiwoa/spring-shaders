@@ -44,6 +44,7 @@ const bool shadowcolor1Mipmap = false;
 #include "/lib/atmosphere/fog.glsl"
 #include "/lib/atmosphere/celestial.glsl"
 #include "/lib/lighting/pathTracing.glsl"
+#include "/lib/atmosphere/clouds2D.glsl"
 
 
 
@@ -235,6 +236,9 @@ void main() {
 		vec3 cloudScattering = vec3(0.0);
 		float cloudHitLength = clamp(intersectHorizontalPlane(camera, worldDir, 650), 0.0, 20000.0);
 
+		vec4 cloudP = cloud2D(worldDir);
+		
+
 		#ifdef VOLUMETRIC_CLOUDS
 			vec2 cloud_uv = texcoord * 0.5 + vec2(0.5, 0.0);
 			if(!outScreen(cloud_uv * 2.0 - vec2(1.0, 0.0) + vec2(-1.0, 1.0) * invViewSize) && camera.y < 5000.0)	{
@@ -257,6 +261,7 @@ void main() {
 
 		color.rgb = skyBaseColor;	
 		color.rgb += celestial;
+		// color.rgb += cloudP.rgb * sunColor;
 		cloudTransmittance = max(cloudTransmittance, 0.0);
 		cloudScattering = max(cloudScattering, vec3(0.0));
 		color.rgb = color.rgb * cloudTransmittance + cloudScattering;
