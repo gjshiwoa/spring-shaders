@@ -185,7 +185,6 @@ vec3 reflection(sampler2D tex, vec3 viewPos, vec3 reflectWorldDir, vec3 reflectV
                 reflectColor += hitLMC_y * mix(sunColor, skyColor, mix(0.5, 1.0, hitLMC_y)) * 
                                 SKY_LIGHT_BRIGHTNESS * 0.5 * hitDiffuse;
                 reflectColor += hitCol.a * hitDiffuse;
-                reflectColor = vec3(0.0);
             }
         #else
             if(isEyeInWater == 0){
