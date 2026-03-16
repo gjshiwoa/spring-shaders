@@ -48,7 +48,7 @@
 *   **QQ**：2767334552
 *   **QQ交流群**：650101489 (密码：w8gf)
 *   **Bilibili主页**：[中影ZY](https://space.bilibili.com/87622349)
-*   **爱发电**：[ZY-PANDA](https://ifdian.com/a/zypanda) (仅限自愿赞助，本作品完全免费下载)
+*   **爱发电**：[ZY-PANDA](https://ifdian.net/a/zypanda) (仅限自愿赞助，本作品完全免费下载)
 
 **作品官方发布链接（分享时请使用）：**
 *   [GitHub 开源库](https://github.com/gjshiwoa/spring-shaders)
@@ -111,7 +111,7 @@ Due to limited personal capability, there may be bugs or oversights in the code.
 *   **QQ**: 2767334552
 *   **QQ Group**: 650101489 (Password: w8gf)
 *   **Bilibili**: [中影ZY](https://space.bilibili.com/87622349)
-*   **Afdian**: [ZY-PANDA](https://ifdian.com/a/zypanda) (Voluntary donations only; this work is free to download).
+*   **Afdian**: [ZY-PANDA](https://ifdian.net/a/zypanda) (Voluntary donations only; this work is free to download).
 
 **Official Download Links (Please use these when sharing):**
 *   [GitHub Repository](https://github.com/gjshiwoa/spring-shaders)
