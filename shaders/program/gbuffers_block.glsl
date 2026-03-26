@@ -9,6 +9,7 @@ varying mat3 tbnMatrix;
 
 varying vec3 N;
 
+varying vec4 vViewPos;
 varying vec3 mcPos;
 
 #include "/lib/uniform.glsl"
@@ -59,6 +60,13 @@ void main() {
 	}
 	
 	normalFinal = normalize(normalFinal);
+
+	#ifdef PARTICLES
+		vec3 dp1 = dFdx(vViewPos.xyz);
+		vec3 dp2 = dFdy(vViewPos.xyz);
+
+		normalFinal = normalize(cross(dp1, dp2));
+	#endif
 	specularTex = saturate(specularTex);
 
 #ifdef PATH_TRACING
@@ -104,7 +112,7 @@ attribute vec4 at_midBlock;
 
 void main() {
 	gl_Position = ftransform();
-	vec4 vViewPos = gl_ModelViewMatrix * gl_Vertex;
+	vViewPos = gl_ModelViewMatrix * gl_Vertex;
 	vec4 vWorldPos = viewPosToWorldPos(vViewPos);
 	mcPos = vWorldPos.xyz + cameraPosition;
 

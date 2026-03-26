@@ -233,16 +233,13 @@ void main() {
 
 		MaterialParams materialParams = MapMaterialParams(specularMap);
 
-		#ifdef TRANSLUCENT_USE_RESOURCESPACK_PBR
-			if(dot(specularMap.rgb, vec3(1.0)) < 0.001){
+		#if !defined TRANSLUCENT_USE_RESOURCESPACK_PBR && !defined ENTITIES_TRANSLUCENT
+			materialParams.smoothness = TRANSLUCENT_ROUGHNESS;
+			float perceptual_roughness = 1.0 - materialParams.smoothness;
+			materialParams.roughness = perceptual_roughness * perceptual_roughness;
+			materialParams.metalness = TRANSLUCENT_F0;
 		#endif
-				materialParams.smoothness = TRANSLUCENT_ROUGHNESS;
-				float perceptual_roughness = 1.0 - materialParams.smoothness;
-				materialParams.roughness = perceptual_roughness * perceptual_roughness;
-				materialParams.metalness = TRANSLUCENT_F0;
-		#ifdef TRANSLUCENT_USE_RESOURCESPACK_PBR
-			}
-		#endif
+
 		#ifdef PBR_REFLECTIVITY
 			mat2x3 PBR = CalculatePBR(viewDir, normalTexV, lightViewDir, albedo, materialParams);
 			vec3 BRDF = PBR[0] + PBR[1];

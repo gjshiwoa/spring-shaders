@@ -4,6 +4,7 @@ varying vec2 texcoord;
 varying vec4 glcolor;
 
 varying vec3 sunColor, skyColor, lightColor;
+varying vec3 N;
 
 
 
@@ -23,13 +24,19 @@ void main() {
 	vec4 texColor = toLinearR(color);
 	vec2 lightmap = AdjustLightmap(lmcoord);
 	color.rgb = texColor.rgb * lightmap.x * 0.4 * lightColor;
-	color.rgb += texColor.rgb * saturate(lightmap.y + 0.0005) * (sunColor * saturate(lightmap.y) + skyColor);
+
+	vec3 light = texColor.rgb * saturate(lightmap.y + 0.0005) * (sunColor * saturate(lightmap.y) + skyColor);
+	color.rgb += light;
+
 	color.rgb += nightVision * texColor.rgb * NIGHT_VISION_BRIGHTNESS / PI;
+
+	#ifdef LIGHTNING
+		color.a = pow(color.a, 0.5);
+	#endif
 #endif
 
-/* RENDERTARGETS: 0,5 */
+/* RENDERTARGETS: 0 */
 	gl_FragData[0] = vec4(color.rgb, color.a);
-	gl_FragData[1] = vec4(normalEncode(normalize(upPosition)), lmcoord);
 }
 
 #endif
@@ -47,9 +54,12 @@ void main() {
 	gl_Position.xyz /= gl_Position.w;
     gl_Position.xy += jitter * TAA_JITTER_AMOUNT;
     gl_Position.xyz *= gl_Position.w;
+	
 	lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 	glcolor = gl_Color;
+
+	N = normalize(gl_NormalMatrix * gl_Normal);
 
 	sunColor = texelFetch(gaux4, sunColorUV, 0).rgb * 0.4;
 	skyColor = texelFetch(gaux4, skyColorUV, 0).rgb;
@@ -63,6 +73,11 @@ void main() {
 		sunColor = mix(vec3(1.0), netherColor, 0.3) * 5.0;
 		skyColor = netherColor * 0.0;
 		lightColor = netherColor * 1.0;
+	#endif
+	#ifdef LIGHTNING
+		sunColor = vec3(0.0);
+		skyColor = vec3(0.0);
+		lightColor = vec3(10.0);
 	#endif
 
 
