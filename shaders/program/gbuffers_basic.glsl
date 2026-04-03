@@ -6,6 +6,7 @@ varying vec4 glcolor;
 #include "/lib/uniform.glsl"
 #include "/lib/settings.glsl"
 #include "/lib/common/utils.glsl"
+#include "/lib/camera/colorToolkit.glsl"
 
 
 
@@ -13,9 +14,12 @@ varying vec4 glcolor;
 
 void main() {
 	vec4 color = glcolor;
+	#if MC_VERSION > 12111
+		color.rgb = toLinearR(color.rgb);
+	#endif
 
 /* RENDERTARGETS: 0 */
-	gl_FragData[0] = vec4(color.rgb, 1.0);
+	gl_FragData[0] = color;
 }
 
 #endif
