@@ -396,6 +396,7 @@ option.centerDepthHalflife.comment = Speed at which the focus distance adjusts.
 option.DOF_BOKEH_RADIUS = Bokeh Radius
 option.DOF_FOCUS_TOLERANCE = Focus Tolerance
 option.DOF_FOCUS_TOLERANCE.comment = The range of the sharp area.
+option.DOF_EDGE_BLUR = Edge Blur
 option.DOF_SAMPLES = DOF Samples
 
 option.VIGNETTE = Vignette

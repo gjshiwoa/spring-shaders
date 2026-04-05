@@ -396,6 +396,7 @@ option.centerDepthHalflife.comment = 指平滑焦距变化的速度
 option.DOF_BOKEH_RADIUS = 景深散景半径
 option.DOF_FOCUS_TOLERANCE = 景深对焦容差
 option.DOF_FOCUS_TOLERANCE.comment = 指清晰的范围区间
+option.DOF_EDGE_BLUR = 边缘模糊
 option.DOF_SAMPLES = 景深采样数
 
 option.VIGNETTE = 晕影
