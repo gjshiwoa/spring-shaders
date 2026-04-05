@@ -11,6 +11,13 @@ float calculateCoC(){
 
     float coc = (1.0 - focusDistance / linearDepth);
     coc = clamp(coc, -1.0, 1.0);
+
+    vec2 edgeUV = (texcoord - 0.5) * vec2(aspectRatio, 1.0);
+    float edgeRadius = length(vec2(0.5 * aspectRatio, 0.5));
+    float edgeFactor = smoothstep(DOF_EDGE_START, 1.0, saturate(length(edgeUV) / edgeRadius));
+    float edgeCoC = DOF_EDGE_STRENGTH * edgeFactor;
+
+    coc = (coc < 0.0 ? -1.0 : 1.0) * min(1.0, abs(coc) + edgeCoC);
     
     return coc;
 }

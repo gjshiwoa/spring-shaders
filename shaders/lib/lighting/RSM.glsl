@@ -108,10 +108,8 @@ float estimateRsmLeakAO(vec3 mainDir, vec3 hrrViewPos){
     const float STEP_GROWTH_BASE  = 1.5;
     const float FALLOFF_SCALE     = 0.1;
     const float HIT_FALLOFF_SCALE = 0.1;
-    const float JITTER_SCALE      = 1.0;
-    const float MAX_JITTER        = 0.95;
 
-    float jitter = clamp(temporalBayer64(gl_FragCoord.xy) * JITTER_SCALE, 0.0, MAX_JITTER);
+    float jitter = temporalBayer64(gl_FragCoord.xy);
 
     float cumUnjittered = 0.0;
     float curStep = STEP_SIZE;
@@ -148,6 +146,7 @@ float estimateRsmLeakAO(vec3 mainDir, vec3 hrrViewPos){
     }
 
     if (isHit) {
+        // prevP += mainDir * 0.1;
         vec3 worldPos = viewPosToWorldPos(vec4(prevP, 1.0)).xyz;
         vec3 shadowPos = getShadowPos(vec4(worldPos, 1.0)).xyz;
         float psd = texture(shadowtex1, shadowPos.xy).r;

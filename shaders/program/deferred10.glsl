@@ -147,7 +147,8 @@ void main() {
 		float cloudShadow = CT4R.y;
 		vec3 colorShadow = vec3(0.0);
 		if(!outScreen(shadowPos.xy) && cos_theta > 0.001
-			&& texelFetch(shadowtex1, ivec2(shadowPos.xy), 0).r < 0.99999){
+			&& texelFetch(shadowtex1, ivec2(shadowPos.xy * shadowMapResolution), 0).r < 1.0
+			&& worldDis1 < shadowDistance){
 			colorShadow = getColorShadow(shadowPos, shadow) * cloudShadow;
 		}
 		shadow = shadow * cloudShadow;

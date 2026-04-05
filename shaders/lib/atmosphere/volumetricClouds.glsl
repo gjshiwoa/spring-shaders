@@ -78,7 +78,15 @@ float computeCloudShadowTransmittance(vec3 mcCameraPos, vec3 lightWorldDir, floa
 
     float distToCloudMin = intersectHorizontalPlane(mcCameraPos, lightWorldDir, cloudHeightMin);
     float distToCloudMax = intersectHorizontalPlane(mcCameraPos, lightWorldDir, cloudHeightMin + CLOUD_THICKNESS * 0.66);
-    float cloudSpan = max(distToCloudMax - distToCloudMin, 0.001);
+
+    float tEnter = min(distToCloudMin, distToCloudMax);
+    float tExit = max(distToCloudMin, distToCloudMax);
+    if(tExit <= 0.0) return 1.0;
+
+    tEnter = max(tEnter, 0.0);
+    float cloudSpan = max(tExit - tEnter, 0.0);
+    if(cloudSpan <= 0.0) return 1.0;
+
     float ds = cloudSpan / float(CLOUD_SHADOW_SAMPLES);
     float sampleJitter = fract(jitter);
 
@@ -86,7 +94,7 @@ float computeCloudShadowTransmittance(vec3 mcCameraPos, vec3 lightWorldDir, floa
     float cloudShadowStepScale = ds * CLOUD_SHADOW_OCCLUSION_COEFFICIENT;
     for(int i = 0; i < CLOUD_SHADOW_SAMPLES; i++){
         float sampleT = (float(i) + sampleJitter) / float(CLOUD_SHADOW_SAMPLES);
-        float distToCloudSam = intersectHorizontalPlane(mcCameraPos, lightWorldDir, cloudHeightMin + sampleT * CLOUD_THICKNESS * 0.66);
+        float distToCloudSam = mix(tEnter, tExit, sampleT);
         float cloudShadowDensity = sampleCloudDensity(mcCameraPos + distToCloudSam * lightWorldDir, true);
         cloudShadowOpticalDepth += saturate(cloudShadowDensity);
     }

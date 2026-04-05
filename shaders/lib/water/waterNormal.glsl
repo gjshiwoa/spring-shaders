@@ -61,7 +61,7 @@ float getwaves1(vec2 position, int iterations) {
     position.y *= 3.0;
     position -= vec2(0, frameTimeCounter * WAVE_SPEED * 0.35);
 
-    height = waterFBM(vec3(position, frameTimeCounter * WAVE_SPEED * 0.4), iterations);
+    height = waterFBM(vec3(position, frameTimeCounter * WAVE_SPEED * 0.3), iterations);
     // height = pow(height, 1.45);
 
     height = mix(1.0, height, 1.0);
