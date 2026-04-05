@@ -130,9 +130,9 @@ void main() {
 
 		
 		
-		color.rgb = albedo * 0.05;
-		color.rgb += skyLight * SKY_LIGHT_BRIGHTNESS;
-		color.rgb *= ao /*+ aoMultiBounce * 0.2*/;
+			color.rgb = albedo * 0.05;
+			color.rgb += skyLight * SKY_LIGHT_BRIGHTNESS;
+			color.rgb *= ao /*+ aoMultiBounce * 0.2*/;
 		color.rgb += direct;
 		color.rgb += artificial;
 	}

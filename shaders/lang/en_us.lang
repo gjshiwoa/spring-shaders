@@ -41,6 +41,10 @@ option.HELD_BLOCK_DYNAMIC_LIGHT = Handheld Dynamic Lights
 option.HELD_BLOCK_NORMAL_AFFECT = Dynamic Light Normal Influence
 option.HELD_BLOCK_NORMAL_AFFECT.comment = Objects lit by dynamic lights appear brighter when facing the player.
 option.DYNAMIC_LIGHT_DISTANCE = Dynamic Light Distance
+option.DEFERRED10_PT_ALBEDO_SCALE = Base Brightness (Path Tracing)
+option.DEFERRED10_PT_ALBEDO_SCALE.comment = Controls the unlit base brightness when PATH_TRACING is enabled.
+option.DEFERRED10_ALBEDO_SCALE = Base Brightness (Unlit)
+option.DEFERRED10_ALBEDO_SCALE.comment = Controls the unlit base brightness in the standard deferred branch.
 
 option.DIRECT_LUMINANCE = Direct Lighting Intensity
 option.SHADOWMAP_EXCLUDE_ENTITIES = Exclude Entities from Shadow Map
@@ -184,6 +188,11 @@ option.CLOUD_BRIGHTNESS_AMBIENT.comment = Brightness influenced by skylight (coo
 option.CLOUD_SKY_MIX = Sky Color Mix Intensity
 option.CLOUD_FADE_DISTANCE = Cloud Fade Distance
 option.CLOUD_FADE_DISTANCE.comment = Speed at which distant clouds fade out. Lower values result in faster fading.
+option.CLOUD_SHADOW = Cloud Shadow
+option.CLOUD_SHADOW.comment = Enables cloud self-shadowing for deeper volume and contrast.
+option.CLOUD_SHADOW_SAMPLES = Cloud Shadow Samples
+option.CLOUD_SHADOW_OCCLUSION_COEFFICIENT = Cloud Shadow Occlusion Coefficient
+option.CLOUD_SHADOW_OCCLUSION_COEFFICIENT.comment = Controls how strongly cloud shadowing darkens the cloud interior.
 option.CLOUD_STEP_ALL = High Altitude Clipping
 
 option.SUN_RADIUS = Sun Radius
@@ -372,6 +381,9 @@ option.AGX_LOOK_BRIGHTNESS = AGX Look: Brightness
 option.AGX_LOOK_WHITE = AGX Look: White Point
 option.AGX_LOOK_CONTRAST = AGX Look: Contrast
 option.AGX_LOOK_SATURATE = AGX Look: Saturation
+
+option.POST_PROCESS_NOISE = Post-Processing Noise
+option.POST_PROCESS_NOISE.comment = Adds subtle grain after tone mapping.
 
 option.MOTION_BLUR = Motion Blur
 option.MOTIONBLUR_MAX = Max Motion Blur

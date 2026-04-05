@@ -41,6 +41,10 @@ option.HELD_BLOCK_DYNAMIC_LIGHT = 手持动态光源
 option.HELD_BLOCK_NORMAL_AFFECT = 动态光源法线影响
 option.HELD_BLOCK_NORMAL_AFFECT.comment = 被动态光源所照亮的物体，越面朝人物越亮 的效果
 option.DYNAMIC_LIGHT_DISTANCE = 动态光源照亮距离
+option.DEFERRED10_PT_ALBEDO_SCALE = 基础亮度（光追无光照）
+option.DEFERRED10_PT_ALBEDO_SCALE.comment = 用于 PATH_TRACING 开启时的无光照基础亮度
+option.DEFERRED10_ALBEDO_SCALE = 基础亮度（普通无光照）
+option.DEFERRED10_ALBEDO_SCALE.comment = 用于普通延迟光照分支的无光照基础亮度
 
 option.DIRECT_LUMINANCE = 直接光照强度
 option.SHADOWMAP_EXCLUDE_ENTITIES = 排除实体的阴影贴图
@@ -184,6 +188,11 @@ option.CLOUD_BRIGHTNESS_AMBIENT.comment = 受天空影响的亮度，偏冷色
 option.CLOUD_SKY_MIX = 天空色混合强度
 option.CLOUD_FADE_DISTANCE = 云淡出距离
 option.CLOUD_FADE_DISTANCE.comment = 远距离的云淡出的速度，值越小淡出得越快
+option.CLOUD_SHADOW = 云阴影
+option.CLOUD_SHADOW.comment = 启用云体自阴影，让云层更有体积和对比度
+option.CLOUD_SHADOW_SAMPLES = 云阴影采样数
+option.CLOUD_SHADOW_OCCLUSION_COEFFICIENT = 云阴影遮蔽系数
+option.CLOUD_SHADOW_OCCLUSION_COEFFICIENT.comment = 控制云体内部阴影的压暗强度
 option.CLOUD_STEP_ALL = 高海拔裁切
 
 option.SUN_RADIUS = 太阳半径
@@ -372,6 +381,9 @@ option.AGX_LOOK_BRIGHTNESS = AGX外观_亮度
 option.AGX_LOOK_WHITE = AGX外观_白点
 option.AGX_LOOK_CONTRAST = AGX外观_对比度
 option.AGX_LOOK_SATURATE = AGX外观_饱和度
+
+option.POST_PROCESS_NOISE = 后处理噪声
+option.POST_PROCESS_NOISE.comment = 在色调映射后叠加微弱噪点.
 
 option.MOTION_BLUR = 运动模糊
 option.MOTIONBLUR_MAX = 运动模糊最大值

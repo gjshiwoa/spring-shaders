@@ -72,6 +72,28 @@ float sampleCloudDensity(vec3 cameraPos, bool doCheaply){
     return saturate(final_cloud > (0.01) ? final_cloud : 0.0);
 }
 
+float computeCloudShadowTransmittance(vec3 mcCameraPos, vec3 lightWorldDir, float jitter){
+    lightWorldDir = normalize(lightWorldDir);
+    if(abs(lightWorldDir.y) < 1e-5) return 1.0;
+
+    float distToCloudMin = intersectHorizontalPlane(mcCameraPos, lightWorldDir, cloudHeightMin);
+    float distToCloudMax = intersectHorizontalPlane(mcCameraPos, lightWorldDir, cloudHeightMin + CLOUD_THICKNESS * 0.66);
+    float cloudSpan = max(distToCloudMax - distToCloudMin, 0.001);
+    float ds = cloudSpan / float(CLOUD_SHADOW_SAMPLES);
+    float sampleJitter = fract(jitter);
+
+    float cloudShadowOpticalDepth = 0.0;
+    float cloudShadowStepScale = ds * CLOUD_SHADOW_OCCLUSION_COEFFICIENT;
+    for(int i = 0; i < CLOUD_SHADOW_SAMPLES; i++){
+        float sampleT = (float(i) + sampleJitter) / float(CLOUD_SHADOW_SAMPLES);
+        float distToCloudSam = intersectHorizontalPlane(mcCameraPos, lightWorldDir, cloudHeightMin + sampleT * CLOUD_THICKNESS * 0.66);
+        float cloudShadowDensity = sampleCloudDensity(mcCameraPos + distToCloudSam * lightWorldDir, true);
+        cloudShadowOpticalDepth += saturate(cloudShadowDensity);
+    }
+
+    return exp(-cloudShadowOpticalDepth * cloudShadowStepScale);
+}
+
 
 
 float GetAttenuationProbability(float sampleDensity){

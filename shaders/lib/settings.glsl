@@ -133,6 +133,7 @@ const int noiseTextureResolution = 64;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#define POST_PROCESS_NOISE
 #define TAA_JITTER_AMOUNT 1.0       // [0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
 #define TAA_VARIANCE_CLIP_GAMMA 1.0 // [0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0]
 #define SHARPENING_FACTOR 0.6       // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
@@ -174,7 +175,7 @@ const vec3 MieSigma = vec3(3.996) * 1e-6;
 const vec3 MieAbsorptionSigma = vec3(4.4) * 1e-6;
 const vec3 OzoneAbsorptionSigma = vec3(0.650, 1.881, 0.085) * 1e-6;
 
-#define Information CHUN_v2_2026_02_BY_ZY     //     [CHUN_v2_2026_02_BY_ZY]
+#define Information CHUN_v2_2026_04_BY_ZY     //     [CHUN_v2_2026_04_BY_ZY]
 
 const float H_R = 8500.0;
 const float H_M = 1200.0;
@@ -276,6 +277,10 @@ const int CLOUD_MAX_STEPS = 80;      // 最大步进次数
 const int CLOUD_EMPTY_STEPS = 4;      // 连续空样本阈值
 const float CLOUD_MAX_DISTANCE = 40000.0;  // 最大步进距离
 
+#define CLOUD_SHADOW
+#define CLOUD_SHADOW_SAMPLES 4          // [2 4 6 8 10 12 16 20]
+#define CLOUD_SHADOW_OCCLUSION_COEFFICIENT 0.1     // [0.025 0.05 0.075 0.1 0.15 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+
 
 
 
@@ -369,6 +374,8 @@ const float shadowDistance = 160.0;    // [40.0 80.0 120.0 160.0 200.0 240.0 280
 float shadowMapScale = (120.0 / shadowDistance) * (shadowMapResolution / 2048.0);
 
 #define DIRECT_LUMINANCE 1.75 // [0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0]
+#define DEFERRED10_PT_ALBEDO_SCALE 0.001 // [0.0 0.0005 0.001 0.0015 0.002 0.003 0.004 0.005]
+#define DEFERRED10_ALBEDO_SCALE 0.01     // [0.0 0.0025 0.005 0.0075 0.01 0.0125 0.015 0.0175 0.02 0.025 0.03 0.04 0.05]
 
 
 

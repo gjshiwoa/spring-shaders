@@ -51,7 +51,9 @@ void main() {
 	// color.rgb = q_albedo;
 	
 	color.rgb = TONE_MAPPING(color.rgb);
+	#ifdef POST_PROCESS_NOISE
 	color.rgb += rand2_3(texcoord + sin(frameTimeCounter)) / 255.0;
+	#endif
 
 	// color.rgb = vec3(fwidth(getLinearDepth(texcoord)));
 

@@ -1,3 +1,5 @@
+
+
 varying vec2 texcoord;
 
 varying vec3 sunWorldDir, moonWorldDir, lightWorldDir;
@@ -141,19 +143,19 @@ void main() {
 			}
 		#endif
 
-		float shadow = 1.0;
+		float shadow = CT4R.x;
+		float cloudShadow = CT4R.y;
 		vec3 colorShadow = vec3(0.0);
-		if(!outScreen(shadowPos.xy) && cos_theta > 0.001){
-			shadow = CT4R.x;
-			colorShadow = getColorShadow(shadowPos, shadow);
+		if(!outScreen(shadowPos.xy) && cos_theta > 0.001
+			&& texelFetch(shadowtex1, ivec2(shadowPos.xy), 0).r < 0.99999){
+			colorShadow = getColorShadow(shadowPos, shadow) * cloudShadow;
 		}
-		float RTShadow = saturate(CT4R.y);
-		shadow = min(shadow, RTShadow);
+		shadow = shadow * cloudShadow;
 
 		shadow = saturate(shadow);
 		vec3 visibility = vec3(shadow + colorShadow);
 		vec3 direct = sunColor * BRDF * visibility * cos_theta;
-
+		L2 *= remapSaturate(cloudShadow, 0.0, 0.66, 0.05, 1.0);
 
 
 		vec3 gi_PT = vec3(0.0);
@@ -200,14 +202,14 @@ void main() {
 		#endif
 
 		#ifdef PATH_TRACING
-			color.rgb = albedo * 0.001 
+			color.rgb = albedo * DEFERRED10_PT_ALBEDO_SCALE 
 						+ nightVision * diffuse * NIGHT_VISION_BRIGHTNESS 
 						+ gi_PT;
 		#else
-			color.rgb = (albedo * 0.01 
-						+ nightVision * diffuse * NIGHT_VISION_BRIGHTNESS 
-						+ skyLight * SKY_LIGHT_BRIGHTNESS 
-						+ L2 * lightMask * RSM_BRIGHTNESS) * ao;
+			color.rgb = (albedo * DEFERRED10_ALBEDO_SCALE * ao
+						+ nightVision * diffuse * NIGHT_VISION_BRIGHTNESS * ao
+						+ skyLight * SKY_LIGHT_BRIGHTNESS * ao 
+						+ L2 * lightMask * RSM_BRIGHTNESS);
 		#endif
 
 		color.rgb += direct * lightMask * DIRECT_LUMINANCE;

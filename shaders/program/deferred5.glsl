@@ -1,7 +1,13 @@
+#define CLOUD3D
+
 varying vec2 texcoord;
 
 varying vec3 sunWorldDir, moonWorldDir, lightWorldDir;
 varying vec3 sunViewDir, moonViewDir, lightViewDir;
+
+varying float isNoon, isNight, sunRiseSet;
+varying float isNoonS, isNightS, sunRiseSetS;
+varying vec3 sunColor, skyColor;
 
 #include "/lib/uniform.glsl"
 #include "/lib/settings.glsl"
@@ -26,6 +32,8 @@ const bool shadowcolor1Mipmap = false;
 #include "/lib/lighting/lightmap.glsl"
 #include "/lib/lighting/shadowMapping.glsl"
 #include "/lib/lighting/screenSpaceShadow.glsl"
+
+#include "/lib/atmosphere/volumetricClouds.glsl"
 
 
 
@@ -64,6 +72,14 @@ void main() {
 		float cos_theta_O = dot(normalV, lightViewDir);
 		float cos_theta = max(cos_theta_O, 0.0);
 
+		float cloudShadowTrans = 1.0;
+		#ifdef CLOUD_SHADOW
+			vec3 mcCameraPos = worldPos1.xyz + camera;
+			float noise = temporalBayer64(gl_FragCoord.xy);
+			cloudShadowTrans = computeCloudShadowTransmittance(mcCameraPos, lightWorldDir, noise);
+			cloudShadowTrans = saturate(cloudShadowTrans);
+		#endif
+
 		// bzyzhang: 练习项目(十一)：次表面散射的近似实现
 		// https://zhuanlan.zhihu.com/p/348106844
 		float sssWrap = SSS_INTENSITY * materialParams.subsurfaceScattering;
@@ -74,17 +90,20 @@ void main() {
 		float RTShadow = 1.0;
 		
 		if(!outScreen(shadowPos.xy) && cos_theta > 0.001){
+			sssWrap = max((1.0 - cloudShadowTrans) * 1.0, sssWrap);
+			sssWrap *= remapSaturate(cloudShadowTrans, 0.9, 1.0, 1.0, 0.1);
 			shadow = min(parallaxShadow, shadowMapping(worldPos1, normalW, sssWrap));
 			shadow = mix(1.0, shadow, remapSaturate(worldDis1, shadowDistance * 0.9, shadowDistance, 1.0, 0.0));
-			shadow = max(shadow, 0.0);
+			shadow = saturate(shadow);
 		}
 
 		RTShadow = screenSpaceShadow(viewPos1.xyz, normalV, shadow);
 		float mixFactor = remapSaturate(worldDis1, shadowDistance * 0.33, shadowDistance * 0.66, 1.0, 0.0);
 		RTShadow = remapSaturate(worldDis1, shadowDistance * 0.9, shadowDistance, 1.0, 0.9) * 
 				mix(RTShadow, 1.0, saturate(sssWrap) * mixFactor * (1.0 - SSS_RT_SHADOW_VISIBILITY));
+		RTShadow = saturate(RTShadow);
 
-		CT4.r = pack2x8To16(shadow, RTShadow);
+		CT4.r = pack2x8To16(min(shadow, RTShadow), cloudShadowTrans);
 	}
 
 
