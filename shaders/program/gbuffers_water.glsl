@@ -398,14 +398,19 @@ void main() {
 	skyColor = texelFetch(gaux4, skyColorUV, 0).rgb;
 
 	#ifdef END
-		sunColor = mix(vec3(1.0), endColor, 0.8) * 2.0;
-		skyColor = endColor * 0.0;
+		sunColor = mix(vec3(1.0), endColor, 0.8) * 1.0;
+		skyColor = endColor * 1.0;
 		// lightColor *= 3.0;
 	#endif
 	#ifdef NETHER
-		sunColor = mix(vec3(1.0), netherColor, 0.3) * 5.0;
-		skyColor = netherColor * 0.0;
-		// lightColor = netherColor * 1.0;
+		sunColor = mix(vec3(1.0), netherColor, 0.5) * 10.0;
+		skyColor = sunColor * 10.0;
+		// lightColor = sunColor * 0.1;
+	#endif
+	#ifdef LIGHTNING
+		sunColor = vec3(0.0);
+		skyColor = vec3(0.0);
+		// lightColor = vec3(10.0);
 	#endif
 
 	lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
