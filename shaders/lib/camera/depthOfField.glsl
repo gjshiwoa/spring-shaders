@@ -50,6 +50,10 @@ vec3 sampleWithKernel() {
         float curCoC = curData.a;
         float weight = 1.0;
         weight *= step(0.0, coc * curCoC);
+        #ifdef DOF_EDGE_BLUR
+            weight += 0.9;
+        #endif
+        weight = saturate(weight);
         
         color += curData.rgb * weight;
         w_s += weight;

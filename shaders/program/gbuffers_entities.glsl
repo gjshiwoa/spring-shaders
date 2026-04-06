@@ -7,11 +7,14 @@ varying vec4 glcolor;
 
 varying mat3 tbnMatrix;
 
+varying vec3 sunColor, skyColor, lightColor;
+
 #include "/lib/uniform.glsl"
 #include "/lib/settings.glsl"
 #include "/lib/common/utils.glsl"
 #include "/lib/camera/colorToolkit.glsl"
 #include "/lib/common/normal.glsl"
+#include "/lib/lighting/lightmap.glsl"
 
 #ifdef FSH
 
@@ -45,6 +48,16 @@ void main() {
 		specularTex = vec4(0.0, 0.0, 0.0, 253.0 / 255.0);
 		normalTex = normalize(upPosition);
 		lightmapCoord = vec2(0.0, 1.0);
+	}
+
+	vec4 passD = texelFetch(gaux4, passUV, 0);
+	if(passD.r > 0.5){
+		texColor = toLinearR(color);
+		vec2 lightmap = AdjustLightmap(lmcoord);
+		color.rgb = texColor.rgb * lightmap.x * 0.4 * lightColor;
+		vec3 light = texColor.rgb * saturate(lightmap.y + 0.0005) * (sunColor * saturate(lightmap.y) + skyColor);
+		color.rgb += light;
+		color.rgb += nightVision * texColor.rgb * NIGHT_VISION_BRIGHTNESS / PI;
 	}
 
 #ifdef PATH_TRACING
@@ -114,6 +127,25 @@ void main() {
 	#endif
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 	glcolor = gl_Color;
+
+	sunColor = texelFetch(gaux4, sunColorUV, 0).rgb * 0.4;
+	skyColor = texelFetch(gaux4, skyColorUV, 0).rgb;
+	lightColor = artificial_color;
+	#ifdef END
+		sunColor = mix(vec3(1.0), endColor, 0.8) * 2.0;
+		skyColor = endColor * 0.0;
+		lightColor *= 3.0;
+	#endif
+	#ifdef NETHER
+		sunColor = mix(vec3(1.0), netherColor, 0.3) * 5.0;
+		skyColor = netherColor * 0.0;
+		lightColor = netherColor * 1.0;
+	#endif
+	#ifdef LIGHTNING
+		sunColor = vec3(0.0);
+		skyColor = vec3(0.0);
+		lightColor = vec3(10.0);
+	#endif
 }
 
 #endif

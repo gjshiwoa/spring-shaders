@@ -153,6 +153,7 @@ vec3 AgX(vec3 color) {
     color = agxDefaultContrastApprox7(color);
 
     color = AgXOutsetMatrix * color;
+    color = max(color, 0.0);
     // color = LINEAR_REC2020_TO_LINEAR_SRGB * color;
 
     // vec2 p = texcoord + sin(frameTimeCounter);
@@ -160,7 +161,7 @@ vec3 AgX(vec3 color) {
     // r.x = fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
     // r.y = fract(sin(dot(p, vec2(269.5, 183.3))) * 43758.5453123);
     // r.z = fract(sin(dot(p, vec2(419.2, 371.9))) * 43758.5453123); 
-    color = simpleFilter(color, vec3(1.0), vec3((2.0) / 255.0), vec3(1.0), 1.0);
+    // color = simpleFilter(color, vec3(1.0), vec3((2.0) / 255.0), vec3(1.0), 1.0);
     toLinear(color);
     
     return color;

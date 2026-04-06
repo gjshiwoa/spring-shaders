@@ -1,10 +1,11 @@
 option.Information = Shader Information
-profile.Balanced = Balanced
+profile.Balanced_ACES = Balanced (ACES)
+profile.Balanced_Agx = Balanced (AgX)
 profile.Comfortable = Comfortable
 profile.Bright = Bright
 profile.Vivid = Vivid
 profile.Native = Native
-profile.comment = Balanced: Default settings. Comfortable: Uses Hejl tone mapping with reduced bloom for a cleaner look. Bright: Increases overall brightness based on Balanced. Vivid: Adjusts brightness, contrast, and saturation for a more vibrant look. Native: Closer to the raw, unadjusted rendering.
+profile.comment = Balanced (ACES): Default image settings. Balanced (AgX): Switches to AgX tone mapping, making bright highlights appear whiter and reducing oversaturation. Comfortable: Switches to Hejl tone mapping and lowers bloom intensity for a cleaner, more comfortable look. Bright: Increases overall brightness on top of Balanced. Vivid: Adjusts brightness, contrast, and saturation on top of Balanced. Native: Closer to the look with no image adjustments.
 
 screen.Lighting = Lighting
 option.DISABLE_LEAKAGE_REPAIR = Disable Leakage Repair
@@ -189,10 +190,10 @@ option.CLOUD_SKY_MIX = Sky Color Mix Intensity
 option.CLOUD_FADE_DISTANCE = Cloud Fade Distance
 option.CLOUD_FADE_DISTANCE.comment = Speed at which distant clouds fade out. Lower values result in faster fading.
 option.CLOUD_SHADOW = Cloud Shadow
-option.CLOUD_SHADOW.comment = Enables cloud self-shadowing for deeper volume and contrast.
+option.CLOUD_SHADOW.comment = Enables volumetric clouds to cast shadows onto the ground, simulating sunlight being blocked by clouds.
 option.CLOUD_SHADOW_SAMPLES = Cloud Shadow Samples
 option.CLOUD_SHADOW_OCCLUSION_COEFFICIENT = Cloud Shadow Occlusion Coefficient
-option.CLOUD_SHADOW_OCCLUSION_COEFFICIENT.comment = Controls how strongly cloud shadowing darkens the cloud interior.
+option.CLOUD_SHADOW_OCCLUSION_COEFFICIENT.comment = Controls how strongly cloud shadows darken the ground beneath them.
 option.CLOUD_STEP_ALL = High Altitude Clipping
 
 option.SUN_RADIUS = Sun Radius

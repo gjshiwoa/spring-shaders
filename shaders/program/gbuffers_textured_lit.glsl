@@ -32,11 +32,23 @@ void main() {
 
 	#ifdef LIGHTNING
 		color.a = pow(color.a, 0.5);
+		#if MC_VERSION <= 12111
+			vec4 specularTex = vec4(0.0, 0.0, 0.0, 253.0 / 255.0);
+			vec3 normalTex = normalize(upPosition);
+			vec2 lightmapCoord = vec2(0.0, 1.0);
+		#endif
 	#endif
 #endif
 
+#if MC_VERSION <= 12111 && defined LIGHTNING
+/* RENDERTARGETS: 0,4,5 */
+	gl_FragData[0] = vec4(color.rgb, color.a);
+	gl_FragData[1] = vec4(pack2x8To16(1.0, 0.0), pack2x8To16(0.0, 0.0), pack4x8To2x16(specularTex));
+	gl_FragData[2] = vec4(normalEncode(normalTex), lightmapCoord);
+#else
 /* RENDERTARGETS: 0 */
 	gl_FragData[0] = vec4(color.rgb, color.a);
+#endif
 }
 
 #endif

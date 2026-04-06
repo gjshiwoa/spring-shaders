@@ -54,6 +54,10 @@ void main() {
 		CT7 = mix(preColor, newColor, 0.05);
 	}
 
+	if(ivec2(gl_FragCoord.xy) == passUV){
+		CT7 = vec4(1.0, 0.0, 0.0, 1.0);
+	}
+
 
 /* DRAWBUFFERS:7 */
 	gl_FragData[0] = CT7;

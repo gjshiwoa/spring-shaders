@@ -50,7 +50,7 @@ void main() {
     //     toLinear(q_albedo);
 	// color.rgb = q_albedo;
 	
-	color.rgb = TONE_MAPPING(color.rgb);
+	color.rgb = max(TONE_MAPPING(color.rgb), vec3(0.0));
 	#ifdef POST_PROCESS_NOISE
 	color.rgb += rand2_3(texcoord + sin(frameTimeCounter)) / 255.0;
 	#endif

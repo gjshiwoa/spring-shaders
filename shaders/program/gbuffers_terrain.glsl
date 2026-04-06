@@ -159,7 +159,9 @@ void main() {
 	}
 
 	normalFinal = normalize(normalFinal);
-	normalFinal = mix(normalFinal, N1, remapSaturate(dot(N, -normalize(viewPos.xyz)), 0.0, 0.25, 1.0, 0.0));
+	#ifndef PATH_TRACING
+		normalFinal = mix(normalFinal, N1, remapSaturate(dot(N, -normalize(viewPos.xyz)), 0.0, 0.25, 1.0, 0.0));
+	#endif
 	specularTex = saturate(specularTex);
 	// color.rgb = vec3(biome_precipitation);
 

@@ -87,11 +87,11 @@ const int noiseTextureResolution = 64;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // #define PARALLAX_MAPPING
 #define PARALLAX_TYPE 0             // [0 1]
-#define PARALLAX_SAMPLES 30.0      // [15.0 30.0 45.0 60.0 75.0 90.0 120.0 150.0 180.0]
+#define PARALLAX_SAMPLES 45.0      // [15.0 30.0 45.0 60.0 75.0 90.0 120.0 150.0 180.0]
 #define PARALLAX_HEIGHT 0.25        // [0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0]
 #define PARALLAX_DISTANCE 30.0      // [5.0 10.0 15.0 20.0 25.0 30.0 40.0 50.0 60.0]
 #define PARALLAX_SHADOW
-#define PARALLAX_SHADOW_SAMPLES 8.0   // [4.0 8.0 12.0 16.0 20.0 24.0 28.0 32.0]
+#define PARALLAX_SHADOW_SAMPLES 12.0   // [4.0 8.0 12.0 16.0 20.0 24.0 28.0 32.0]
 #define PARALLAX_SHADOW_SOFTENING 1.0   // [0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 2.5 3.0 3.5 4.0 5.0]
 #define PARALLAX_NORMAL_MIX_WEIGHT 0.5   // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 #define PARALLAX_FORCE_NORMAL_VERTICAL
@@ -188,7 +188,11 @@ const ivec4 MS_O = ivec4(0, 0, 63, 63);
 const ivec2 sunColorUV = ivec2(1, 256 + 10);
 const ivec2 skyColorUV = ivec2(1 + 10, 256 + 10);
 const ivec2 averageLumUV = ivec2(0, 0);
-
+const ivec2 rightLitUV = ivec2(1 + 20, 256 + 10);
+const ivec2 LeftLitUV = ivec2(1 + 30, 256 + 10);
+const ivec2 rightLitPreUV = ivec2(1 + 40, 256 + 10);
+const ivec2 LeftLitPreUV = ivec2(1 + 50, 256 + 10);
+const ivec2 passUV = ivec2(1 + 60, 256 + 10);
 
 #define ATMOSPHERE_SCATTERING_SAMPLES 16    // [4 8 12 16 20 24 32 48 64 86 128]
 
@@ -341,7 +345,7 @@ const float voxelDistance = 128.0;
 #define SKY_LIGHT_BRIGHTNESS 5.0    // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0]
 #define ARTIFICIAL_COLOR_RED 0.9    // [0.0 0.025 0.05 0.075 0.1 0.125 0.15 0.175 0.2 0.225 0.25 0.275 0.3 0.325 0.35 0.375 0.4 0.425 0.45 0.475 0.5 0.525 0.55 0.575 0.6 0.625 0.65 0.675 0.7 0.725 0.75 0.775 0.8 0.825 0.85 0.875 0.9 0.925 0.95 0.975 1.0]
 #define ARTIFICIAL_COLOR_GREEN 0.4  // [0.0 0.025 0.05 0.075 0.1 0.125 0.15 0.175 0.2 0.225 0.25 0.275 0.3 0.325 0.35 0.375 0.4 0.425 0.45 0.475 0.5 0.525 0.55 0.575 0.6 0.625 0.65 0.675 0.7 0.725 0.75 0.775 0.8 0.825 0.85 0.875 0.9 0.925 0.95 0.975 1.0]
-#define ARTIFICIAL_COLOR_BLUE 0.06  // [0.0 0.025 0.05 0.075 0.1 0.125 0.15 0.175 0.2 0.225 0.25 0.275 0.3 0.325 0.35 0.375 0.4 0.425 0.45 0.475 0.5 0.525 0.55 0.575 0.6 0.625 0.65 0.675 0.7 0.725 0.75 0.775 0.8 0.825 0.85 0.875 0.9 0.925 0.95 0.975 1.0]
+#define ARTIFICIAL_COLOR_BLUE 0.025  // [0.0 0.025 0.05 0.075 0.1 0.125 0.15 0.175 0.2 0.225 0.25 0.275 0.3 0.325 0.35 0.375 0.4 0.425 0.45 0.475 0.5 0.525 0.55 0.575 0.6 0.625 0.65 0.675 0.7 0.725 0.75 0.775 0.8 0.825 0.85 0.875 0.9 0.925 0.95 0.975 1.0]
 #define ARTIFICIAL_COLOR_ALPHA 1.0  // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
 const vec3 artificial_color = vec3(ARTIFICIAL_COLOR_RED, ARTIFICIAL_COLOR_GREEN, ARTIFICIAL_COLOR_BLUE) * ARTIFICIAL_COLOR_ALPHA;
 
@@ -427,10 +431,7 @@ const float ambientOcclusionLevel = 0.0;  // [0.0 0.05 0.2 0.4 0.6 0.8 1.0 1.2 1
 // #define COLORED_LIGHT
 
 
-const ivec2 rightLitUV = ivec2(1 + 20, 256 + 10);
-const ivec2 LeftLitUV = ivec2(1 + 30, 256 + 10);
-const ivec2 rightLitPreUV = ivec2(1 + 40, 256 + 10);
-const ivec2 LeftLitPreUV = ivec2(1 + 50, 256 + 10);
+
 
 
 
@@ -572,7 +573,7 @@ const vec3 filterPower = vec3(1.0, 1.0, 1.0) * FILTER_CONTRAST;
 
 #define ACES_FULL_ADDITIVE 1.5
 #define ACES_ADDITIVE 0.75
-#define AGX_ADDITIVE 2.0
+#define AGX_ADDITIVE 2.25
 #define HEJL_ADDITIVE 0.75
 #define LOTTES_ADDITIVE 0.75
 #define HABLE_ADDITIVE 1.8
