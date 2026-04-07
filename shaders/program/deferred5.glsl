@@ -90,9 +90,9 @@ void main() {
 		float RTShadow = 1.0;
 		
 		if(!outScreen(shadowPos.xy) && cos_theta > 0.001){
-			sssWrap = max((1.0 - cloudShadowTrans) * 1.0, sssWrap);
-			sssWrap *= remapSaturate(cloudShadowTrans, 0.9, 1.0, 1.0, 0.1);
-			shadow = min(parallaxShadow, shadowMapping(worldPos1, normalW, sssWrap));
+			float softness = max((1.0 - cloudShadowTrans) * 1.0, sssWrap);
+			softness *= remapSaturate(cloudShadowTrans, 0.9, 1.0, 1.0, 0.0);
+			shadow = min(parallaxShadow, shadowMapping(worldPos1, normalW, softness));
 			shadow = mix(1.0, shadow, remapSaturate(worldDis1, shadowDistance * 0.9, shadowDistance, 1.0, 0.0));
 			shadow = saturate(shadow);
 		}

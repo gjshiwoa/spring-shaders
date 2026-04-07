@@ -37,7 +37,6 @@ void main() {
 		#if !defined END && !defined NETHER
 			color.rgb *= 1.0 + 1.0 * isNight * saturate(isEyeInWater);
 		#endif
-
 	#endif
 	
 	#ifdef VIGNETTE

@@ -396,6 +396,9 @@ void main() {
 
 	sunColor = texelFetch(gaux4, sunColorUV, 0).rgb;
 	skyColor = texelFetch(gaux4, skyColorUV, 0).rgb;
+	#ifdef CLOUD_SHADOW
+		sunColor *= 1.0 - 0.5 * rainStrength;
+	#endif
 
 	#ifdef END
 		sunColor = mix(vec3(1.0), endColor, 0.8) * 1.0;
@@ -418,4 +421,6 @@ void main() {
 	glcolor = gl_Color;
 }
 
+#endif
+#ifdef TRANSLUCENT_USE_RESOURCESPACK_PBR
 #endif

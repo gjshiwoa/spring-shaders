@@ -55,6 +55,9 @@ void main() {
 
 	sunColor = texelFetch(gaux4, sunColorUV, 0).rgb;
 	skyColor = texelFetch(gaux4, skyColorUV, 0).rgb;
+	#ifdef CLOUD_SHADOW
+		sunColor *= 1.0 - 0.5 * rainStrength;
+	#endif
 }
 
 #endif

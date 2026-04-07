@@ -98,7 +98,11 @@ void main() {
 
 	sunColor = isNoon * TransmittanceToAtmosphere(earthPos, sunWorldDir) * IncomingLight;
 	sunColor += isNight * TransmittanceToAtmosphere(earthPos, moonWorldDir) * IncomingLight_N;
-	sunColor *= 1.0 - 0.75 * rainStrength;
+	#ifdef CLOUD_SHADOW
+		sunColor *= 1.0 - 0.3 * rainStrength;
+	#else
+		sunColor *= 1.0 - 0.7 * rainStrength;
+	#endif
 	
 	skyColor = zenithColor;
 	skyColor *= 3.0;
