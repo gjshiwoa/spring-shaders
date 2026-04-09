@@ -22,6 +22,15 @@ struct MaterialParams {
 MaterialParams MapMaterialParams(vec4 specularMap) {
     MaterialParams params;
 
+    params.smoothness = 0.0;
+    params.roughness = 1.0;
+    params.metalness = 0.0;
+    params.porosity = 0.0;
+    params.subsurfaceScattering = 0.0;
+    params.emissiveness = 0.0;
+    params.N = vec3(1.0);
+    params.K = vec3(0.0);
+
     params.smoothness = specularMap.r;
     float perceptual_roughness = 1.0 - params.smoothness;
     params.roughness = perceptual_roughness * perceptual_roughness;
@@ -59,9 +68,6 @@ MaterialParams MapMaterialParams(vec4 specularMap) {
         }
     }
     
-    params.porosity = 0.0;
-    params.subsurfaceScattering = 0.0;
-
     #ifndef USE_OLD_PBR
         if(specularMap.b < 0.251) {
             params.porosity = smoothstep(0.0, 64.0/255.0, specularMap.b);

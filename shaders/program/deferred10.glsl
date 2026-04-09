@@ -179,7 +179,7 @@ void main() {
 
 			artificial += (LeftLitDiff + RightLitDiff) * heldBlockLight * BRDF_D;
 
-			artificial += max(lightmap.x, materialParams.emissiveness) * diffuse * (GLOWING_BRIGHTNESS * 3.0);
+			artificial += max(lightmap.x, materialParams.emissiveness) * diffuse * GLOWING_BRIGHTNESS * 3.0;
 		#else
 			float heldLightIntensity = max(heldBlockLightValue, heldBlockLightValue2) / 15.0;
 			lightmap.x = max(lightmap.x, heldLightIntensity * heldBlockLight);

@@ -249,7 +249,7 @@ const vec3 IncomingLight_N = vec3(INCOMING_LIGHT_N_RED, INCOMING_LIGHT_N_GREEN, 
 #define VOLUMETRIC_CLOUDS
 #define CREPUSCULAR_LIGHT
 
-#define VOLUMETRIC_CLOUDS_MIN_HEIGHT 650.0  // [200.0 350.0 500.0 650.0 800.0 950.0 1100.0 1250.0 1400.0]
+#define VOLUMETRIC_CLOUDS_MIN_HEIGHT 650.0  // [200.0 350.0 500.0 650.0 800.0 950.0 1100.0 1250.0 1400.0 1600.0 1800.0 2000.0 2400.0 2800.0 3200.0]
 const float cloudHeightMin = VOLUMETRIC_CLOUDS_MIN_HEIGHT + CAMERA_HEIGHT;
 #define CLOUD_THICKNESS 800.0               // [50.0 100.0 200.0 300.0 400.0 500.0 600.0 700.0 800.0 900.0 1000.0 1200.0 1400.0 1600.0 2000.0 2400.0 2800.0 3200.0]
 const vec2 cloudHeight = vec2(cloudHeightMin, cloudHeightMin + CLOUD_THICKNESS);
@@ -373,7 +373,7 @@ const float shadowDistance = 160.0;    // [40.0 80.0 120.0 160.0 200.0 240.0 280
 #define SHADOW_SAMPLES 6.0    // [3.0 5.0 6.0 7.0 8.0 9.0 12.0 15.0 18.0 21.0 24.0 27.0 30.0 33.0 36.0]
 #define COLOR_SHADOW_SAMPLES 5.0 // [3.0 5.0 7.0 9.0 12.0 15.0 18.0 21.0 24.0 27.0 30.0 33.0 36.0]
 #define SCREEN_SPACE_SHADOW_SAMPLES 5.0 // [3.0 5.0 7.0 9.0 12.0 15.0 18.0 21.0 24.0 27.0 30.0 33.0 36.0]
-#define SSS_RT_SHADOW_VISIBILITY 0.0    // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+#define SSS_RT_SHADOW_VISIBILITY 0.4    // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 
 float shadowMapScale = (120.0 / shadowDistance) * (shadowMapResolution / 2048.0);
 
@@ -569,11 +569,11 @@ const vec3 filterPower = vec3(1.0, 1.0, 1.0) * FILTER_CONTRAST;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#define TONE_MAPPING ACESFull        // [ACESFull ACES AgX Hejl Lottes Hable Neutral Uchimura]
+#define TONE_MAPPING AgX        // [AgX ACESFull Hejl Hable ACES Lottes Neutral Uchimura]
 
 #define ACES_FULL_ADDITIVE 1.5
 #define ACES_ADDITIVE 0.75
-#define AGX_ADDITIVE 2.25
+#define AGX_ADDITIVE 2.0
 #define HEJL_ADDITIVE 0.75
 #define LOTTES_ADDITIVE 0.75
 #define HABLE_ADDITIVE 1.8

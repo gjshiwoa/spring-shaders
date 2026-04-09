@@ -6,12 +6,10 @@ float screenSpaceShadow(vec3 viewPos, vec3 normal, float shadowMappingResult){
 
     vec3 startPos = viewPos;
     vec3 rayDir = lightViewDir;
-    float rayLength = remapSaturate(dist, 5.0, shadowDistance, 0.2, 10.0);
+    float rayLength = remapSaturate(dist, 5.0, shadowDistance, 0.4, 10.0);
 
     const float STEP_GROWTH_BASE = 1.5;
-
     float g = STEP_GROWTH_BASE;
-
     float baseStep;
     if (abs(g - 1.0) < 1e-5) {
         baseStep = rayLength / N_SAMPLE;

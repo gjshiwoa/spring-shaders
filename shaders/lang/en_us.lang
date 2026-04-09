@@ -5,7 +5,7 @@ profile.Comfortable = Comfortable
 profile.Bright = Bright
 profile.Vivid = Vivid
 profile.Native = Native
-profile.comment = Balanced (ACES): Default image settings. Balanced (AgX): Switches to AgX tone mapping, making bright highlights appear whiter and reducing oversaturation. Comfortable: Switches to Hejl tone mapping and lowers bloom intensity for a cleaner, more comfortable look. Bright: Increases overall brightness on top of Balanced. Vivid: Adjusts brightness, contrast, and saturation on top of Balanced. Native: Closer to the look with no image adjustments.
+profile.comment = Balanced (AgX): Default image settings, with bright objects tending toward white to reduce oversaturation. Balanced (ACES): Switches to ACES tone mapping for richer colors. Comfortable: Switches to Hejl tone mapping and lowers bloom intensity for a fresher, more comfortable look. Bright: Increases overall brightness on top of Balanced. Vivid: Adjusts brightness, contrast, and saturation on top of Balanced. Native: Closer to the look with no image adjustments.
 
 screen.Lighting = Lighting
 option.DISABLE_LEAKAGE_REPAIR = Disable Leakage Repair
@@ -126,7 +126,6 @@ option.MIE_STRENGTHNESS.comment = Affects the brightness of the solar halo.
 option.SKY_BASE_COLOR_BRIGHTNESS = Sky Brightness
 option.SKY_BASE_COLOR_BRIGHTNESS_N = Night Sky Brightness
 option.ATMOSPHERE_SCATTERING_SAMPLES = Atmospheric Scattering Samples
-option.ATMOSPHERE_LUT_SAMPLE_INTERVAL = Atmosphere LUT Sample Interval
 option.ATMOSPHERIC_SCATTERING_FOG = Atmospheric Scattering Fog
 option.ATMOSPHERIC_SCATTERING_FOG_DENSITY = Atmospheric Scattering Fog Density
 option.VOLUME_LIGHT_SAMPLES = Volumetric Light Samples

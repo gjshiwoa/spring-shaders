@@ -1,3 +1,4 @@
+#define CLOUD3D
 varying vec2 lmcoord, texcoord;
 
 varying vec3 normalVO, normalWO;
@@ -37,9 +38,10 @@ varying mat3 tbnMatrix;
 #include "/lib/surface/PBR.glsl"
 
 #ifdef FSH
+#include "/lib/camera/filter.glsl"
 #include "/lib/water/translucentLighting.glsl"
 #include "/lib/surface/ripple.glsl"
-
+#include "/lib/atmosphere/volumetricClouds.glsl"
 
 flat in float isWater, isIce;
 
@@ -76,6 +78,23 @@ void main() {
 	vec4 specularMap = texture(specular, texcoord);
 
 	vec2 lightmap = AdjustLightmap(lmcoord);
+
+	float shade = 1.0;
+	#if MC_VERSION >= 11400
+		#ifdef TRANSLUCENT_SHADOW
+			shade = shadowMappingTranslucent(vWorldPos, normalTexW, TRANSLUCENT_SHADOW_SOFTNESS, TRANSLUCENT_SHADOW_QUALITY);
+
+			float cloudShadowTrans = 1.0;
+			#ifdef CLOUD_SHADOW
+				vec3 mcCameraPos = vWorldPos.xyz + camera;
+				float noise = temporalBayer64(gl_FragCoord.xy);
+				cloudShadowTrans = computeCloudShadowTransmittance(mcCameraPos, lightWorldDir, noise);
+				cloudShadowTrans = saturate(cloudShadowTrans);
+
+				shade *= cloudShadowTrans;
+			#endif
+		#endif
+	#endif
 	
 	if(isWater > 0.5){
 		vec3 viewDirTS = normalize(vViewPos.xyz * tbnMatrix);
@@ -197,14 +216,6 @@ void main() {
 
 
 		#ifdef WATER_REFLECT_HIGH_LIGHT
-			float shade = 1.0;
-			#if MC_VERSION < 11400
-				
-			#else
-				#ifdef TRANSLUCENT_SHADOW
-					shade = shadowMappingTranslucent(vWorldPos, normalTexW, 0.5, 1.0);
-				#endif
-			#endif
 			MaterialParams params;
 			params.roughness = 0.5;
 			params.metalness = 0.5;
@@ -259,14 +270,6 @@ void main() {
 		float hemiWeight = mix(1.0, UoN * 0.5 + 0.5, 0.66);
 		vec3 skyLight = lightmap.y * BRDF_D * skyColorMix * hemiWeight;
 
-		float shade = 1.0;
-		#if MC_VERSION < 11400
-			
-		#else
-			#ifdef TRANSLUCENT_SHADOW
-				shade = shadowMappingTranslucent(vWorldPos, normalTexW, TRANSLUCENT_SHADOW_SOFTNESS, TRANSLUCENT_SHADOW_QUALITY);
-			#endif
-		#endif
 		#ifdef NETHER
 			shade = 0.0;
 		#endif

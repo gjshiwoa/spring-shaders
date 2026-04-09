@@ -22,7 +22,7 @@ vec4 cloud2D(vec3 worldDir) {
     vec2 noise = fbmCloud2D(uv, 4, 2.0, 0.5);
     
     float cloudDensity = remapSaturate(noise.r, 1.0 - noise.g, 1.0, 0.0, 1.0);
-
+ 
     vec4 color = vec4(vec3(cloudDensity), 1.0);
     
     return max(color, vec4(0.0));

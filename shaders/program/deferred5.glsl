@@ -126,6 +126,17 @@ void main() {
     moonWorldDir = normalize(viewPosToWorldPos(vec4(moonPosition, 0.0)).xyz);
     lightWorldDir = normalize(viewPosToWorldPos(vec4(shadowLightPosition, 0.0)).xyz);
 
+	isNoon = saturate(dot(sunWorldDir, upWorldDir) * NOON_DURATION);
+	isNight = saturate(dot(moonWorldDir, upWorldDir) * NIGHT_DURATION);
+	sunRiseSet = saturate(1 - isNoon - isNight);
+
+	isNoonS = saturate(dot(sunWorldDir, upWorldDir) * NOON_DURATION_SLOW);
+	isNightS = saturate(dot(moonWorldDir, upWorldDir) * NIGHT_DURATION_SLOW);
+	sunRiseSetS = saturate(1 - isNoonS - isNightS);
+
+	sunColor = vec3(0.0);
+	skyColor = vec3(0.0);
+
 	gl_Position = ftransform();
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 }

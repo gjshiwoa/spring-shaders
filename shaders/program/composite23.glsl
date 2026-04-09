@@ -51,7 +51,7 @@ void main() {
 	
 	color.rgb = max(TONE_MAPPING(color.rgb), vec3(0.0));
 	#ifdef POST_PROCESS_NOISE
-	color.rgb += rand2_3(texcoord + sin(frameTimeCounter)) / 255.0;
+		color.rgb += rand2_3(texcoord + sin(frameTimeCounter)) / 255.0;
 	#endif
 
 	// color.rgb = vec3(fwidth(getLinearDepth(texcoord)));
@@ -101,6 +101,10 @@ void main() {
 void main() {
 	gl_Position = ftransform();
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+
+	sunViewDir = normalize(sunPosition);
+	moonViewDir = normalize(moonPosition);
+	lightViewDir = normalize(shadowLightPosition);
 
 	sunWorldDir = normalize(viewPosToWorldPos(vec4(sunPosition, 0.0)).xyz);
     moonWorldDir = normalize(viewPosToWorldPos(vec4(moonPosition, 0.0)).xyz);

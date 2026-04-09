@@ -170,7 +170,7 @@ vec3 sunLuminance(vec3 pos, float VoL, float iVoL, float extinction){
     attenuation += 0.15 * upAttenuation * isNoonS;
 
     float phase = GetDirectScatterProbability(VoL, 0.2, 0.5, 0.25);
-    float phase1 = GetDirectScatterProbability(iVoL, 0.2, 0.0, 0.0) * 0.5;
+    float phase1 = GetDirectScatterProbability(iVoL, 0.1, 0.0, 0.0) * 0.6;
     phase = max(phase, phase1);
 
     float inScatter = GetInScatterProbability(height_fraction, density, attenuation, VoL);
@@ -300,7 +300,7 @@ void cloudRayMarching(vec3 startPos, vec3 worldPos, inout vec4 intScattTrans, in
 
 
 #endif
-
+#ifndef GBF
 vec4 temporal_cloud3D(vec4 color_c){
     vec2 uv = texcoord * 2 - vec2(1.0, 0.0);
     float z = 1.0;
@@ -339,7 +339,7 @@ vec4 temporal_cloud3D(vec4 color_c){
 
     return color_c;
 }
-
+#endif
 
 
 

@@ -167,7 +167,7 @@ float estimateRsmLeakAO_voxel(vec3 mainDir, vec3 worldPos, vec3 normalW){
     vec3 dir = mainDir;
 
     float noise = temporalBayer64(gl_FragCoord.xy);
-    float stepSize = 1.0;
+    float stepSize = 0.5;
     vec3 stepVec = dir * stepSize;
     worldPos += stepVec * noise;
     worldPos += normalW * 0.05;
@@ -177,7 +177,7 @@ float estimateRsmLeakAO_voxel(vec3 mainDir, vec3 worldPos, vec3 normalW){
         vec3 wp = worldPos + stepVec * float(j);
         ivec3 vp = relWorldToVoxelCoord(wp);
         vec4 sampleCol = texelFetch(customimg0, vp.xyz, 0);
-        if(abs(sampleCol.a - 0.5) < 0.05){
+        if(sampleCol.a < 0.96){
             wp -= 0.9 * stepVec;
             vec3 shadowPos = getShadowPos(vec4(wp, 1.0)).xyz;
             float psd = texture(shadowtex1, shadowPos.xy).r;

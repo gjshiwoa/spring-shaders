@@ -5,7 +5,7 @@ profile.Comfortable = 舒适
 profile.Bright = 明亮
 profile.Vivid = 鲜艳
 profile.Native = 原生
-profile.comment = 平衡（ACES）：默认画面参数. 平衡（AgX）：改用AgX色调映射，高亮度物体偏白，减少过饱和现象. 舒适：改用hejl色调映射，并降低bloom强度，画面更清新舒适. 明亮：在平衡的基础上提高画面整体亮度. 鲜艳：在平衡的基础上调节亮度、对比度、饱和度. 原生：更接近无画面调节时的效果
+profile.comment = 平衡（AgX）：默认画面参数，高亮度物体偏白，减少过饱和现象. 平衡（ACES）：改用ACES色调映射，色彩更浓郁. 舒适：改用hejl色调映射，并降低bloom强度，画面更清新舒适. 明亮：在平衡的基础上提高画面整体亮度. 鲜艳：在平衡的基础上调节亮度、对比度、饱和度. 原生：更接近无画面调节时的效果
 
 screen.Lighting = 光照
 option.DISABLE_LEAKAGE_REPAIR = 禁用漏光修复
@@ -126,7 +126,6 @@ option.MIE_STRENGTHNESS.comment = 影响太阳周围的光晕的亮度
 option.SKY_BASE_COLOR_BRIGHTNESS = 天空亮度
 option.SKY_BASE_COLOR_BRIGHTNESS_N = 夜晚天空亮度
 option.ATMOSPHERE_SCATTERING_SAMPLES = 大气散射采样数
-option.ATMOSPHERE_LUT_SAMPLE_INTERVAL = 大气LUT采样间隔
 option.ATMOSPHERIC_SCATTERING_FOG = 大气散射雾
 option.ATMOSPHERIC_SCATTERING_FOG_DENSITY = 大气散射雾浓度
 option.VOLUME_LIGHT_SAMPLES = 体积光采样数

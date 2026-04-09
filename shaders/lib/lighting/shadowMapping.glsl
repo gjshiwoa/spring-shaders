@@ -131,10 +131,7 @@ float shadowMapping(vec4 worldPos, vec3 normal, float sssWrap){
     float disFactor = saturate(worldDis / shadowDistance);
     float dirFactor = abs(dot(normal, lightWorldDir));
 
-    float offset = 0.05;
-    if(plants < 0.5) {
-        offset = 0.05 + 1.0 * disFactor * (1 - dirFactor);
-    }
+    float offset = 0.05 + 1.0 * disFactor * (1 - dirFactor);
     worldPos.xyz += normal * offset;
     shadowPos = getShadowPos(worldPos);
 
@@ -142,10 +139,13 @@ float shadowMapping(vec4 worldPos, vec3 normal, float sssWrap){
     if(plants > 0.5){
         penumbra = 1.5;
     }
-    shadowPos.z -= 0.00005;
-    penumbra *= saturate(saturate(1.0 - disFactor) + 0.1);
+    shadowPos.z -= 0.0001;
 
-    float shade = PCF(shadowtex0, shadowPos.xyz, (0.25 + penumbra + rainStrength) * shadowMapScale * SHADOW_SOFTNESS, SHADOW_SAMPLES);
+    disFactor = pow(saturate(1.0 - disFactor), 2.0);
+    penumbra *= disFactor;
+    float baseSoftness = 0.5 * disFactor;
+
+    float shade = PCF(shadowtex0, shadowPos.xyz, (baseSoftness + penumbra + rainStrength) * shadowMapScale, SHADOW_SAMPLES);
 
     return saturate(shade);
 }
