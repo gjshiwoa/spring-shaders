@@ -13,6 +13,7 @@
 #ifdef FSH
 flat in float blockID, isPlants;
 flat in int textureResolution;
+flat in float useAniso;
 in vec2 texcoord;
 in vec2 lmcoord;
 in vec4 glcolor;
@@ -76,19 +77,19 @@ void main() {
 	#endif
 
 
-	bool useAniso = abs(blockID - NO_ANISO) > 0.5;
-	if (!useAniso) parallaxUV = texcoord;
+
+
 
 	vec4 texColor;
 	#ifdef ANISOTROPIC_FILTERING
-		if (useAniso) {
+		if (useAniso > 0.5) {
 			#if ANISOTROPIC_FILTERING_MODE == 0
 				texColor = textureAniso2(tex, parallaxUV, texcoord);
 			#else
 				texColor = textureAniso(tex, parallaxUV, texcoord);
 			#endif
 		} else {
-			texColor = texture(tex, parallaxUV);
+			texColor = texture(tex, texcoord);
 		}
 	#else
 		#ifdef PARALLAX_MAPPING
@@ -99,7 +100,6 @@ void main() {
 	#endif
 	if (texColor.a < 0.05) discard;
 	vec4 color = texColor * glcolor;
-
 
 
 	
@@ -237,6 +237,20 @@ flat out vec4 texCoordAM;
 out vec2 texCoordLocal;
 flat out float blockID;
 flat out int textureResolution;
+flat out float useAniso;
+
+bool isAxisAlignedTri(vec2 a, vec2 b, vec2 c) {
+	ivec2 ap = ivec2(a * vec2(atlasSize) + 0.5);
+	ivec2 bp = ivec2(b * vec2(atlasSize) + 0.5);
+	ivec2 cp = ivec2(c * vec2(atlasSize) + 0.5);
+	// Detect the right-angled UV layout on the atlas texel grid.
+	return (ap.x == bp.x && ap.y == cp.y)
+	    || (ap.x == cp.x && ap.y == bp.y)
+	    || (bp.x == ap.x && bp.y == cp.y)
+	    || (bp.x == cp.x && bp.y == ap.y)
+	    || (cp.x == ap.x && cp.y == bp.y)
+	    || (cp.x == bp.x && cp.y == ap.y);
+}
 
 void main() {
 	// 参考自 ITT
@@ -244,9 +258,10 @@ void main() {
 		abs(v_texcoord[0] - v_texcoord[1]) / distance(v_viewPos[0], v_viewPos[1]),
 		abs(v_texcoord[1] - v_texcoord[2]) / distance(v_viewPos[1], v_viewPos[2]),
         abs(v_texcoord[2] - v_texcoord[0]) / distance(v_viewPos[2], v_viewPos[0])
-    );
-    float resolution = floor(max(atlasSize.x * coordSize.x, atlasSize.y * coordSize.y) + 0.5);
-    textureResolution = int(exp2(round(log2(resolution))) + 0.01);
+	);
+	float resolution = floor(max(atlasSize.x * coordSize.x, atlasSize.y * coordSize.y) + 0.5);
+	textureResolution = int(exp2(round(log2(resolution))) + 0.01);
+	useAniso = isAxisAlignedTri(v_texcoord[0], v_texcoord[1], v_texcoord[2]) ? 1.0 : 0.0;
 
 	for(int i = 0; i < 3; ++i){
 		lmcoord = v_lmcoord[i];

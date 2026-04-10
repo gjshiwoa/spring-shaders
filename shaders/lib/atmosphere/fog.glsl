@@ -124,7 +124,7 @@ float sampleFogDensityHigh(vec3 cameraPos, float base, float height_fraction, ve
     return final;
 }
 
-float sampleFogDensity(vec3 cameraPos, bool doCheaply){
+float sampleFogDensity(vec3 cameraPos, float fogMaxDistance, bool doCheaply){
     float height_fraction = getHeightFractionForPoint(cameraPos.y, fogHeight);
     if(height_fraction < 0.0 || height_fraction > 1.0) return 0.0;
 
@@ -139,14 +139,16 @@ float sampleFogDensity(vec3 cameraPos, bool doCheaply){
 
     final *= remapSaturate(height_fraction, 0.45, 1.0, 1.0, 0.0);
     final *= remapSaturate(height_fraction, 0.0, 0.2, 0.0, 1.0) * remapSaturate(height_fraction, 0.8, 1.0, 1.0, 0.0);
+    float fade = remapSaturate(length(cameraPos - camera), fogMaxDistance * 0.8, fogMaxDistance * 1.0, 1.0, 0.0);
+    final *= fade * fade;
 
     return final;
 }
 
-float computeLightPathOpticalDepth_Fog(vec3 currentPos, vec3 lightWorldDir, float initialStepSize, int N_SAMPLES) {
+float computeLightPathOpticalDepth_Fog(vec3 currentPos, float fogMaxDistance, vec3 lightWorldDir, float initialStepSize, int N_SAMPLES) {
     float opticalDepth = 0.0;
     bool doCheaply = false;
-    float prevDensity = sampleFogDensity(currentPos, doCheaply);
+    float prevDensity = sampleFogDensity(currentPos, fogMaxDistance, doCheaply);
     float currentStepSize = initialStepSize;
 
     for (int i = 1; i <= N_SAMPLES; i++) {
@@ -155,7 +157,7 @@ float computeLightPathOpticalDepth_Fog(vec3 currentPos, vec3 lightWorldDir, floa
         currentPos += lightWorldDir * currentStepSize;
 
         // if(i > 0.5 * N_SAMPLES) doCheaply = true;
-        float currentDensity = sampleFogDensity(currentPos, doCheaply);
+        float currentDensity = sampleFogDensity(currentPos, fogMaxDistance, doCheaply);
         opticalDepth += 0.5 * (prevDensity + currentDensity) * currentStepSize;
         prevDensity = currentDensity;
     }
@@ -176,7 +178,7 @@ float GetInScatterProbability(float height_fraction, float density){
     return vertical_probability;
 }
 
-vec4 fogLuminance(inout vec4 intScattTrans, vec3 pos, vec3 oriStartPos, float stepSize, float density, float VoL, float iVoL, bool shadow){
+vec4 fogLuminance(inout vec4 intScattTrans, vec3 pos, vec3 oriStartPos, float stepSize, float density, float VoL, float iVoL, float fogMaxDistance, bool shadow){
     float attenuation = 1.0;
     vec4 worldPos = vec4(pos - oriStartPos, 1.0);
     float worldDis = length(worldPos.xyz);
@@ -189,7 +191,7 @@ vec4 fogLuminance(inout vec4 intScattTrans, vec3 pos, vec3 oriStartPos, float st
         }
 
         float stepSize_l = 10.0;
-        float lightPathOpticalDepth = sampleFogDensity(pos + lightWorldDir * stepSize_l, true);
+        float lightPathOpticalDepth = sampleFogDensity(pos + lightWorldDir * stepSize_l, fogMaxDistance, true);
         float attenuation_lightPath = GetAttenuationProbability_Fog(lightPathOpticalDepth * fogSigmaE * stepSize_l * 7.5, 0.3, 0.4);
         attenuation = min(attenuation, attenuation_lightPath);
     #endif
@@ -268,14 +270,15 @@ vec4 volumtricFog(vec3 startPos, vec3 worldPos){
         vec3 stepVec = worldDir * stepSize;
         vec3 pos = startPos + jitter * stepVec;
         
+        float dis = distance(oriStartPos, pos);
         for(int i = 0; i < nNear; ++i){
-            if(intScattTrans.a < 0.01 || distance(oriStartPos, pos) > stepDis.x + stepDis.y){
+            if(intScattTrans.a < 0.01 || dis > stepDis.x + stepDis.y){
                 break;
             }   
-            float density = sampleFogDensity(pos, false);
-            
+            float density = sampleFogDensity(pos, fogMaxDistance, false);
+
             if(density > 0.001){
-                intScattTrans = fogLuminance(intScattTrans, pos, oriStartPos, stepSize, density, VoL, iVoL, true);
+                intScattTrans = fogLuminance(intScattTrans, pos, oriStartPos, stepSize, density, VoL, iVoL, fogMaxDistance, true);
             }
             pos += stepVec;
         }
@@ -288,19 +291,20 @@ vec4 volumtricFog(vec3 startPos, vec3 worldPos){
         vec3 stepVec = worldDir * stepSize;
         vec3 pos = startPos + jitter * stepVec;
 
+        float dis = distance(oriStartPos, pos);
         for(int i = 0; i < nFar; ++i){
-            if(intScattTrans.a < 0.01 || distance(oriStartPos, pos) > stepDis.x + stepDis.y){
+            if(intScattTrans.a < 0.01 || dis > stepDis.x + stepDis.y){
                 break;
             }
-            float density = sampleFogDensity(pos, false);
+            float density = sampleFogDensity(pos, fogMaxDistance, false);
 
             if(density > 0.001){
-                intScattTrans = fogLuminance(intScattTrans, pos, oriStartPos, stepSize, density, VoL, iVoL, false);
+                intScattTrans = fogLuminance(intScattTrans, pos, oriStartPos, stepSize, density, VoL, iVoL, fogMaxDistance, false);
             }
             pos += stepVec;
         }
     }
-    intScattTrans.rgb *= (1.0 - isNightS * 0.75);
+    intScattTrans.rgb *= (1.0 - isNightS * 0.66);
     return intScattTrans;
 }
 
@@ -338,7 +342,16 @@ vec4 temporal_fog(vec4 color_c){
         // float normalWeight = saturate(dot(normal_c, unpackNormal(pre.r)));
 
         if(isEyeInWater == 0){
-            depthWeight = mix(1.0, depthWeight, mix(1.0, c.a, saturate(rainStrength + sunRiseSetS)));
+            float fogBaseCoverage = max4(FOG_BASE_COVERAGE_RAIN * rainStrength, 
+                                FOG_BASE_COVERAGE_NIGHT * isNightS, 
+                                FOG_BASE_COVERAGE_SUNRISESET * sunRiseSetS, 
+                                FOG_BASE_COVERAGE_NOON * isNoonS);
+            float fogAddCoverage = saturate(FOG_ADD_COVERAGE_RAIN * rainStrength 
+                                        + FOG_ADD_COVERAGE_NIGHT * isNightS 
+                                        + FOG_ADD_COVERAGE_SUNRISESET * sunRiseSetS 
+                                        + FOG_ADD_COVERAGE_NOON * isNoonS
+                                        + 0.05);
+            depthWeight = mix(1.0, depthWeight, mix(1.0, c.a, clamp(fogBaseCoverage + fogAddCoverage, 0.0, 0.9)));
             // normalWeight = mix(normalWeight, 1.0, c.a);
         }
 

@@ -60,7 +60,7 @@ void main() {
 			d = max(d, 0.0);
 
 			mat2x3 atmosphericScattering = AtmosphericScattering(hrrWorldDir * d, hrrWorldDirO, sunWorldDir, IncomingLight * (1.0 - 0.3 * rainStrength), 1.0, ATMOSPHERE_SCATTERING_SAMPLES);
-			atmosphericScattering += AtmosphericScattering(hrrWorldDir * d, hrrWorldDirO, moonWorldDir, IncomingLight_N, 1.0, int(ATMOSPHERE_SCATTERING_SAMPLES * 0.5)) * 0.2 * SKY_BASE_COLOR_BRIGHTNESS_N;
+			atmosphericScattering += AtmosphericScattering(hrrWorldDir * d, hrrWorldDirO, moonWorldDir, IncomingLight_N, 1.0, int(ATMOSPHERE_SCATTERING_SAMPLES * 0.5)) * 0.33 * SKY_BASE_COLOR_BRIGHTNESS_N;
 			CT1.rgb = atmosphericScattering[0] + atmosphericScattering[1];
 		}
 	}

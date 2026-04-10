@@ -177,8 +177,8 @@ void main() {
 			vec3 fogAttenuation = saturate(fastExp(-(vec3(1.0) - fogColor) * deep * WATER_FOG_TRANSMIT));
 			
 			color.rgb *= fogAttenuation;
-			// float lightFactor = mix(1.0, saturate(dot(lightWorldDir, waveWorldNormal)), 0.5);
-			color.rgb = mix(color.rgb, fogColor * 0.25 * lightmapY, depthFactor);
+			float lightFactor = mix(1.0, saturate(dot(lightWorldDir, waveWorldNormal)), 0.5);
+			color.rgb = mix(color.rgb, fogColor * 0.25 * lightmapY * lightFactor, depthFactor);
 		}
 
 
@@ -217,8 +217,14 @@ void main() {
 
 		#ifdef WATER_REFLECT_HIGH_LIGHT
 			MaterialParams params;
+			params.smoothness = 0.0;
 			params.roughness = 0.5;
 			params.metalness = 0.5;
+			params.porosity = 0.0;
+			params.subsurfaceScattering = 0.0;
+			params.emissiveness = 0.0;
+			params.N = vec3(1.0);
+			params.K = vec3(0.0);
 			vec3 BRDF = reflectPBR(viewDir, waveViewNormal, sunViewDir, params);
 			float lightmapMask = remapSaturate(lightmap.y, 0.5, 1.0, 0.0, 1.0) * shade;
 			// color.rgb *= 1.0 + 1.0 *  sunColor * BRDF * pow(saturate(dot(waveViewNormal, lightViewDir)), 1.0) * lightmapMask * sunRiseSetS;
