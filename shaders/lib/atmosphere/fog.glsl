@@ -270,9 +270,8 @@ vec4 volumtricFog(vec3 startPos, vec3 worldPos){
         vec3 stepVec = worldDir * stepSize;
         vec3 pos = startPos + jitter * stepVec;
         
-        float dis = distance(oriStartPos, pos);
         for(int i = 0; i < nNear; ++i){
-            if(intScattTrans.a < 0.01 || dis > stepDis.x + stepDis.y){
+            if(intScattTrans.a < 0.01 || distance(oriStartPos, pos) > stepDis.x + stepDis.y){
                 break;
             }   
             float density = sampleFogDensity(pos, fogMaxDistance, false);
@@ -291,9 +290,8 @@ vec4 volumtricFog(vec3 startPos, vec3 worldPos){
         vec3 stepVec = worldDir * stepSize;
         vec3 pos = startPos + jitter * stepVec;
 
-        float dis = distance(oriStartPos, pos);
         for(int i = 0; i < nFar; ++i){
-            if(intScattTrans.a < 0.01 || dis > stepDis.x + stepDis.y){
+            if(intScattTrans.a < 0.01 || distance(oriStartPos, pos) > stepDis.x + stepDis.y){
                 break;
             }
             float density = sampleFogDensity(pos, fogMaxDistance, false);
@@ -341,6 +339,7 @@ vec4 temporal_fog(vec4 color_c){
         float depthWeight = exp(-abs(depth_p - depth_c) / (1.0 + fDepth * 2.0 + depth_p / 2.0));
         // float normalWeight = saturate(dot(normal_c, unpackNormal(pre.r)));
 
+        #if !defined NETHER && !defined END
         if(isEyeInWater == 0){
             float fogBaseCoverage = max4(FOG_BASE_COVERAGE_RAIN * rainStrength, 
                                 FOG_BASE_COVERAGE_NIGHT * isNightS, 
@@ -351,9 +350,10 @@ vec4 temporal_fog(vec4 color_c){
                                         + FOG_ADD_COVERAGE_SUNRISESET * sunRiseSetS 
                                         + FOG_ADD_COVERAGE_NOON * isNoonS
                                         + 0.05);
-            depthWeight = mix(1.0, depthWeight, mix(1.0, c.a, clamp(fogBaseCoverage + fogAddCoverage, 0.0, 0.9)));
+            depthWeight = mix(1.0, depthWeight, mix(1.0, c.a, clamp(fogBaseCoverage + fogAddCoverage, 0.0, 1.0)));
             // normalWeight = mix(normalWeight, 1.0, c.a);
         }
+        #endif
 
         weight *= saturate(depthWeight);
         // weight *= saturate(normalWeight);

@@ -7,7 +7,7 @@ varying vec4 glcolor;
 
 varying mat3 tbnMatrix;
 
-varying vec3 sunColor, skyColor, lightColor;
+varying vec3 sunColor, skyColor, lightColor, baseLight;
 
 #include "/lib/uniform.glsl"
 #include "/lib/settings.glsl"
@@ -52,11 +52,14 @@ void main() {
 
 	vec4 passD = texelFetch(gaux4, passUV, 0);
 	if(passD.r > 0.5){
-		texColor = toLinearR(color);
+		vec4 texColor = toLinearR(color);
 		vec2 lightmap = AdjustLightmap(lmcoord);
 		color.rgb = texColor.rgb * lightmap.x * 0.4 * lightColor;
-		vec3 light = texColor.rgb * saturate(lightmap.y + 0.0005) * (sunColor * saturate(lightmap.y) + skyColor);
-		color.rgb += light;
+
+		vec3 ambLight = (sunColor + skyColor) * saturate(lightmap.y) + baseLight;
+		ambLight *= texColor.rgb;
+		color.rgb += ambLight;
+
 		color.rgb += nightVision * texColor.rgb * NIGHT_VISION_BRIGHTNESS / PI;
 	}
 
@@ -130,19 +133,29 @@ void main() {
 
 	sunColor = texelFetch(gaux4, sunColorUV, 0).rgb * 0.4;
 	skyColor = texelFetch(gaux4, skyColorUV, 0).rgb;
+	#ifdef PATH_TRACING
+		baseLight = vec3(DEFERRED10_PT_ALBEDO_SCALE);
+	#else
+		baseLight = vec3(DEFERRED10_ALBEDO_SCALE);
+	#endif
+
 	#ifdef CLOUD_SHADOW
 		sunColor *= 1.0 - 0.5 * rainStrength;
+		skyColor *= 1.0 - 0.5 * rainStrength;
 	#endif
+
 	lightColor = artificial_color;
 	#ifdef END
 		sunColor = mix(vec3(1.0), endColor, 0.8) * 0.5;
 		skyColor = endColor * 0.5;
-		lightColor *= 3.0;
+		lightColor *= 2.5;
+		baseLight = vec3(0.125);
 	#endif
 	#ifdef NETHER
-		sunColor = mix(vec3(1.0), netherColor, 0.5) * 10.0;
-		skyColor = sunColor * 10.0;
-		lightColor = sunColor * 0.1;
+		skyColor = vec3(0.0);
+		sunColor = vec3(0.0);
+		lightColor = mix(vec3(1.0), netherColor, 0.5) * 0.5;
+		baseLight = vec3(0.025);
 	#endif
 	#ifdef LIGHTNING
 		sunColor = vec3(0.0);

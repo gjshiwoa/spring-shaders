@@ -1,6 +1,3 @@
-
-
-
 #include "/lib/uniform.glsl"
 #include "/lib/settings.glsl"
 #include "/lib/common/utils.glsl"
@@ -13,13 +10,11 @@
 #ifdef FSH
 flat in float blockID, isPlants;
 flat in int textureResolution;
-flat in float useAniso;
+flat in int useAniso;
 in vec2 texcoord;
 in vec2 lmcoord;
 in vec4 glcolor;
-// in mat3 tbnMatrix;
 in vec4 viewPos;
-in vec3 N;
 in vec3 mcPos;
 flat in vec4 texCoordAM;
 in vec2 texCoordLocal;
@@ -42,11 +37,10 @@ void main() {
 	vec3 dp2perp = cross(dp2, normal);
 	vec3 dp1perp = cross(normal, dp1);
 
-	vec3 T = normalize(dp2perp * texGradX.x + dp1perp * texGradY.x);
-	vec3 B = normalize(dp2perp * texGradX.y + dp1perp * texGradY.y);
+	vec3 T = dp2perp * texGradX.x + dp1perp * texGradY.x;
+	vec3 B = dp2perp * texGradX.y + dp1perp * texGradY.y;
 	float invmax = inversesqrt(max(dot(T, T), dot(B, B)));
 	mat3 tbn = mat3(T * invmax, B * invmax, normal);
-	// tbn = tbnMatrix;
 
 	vec2 parallaxUV = texcoord;
 	float parallaxShadow = 1.0;
@@ -58,9 +52,9 @@ void main() {
 		float ref = max(pq.x, pq.y);
 		vec2 scale = ref / pq;
 
-		vec3 viewDirTS = normalize(viewPos.xyz * tbn);
+		vec3 viewDirTS = viewPos.xyz * tbn;
 		viewDirTS.xy *= scale;
-		vec3 lightDirTS = normalize(shadowLightPosition * tbn);
+		vec3 lightDirTS = shadowLightPosition * tbn;
 		lightDirTS.xy *= scale;
 
 		#if PARALLAX_TYPE == 0
@@ -105,11 +99,18 @@ void main() {
 	
 
 
-	vec3 normalFinal = normalize(tbn * (textureGrad(normals, parallaxUV, texGradX, texGradY).rgb * 2.0 - 1.0));
+	float upFaceF = step(0.95, dot(normal, upViewDir));
+
+	#if !defined(PARALLAX_MAPPING) || PARALLAX_TYPE == 0 || defined(PARALLAX_FORCE_NORMAL_VERTICAL)
+		vec3 normalFinal = normalize(tbn * (textureGrad(normals, parallaxUV, texGradX, texGradY).rgb * 2.0 - 1.0));
+	#else
+		vec3 normalFinal = vec3(0.0);
+	#endif
+
+	vec3 N = normal;
 	vec3 N1 = N;
 
 	float wetFactor = 0.0;
-	bool upFace = dot(N, upViewDir) > 0.95;
 	bool isRain = rainStrength > 0.001;
 
 	#ifdef RAINY_GROUND_WET_ENABLE
@@ -117,14 +118,14 @@ void main() {
 			wetFactor = smoothstep(0.88, 0.95, lmcoord.y) * rainStrength;
 			#ifdef RAINY_GROUND_WET_NOISE
 				float noiseSample = texture(colortex8, mcPos.xz * 0.01).r;
-				wetFactor *= upFace ? pow(smoothstep(0.0, 0.75, noiseSample), 0.5) : 0.95;
+				wetFactor *= mix(0.95, pow(smoothstep(0.0, 0.75, noiseSample), 0.5), upFaceF);
 			#endif
 		}
 
 		#ifdef RIPPLE
-			float worldDis = length(viewPos);
-			if (upFace && worldDis < RIPPLE_DISTANCE && isRain && wetFactor > 0.0001) {
-				vec3 rpnWS = RippleNormalWS(mcPos.xz, worldDis, wetFactor);
+			float viewDist2 = dot(viewPos.xyz, viewPos.xyz);
+			if (upFaceF > 0.5 && viewDist2 < RIPPLE_DISTANCE * RIPPLE_DISTANCE && isRain && wetFactor > 0.0001) {
+				vec3 rpnWS = RippleNormalWS(mcPos.xz, sqrt(viewDist2), wetFactor);
 				rpnWS = mix(vec3(0.0, 1.0, 0.0), rpnWS, saturate(biome_precipitation));
 				N1 = normalize(mat3(gbufferModelView) * rpnWS);
 			}
@@ -137,8 +138,8 @@ void main() {
 		#if PARALLAX_TYPE == 0
 			normalFinal = mix(normalFinal, heightBasedNormal, PARALLAX_NORMAL_MIX_WEIGHT);
 		#else
-			normalFinal = mix(normalFinal, N1, saturate(max(PARALLAX_NORMAL_MIX_WEIGHT, wetFactor * float(upFace))));
 			#ifdef PARALLAX_FORCE_NORMAL_VERTICAL
+				normalFinal = mix(normalFinal, N1, saturate(max(PARALLAX_NORMAL_MIX_WEIGHT, wetFactor * upFaceF)));
 				normalFinal = dot(normalFH, vec3(0.0, 0.0, 1.0)) > 0.95 ? normalFinal : heightBasedNormal;
 			#else
 				normalFinal = heightBasedNormal;
@@ -149,7 +150,7 @@ void main() {
 	vec4 specularTex = saturate(textureGrad(specular, parallaxUV, texGradX, texGradY));
 	if (isRain && wetFactor > 0.0001) {
 		#if !defined(PARALLAX_MAPPING) || PARALLAX_TYPE == 0
-			normalFinal = mix(normalFinal, N1, saturate(wetFactor * float(upFace) * (1.0 - specularTex.g)));
+			normalFinal = mix(normalFinal, N1, saturate(wetFactor * upFaceF * (1.0 - specularTex.g)));
 		#endif
 
 		#ifdef RAINY_GROUND_WET_ENABLE
@@ -162,7 +163,6 @@ void main() {
 	#ifndef PATH_TRACING
 		normalFinal = mix(normalFinal, N1, remapSaturate(dot(N, -normalize(viewPos.xyz)), 0.0, 0.25, 1.0, 0.0));
 	#endif
-	specularTex = saturate(specularTex);
 	// color.rgb = vec3(biome_precipitation);
 
 	// vec2 noiseCoord = mcPos.xz;
@@ -173,34 +173,33 @@ void main() {
     // color.rgb = vec3(textureBicubic(noisetex, noiseCoord, noiseTextureResolution).g);
 
 #ifdef PATH_TRACING
-
 #ifdef VOXY
 /* RENDERTARGETS: 0,4,5,9,19 */
 #else
 /* RENDERTARGETS: 0,4,5,9 */
 #endif
-	gl_FragData[0] = vec4(color.rgb, color.a);
-	gl_FragData[1] = vec4(pack2x8To16(parallaxShadow, 0.0), pack2x8To16(blockID/ID_SCALE, 0.0), pack4x8To2x16(specularTex));
-	gl_FragData[2] = vec4(normalEncode(normalize(normalFinal)), lmcoord);
-	gl_FragData[3] = vec4(0.0, 0.0, normalEncode(N));
-#ifdef VOXY
-	gl_FragData[4] = vec4(1.0, 0.0, 0.0, 1.0);
-#endif
-
 #else
-
 #ifdef VOXY
 /* RENDERTARGETS: 0,4,5,19 */
 #else
 /* RENDERTARGETS: 0,4,5 */
 #endif
-	gl_FragData[0] = vec4(color.rgb, color.a);
-	gl_FragData[1] = vec4(pack2x8To16(parallaxShadow, 0.0), pack2x8To16(blockID/ID_SCALE, 0.0), pack4x8To2x16(specularTex));
-	gl_FragData[2] = vec4(normalEncode(normalFinal), lmcoord);
-#ifdef VOXY
-	gl_FragData[3] = vec4(1.0, 0.0, 0.0, 1.0);
 #endif
 
+	gl_FragData[0] = vec4(color.rgb, color.a);
+	gl_FragData[1] = vec4(pack2x8To16(parallaxShadow, 0.0), pack2x8To16(blockID/ID_SCALE, 0.0), pack4x8To2x16(specularTex));
+	gl_FragData[2] = vec4(normalEncode(normalize(normalFinal)), lmcoord);
+
+#ifdef PATH_TRACING
+	gl_FragData[3] = vec4(0.0, 0.0, normalEncode(N));
+#endif
+
+#ifdef VOXY
+#ifdef PATH_TRACING
+	gl_FragData[4] = vec4(1.0, 0.0, 0.0, 1.0);
+#else
+	gl_FragData[3] = vec4(1.0, 0.0, 0.0, 1.0);
+#endif
 #endif
 }
  
@@ -218,9 +217,7 @@ layout(triangle_strip, max_vertices = 3) out;
 in vec2 v_lmcoord[];
 in vec2 v_texcoord[];
 in vec4 v_glcolor[];
-// in mat3 v_tbnMatrix[];
 in vec4 v_viewPos[];
-in vec3 v_N[];
 in vec3 v_mcPos[];
 flat in vec4 v_texCoordAM[];
 in vec2 v_texCoordLocal[];
@@ -229,27 +226,22 @@ flat in float v_blockID[];
 out vec2 lmcoord;
 out vec2 texcoord;
 out vec4 glcolor;
-// out mat3 tbnMatrix;
 out vec4 viewPos;
-out vec3 N;
 out vec3 mcPos;
 flat out vec4 texCoordAM;
 out vec2 texCoordLocal;
 flat out float blockID;
 flat out int textureResolution;
-flat out float useAniso;
+flat out int useAniso;
 
 bool isAxisAlignedTri(vec2 a, vec2 b, vec2 c) {
-	ivec2 ap = ivec2(a * vec2(atlasSize) + 0.5);
-	ivec2 bp = ivec2(b * vec2(atlasSize) + 0.5);
-	ivec2 cp = ivec2(c * vec2(atlasSize) + 0.5);
-	// Detect the right-angled UV layout on the atlas texel grid.
-	return (ap.x == bp.x && ap.y == cp.y)
-	    || (ap.x == cp.x && ap.y == bp.y)
-	    || (bp.x == ap.x && bp.y == cp.y)
-	    || (bp.x == cp.x && bp.y == ap.y)
-	    || (cp.x == ap.x && cp.y == bp.y)
-	    || (cp.x == bp.x && cp.y == ap.y);
+	vec2 s = vec2(atlasSize);
+	ivec2 ap = ivec2(a * s + 0.5);
+	ivec2 bp = ivec2(b * s + 0.5);
+	ivec2 cp = ivec2(c * s + 0.5);
+
+	return (ap.x == bp.x || ap.x == cp.x || bp.x == cp.x)
+	    && (ap.y == bp.y || ap.y == cp.y || bp.y == cp.y);
 }
 
 void main() {
@@ -261,15 +253,13 @@ void main() {
 	);
 	float resolution = floor(max(atlasSize.x * coordSize.x, atlasSize.y * coordSize.y) + 0.5);
 	textureResolution = int(exp2(round(log2(resolution))) + 0.01);
-	useAniso = isAxisAlignedTri(v_texcoord[0], v_texcoord[1], v_texcoord[2]) ? 1.0 : 0.0;
+	useAniso = isAxisAlignedTri(v_texcoord[0], v_texcoord[1], v_texcoord[2]) ? 1 : 0;
 
 	for(int i = 0; i < 3; ++i){
 		lmcoord = v_lmcoord[i];
 		texcoord = v_texcoord[i];
 		glcolor = v_glcolor[i];
-		// tbnMatrix = v_tbnMatrix[i];
 		viewPos = v_viewPos[i];
-		N = v_N[i];
 		mcPos = v_mcPos[i];
 		texCoordAM = v_texCoordAM[i];
 		texCoordLocal = v_texCoordLocal[i];
@@ -288,9 +278,7 @@ void main() {
 #ifdef VSH
 out vec2 v_lmcoord, v_texcoord;
 out vec4 v_glcolor;
-// out mat3 v_tbnMatrix;
 out vec4 v_viewPos;
-out vec3 v_N;
 out vec3 v_mcPos;
 flat out vec4 v_texCoordAM;
 out vec2 v_texCoordLocal;
@@ -323,7 +311,7 @@ void main() {
 
 	// const float inf = uintBitsToFloat(0x7f800000u);
 	// float handedness = clamp(at_tangent.w * inf, -1.0, 1.0);
-	v_N = gl_NormalMatrix * normalize(gl_Normal);
+	// v_N = gl_NormalMatrix * normalize(gl_Normal);
 	// vec3 T = gl_NormalMatrix * normalize(at_tangent.xyz);
 	// vec3 B = cross(T, v_N) * handedness;
 	// v_tbnMatrix = mat3(T, B, v_N);

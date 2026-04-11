@@ -125,3 +125,5 @@ void main() {
 #endif
 #ifdef HELD_BLOCK_DYNAMIC_LIGHT
 #endif
+#ifdef TRANSLUCENT_USE_RESOURCESPACK_PBR
+#endif
