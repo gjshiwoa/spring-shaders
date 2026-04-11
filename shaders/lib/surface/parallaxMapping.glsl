@@ -109,13 +109,11 @@ vec2 parallaxMapping(vec3 viewVector, inout vec3 parallaxOffset, inout vec3 norm
             float midRay    = (biRayPrev + biRayCurr) * 0.5;
             float midHeight = getParallaxHeight(AtlasFromLocal(texCoordLocal + midOffset));
 
-            if(midHeight > midRay){
-                biOffsetCurr = midOffset;
-                biRayCurr    = midRay;
-            } else {
-                biOffsetPrev = midOffset;
-                biRayPrev    = midRay;
-            }
+            float s = step(midRay, midHeight);
+            biOffsetPrev = mix(midOffset, biOffsetPrev, s);
+            biOffsetCurr = mix(biOffsetCurr, midOffset, s);
+            biRayPrev    = mix(midRay,    biRayPrev,    s);
+            biRayCurr    = mix(biRayCurr, midRay,       s);
         }
 
         currOffsetLocal = (biOffsetPrev + biOffsetCurr) * 0.5;
