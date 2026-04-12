@@ -160,7 +160,7 @@ void main() {
 	}
 
 	normalFinal = normalize(normalFinal);
-	#ifndef PATH_TRACING
+	#if !defined PATH_TRACING && PARALLAX_TYPE == 1
 		normalFinal = mix(normalFinal, N1, remapSaturate(dot(N, -normalize(viewPos.xyz)), 0.0, 0.25, 1.0, 0.0));
 	#endif
 	// color.rgb = vec3(biome_precipitation);
