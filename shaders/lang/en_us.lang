@@ -191,6 +191,7 @@ option.CLOUD_FADE_DISTANCE.comment = Speed at which distant clouds fade out. Low
 option.CLOUD_SHADOW = Cloud Shadow
 option.CLOUD_SHADOW.comment = Enables volumetric clouds to cast shadows onto the ground, simulating sunlight being blocked by clouds.
 option.CLOUD_SHADOW_SAMPLES = Cloud Shadow Samples
+option.CLOUD_SHADOW_SAMPLES_MAX = Cloud Shadow Max Samples
 option.CLOUD_SHADOW_OCCLUSION_COEFFICIENT = Cloud Shadow Occlusion Coefficient
 option.CLOUD_SHADOW_OCCLUSION_COEFFICIENT.comment = Controls how strongly cloud shadows darken the ground beneath them.
 option.CLOUD_STEP_ALL = High Altitude Clipping

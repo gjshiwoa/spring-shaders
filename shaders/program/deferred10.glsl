@@ -207,10 +207,10 @@ void main() {
 						+ nightVision * diffuse * NIGHT_VISION_BRIGHTNESS 
 						+ gi_PT;
 		#else
-			color.rgb = (albedo * DEFERRED10_ALBEDO_SCALE * ao
-						+ nightVision * diffuse * NIGHT_VISION_BRIGHTNESS * ao
-						+ skyLight * SKY_LIGHT_BRIGHTNESS * ao 
-						+ L2 * lightMask * RSM_BRIGHTNESS);
+			color.rgb = ao * (albedo * DEFERRED10_ALBEDO_SCALE
+						+ nightVision * diffuse * NIGHT_VISION_BRIGHTNESS
+						+ skyLight * SKY_LIGHT_BRIGHTNESS)
+						+ L2 * lightMask * RSM_BRIGHTNESS;
 		#endif
 
 		color.rgb += direct * lightMask * DIRECT_LUMINANCE;
@@ -246,7 +246,7 @@ void main() {
 			vec2 cloud_uv = texcoord * 0.5 + vec2(0.5, 0.0);
 			if(!outScreen(cloud_uv * 2.0 - vec2(1.0, 0.0) + vec2(-1.0, 1.0) * invViewSize) && camera.y < 5000.0)	{
 				vec4 CT1_c = texture(colortex3, cloud_uv);
-				if(dot(CT1_c.rgb, CT1_c.rgb) <= 1e-9){
+				if(dot(CT1_c.rgb, CT1_c.rgb) <= 1e-9 && (1.0 - isNightS) > 1e-4){
 					CT1_c.a = 1.0;
 				}
 				cloudScattering = CT1_c.rgb;

@@ -114,14 +114,14 @@ float sampleFogDensityLow(vec3 cameraPos, float height_fraction){
 }
 
 float sampleFogDensityHigh(vec3 cameraPos, float base, float height_fraction, vec3 wind_direction){
-    float final = base;
+    float finalFog = base;
 
     vec4 high_frequency_noises = texture(colortex2, cameraPos * 0.055 + 0.025 * wind_direction * frameTimeCounter);
     float high_freq_FBM = high_frequency_noises.r * 0.5 + high_frequency_noises.g * 0.25 + high_frequency_noises.b * 0.125;
     float high_freq_noise_modifier = lerp(high_freq_FBM, 1.0 - high_freq_FBM, saturate(height_fraction * 10.0));    
-    final = remapSaturate(final, high_freq_noise_modifier * 0.5, 1.0, 0.0, 1.0);
+    finalFog = remapSaturate(finalFog, high_freq_noise_modifier * 0.5, 1.0, 0.0, 1.0);
     
-    return final;
+    return finalFog;
 }
 
 float sampleFogDensity(vec3 cameraPos, float fogMaxDistance, bool doCheaply){
@@ -129,20 +129,20 @@ float sampleFogDensity(vec3 cameraPos, float fogMaxDistance, bool doCheaply){
     if(height_fraction < 0.0 || height_fraction > 1.0) return 0.0;
 
     vec3 wind_direction = normalize(vec3(1.0, 0.0, 1.0));
+    float fade = remapSaturate(length(cameraPos - camera), fogMaxDistance * 0.8, fogMaxDistance * 1.0, 1.0, 0.0);
     cameraPos += wind_direction * frameTimeCounter * 0.66;
 
     float base = sampleFogDensityLow(cameraPos, height_fraction);
-    float final = base;
+    float finalFog = base;
     if(!doCheaply){
-        final = sampleFogDensityHigh(cameraPos, base, height_fraction, wind_direction);
+        finalFog = sampleFogDensityHigh(cameraPos, base, height_fraction, wind_direction);
     }
 
-    final *= remapSaturate(height_fraction, 0.45, 1.0, 1.0, 0.0);
-    final *= remapSaturate(height_fraction, 0.0, 0.2, 0.0, 1.0) * remapSaturate(height_fraction, 0.8, 1.0, 1.0, 0.0);
-    float fade = remapSaturate(length(cameraPos - camera), fogMaxDistance * 0.8, fogMaxDistance * 1.0, 1.0, 0.0);
-    final *= fade * fade;
+    finalFog *= remapSaturate(height_fraction, 0.45, 1.0, 1.0, 0.0);
+    finalFog *= remapSaturate(height_fraction, 0.0, 0.2, 0.0, 1.0) * remapSaturate(height_fraction, 0.8, 1.0, 1.0, 0.0);
+    finalFog *= fade * fade;
 
-    return final;
+    return finalFog;
 }
 
 float computeLightPathOpticalDepth_Fog(vec3 currentPos, float fogMaxDistance, vec3 lightWorldDir, float initialStepSize, int N_SAMPLES) {
