@@ -102,7 +102,11 @@ void main() {
 	float upFaceF = step(0.95, dot(normal, upViewDir));
 
 	#if !defined(PARALLAX_MAPPING) || PARALLAX_TYPE == 0 || defined(PARALLAX_FORCE_NORMAL_VERTICAL)
-		vec3 normalFinal = normalize(tbn * (textureGrad(normals, parallaxUV, texGradX, texGradY).rgb * 2.0 - 1.0));
+		#if defined(PARALLAX_MAPPING) && PARALLAX_TYPE == 0
+			vec3 normalFinal = normalize(tbn * (sampleNormalBilinear(parallaxUV, texGradX, texGradY) * 2.0 - 1.0));
+		#else
+			vec3 normalFinal = normalize(tbn * (textureGrad(normals, parallaxUV, texGradX, texGradY).rgb * 2.0 - 1.0));
+		#endif
 	#else
 		vec3 normalFinal = vec3(0.0);
 	#endif

@@ -51,6 +51,65 @@ float getParallaxHeight(vec2 uv){
     );
 }
 
+vec3 sampleNormalBilinear(vec2 uv, vec2 uvGradX, vec2 uvGradY) {
+    vec3 fallback = textureGrad(normals, uv, uvGradX, uvGradY).rgb;
+
+    if(any(lessThan(texCoordAM.pq, vec2(1e-8)))) {
+        return fallback;
+    }
+
+    ivec2 normalsTexSize = textureSize(normals, 0);
+    if(any(lessThanEqual(normalsTexSize, ivec2(1)))) {
+        return fallback;
+    }
+
+    ivec2 atlasTilePxSize = max(ivec2(texCoordAM.pq * vec2(atlasSize) + 0.5), ivec2(1));
+    if(any(lessThanEqual(atlasTilePxSize, ivec2(1)))) {
+        return fallback;
+    }
+
+    ivec2 tileStartPx = clamp(ivec2(texCoordAM.st * vec2(normalsTexSize) + 0.5), ivec2(0), normalsTexSize - 1);
+    ivec2 tilePxSize = max(ivec2(texCoordAM.pq * vec2(normalsTexSize) + 0.5), ivec2(1));
+    tilePxSize = max(min(tilePxSize, normalsTexSize - tileStartPx), ivec2(1));
+
+    if(any(lessThanEqual(tilePxSize, ivec2(1)))) {
+        return fallback;
+    }
+
+    // 无材质包时 normals 往往退化成极小贴图，atlasSize 与 normals 实际尺寸失配。
+    // 这类情况下直接回退常规采样，避免错误地跨 tile 插值。
+    if(any(lessThan(normalsTexSize, atlasSize)) && any(lessThan(tilePxSize, atlasTilePxSize))) {
+        return fallback;
+    }
+
+    vec2 localUV = fract((uv - texCoordAM.st) / texCoordAM.pq);
+    vec2 texPos = localUV * vec2(tilePxSize) - 0.5;
+    vec2 f = fract(texPos);
+    ivec2 i0 = ivec2(floor(texPos));
+
+    int ix  = wrapInt(i0.x, tilePxSize.x);
+    int iy  = wrapInt(i0.y, tilePxSize.y);
+    int ix1 = (ix + 1) % tilePxSize.x;
+    int iy1 = (iy + 1) % tilePxSize.y;
+
+    vec3 n00 = texelFetch(normals, tileStartPx + ivec2(ix,  iy),  0).rgb;
+    vec3 n10 = texelFetch(normals, tileStartPx + ivec2(ix1, iy),  0).rgb;
+    vec3 n01 = texelFetch(normals, tileStartPx + ivec2(ix,  iy1), 0).rgb;
+    vec3 n11 = texelFetch(normals, tileStartPx + ivec2(ix1, iy1), 0).rgb;
+
+    const vec3 flatN = vec3(0.5, 0.5, 1.0);
+    const float flatEps = 2.0 / 255.0;
+    vec3 dMax = max(max(abs(n00 - flatN), abs(n10 - flatN)),
+                    max(abs(n01 - flatN), abs(n11 - flatN)));
+    if(all(lessThan(dMax, vec3(flatEps)))) {
+        return fallback;
+    }
+
+    vec3 nx0 = mix(n00, n10, f.x);
+    vec3 nx1 = mix(n01, n11, f.x);
+    return mix(nx0, nx1, f.y);
+}
+
 vec3 computeNormalFromHeight(vec2 parallaxUV) {
     const float sampleSpanTexels = 1.0;
 
