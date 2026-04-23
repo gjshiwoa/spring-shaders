@@ -211,6 +211,9 @@ screen.water_reflection_refraction = Water Reflection/Refraction
 screen.translucent_lighting = Translucent Lighting
 
 option.WAVE_TYPE = Wave Style
+value.WAVE_TYPE.0 = Wind Sea
+value.WAVE_TYPE.1 = Lake
+value.WAVE_TYPE.2 = Composite Ocean
 option.WAVE_SPEED = Wave Speed
 option.WAVE_FREQUENCY = Wave Frequency
 option.WAVE_FREQUENCY.comment = Density of the ripples.
