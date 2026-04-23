@@ -65,13 +65,13 @@ float getwaves1(vec2 position, int iterations) {
     float t = frameTimeCounter * WAVE_SPEED * 3.0;
 
     vec2 pA = position * 0.35;
-    pA = rotate2D(pA, -0.65);
+    pA = rotate2D(pA, -0.6);
     pA.y *= 4.0;
     pA -= vec2(0.0, t * 0.33);
     float hA = waterFBM(vec3(pA, t * 0.3), 10);
 
     vec2 pB = position * 0.35;
-    pB = rotate2D(pB, -0.25);
+    pB = rotate2D(pB, -0.3);
     pB.y *= 4.0;
     pB -= vec2(0.0, t * 0.28);
     float hB = waterFBM(vec3(pB, t * 0.25), 10);
@@ -241,7 +241,7 @@ float getWaveHeight(vec2 pos, const int quality){
         return saturate(mix(1.0, waveHeight, pow(WAVE_HEIGHT, 0.5)));
     #elif WAVE_TYPE == 1
         waveHeight = getwaves1(pos, quality);
-        return saturate(mix(1.0, waveHeight, pow(WAVE_HEIGHT, 1.4)));
+        return saturate(mix(1.0, waveHeight, pow(WAVE_HEIGHT, 1.45)));
     #else
         waveHeight = getwaves2(pos, quality);
         if(isEyeInWater == 1) waveHeight = 1.0 - waveHeight;
