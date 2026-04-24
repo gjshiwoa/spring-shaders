@@ -81,14 +81,18 @@ void main() {
 		float VoL = saturate(dot(worldDir, sunWorldDir));
 		float phase = saturate(hgPhase1(VoL, 0.66 - 0.56 * rainStrength));
 		if(cloudTransmittance < 1.0){
-			color.rgb = 
-				mix((skyBaseColor + celestial), color.rgb, 
-					saturate(
-						pow(exp(-cloudHitLength / ((1.0 - 0.66 * sunRiseSetS) * CLOUD_FADE_DISTANCE * (1.0 + 1.0 * phase * sunRiseSetS))), 
-								remapSaturate(1.0 - saturate(getLuminance(cloudScattering - 0.5) + 0.05)
-											, 0.0, 1.0, 1.0, 2.0))
-					)
-				);
+
+			float blendFactor = saturate(
+				pow(exp(-cloudHitLength / ((1.0 - 0.66 * sunRiseSetS) * CLOUD_FADE_DISTANCE * (1.0 + 1.0 * phase * sunRiseSetS))),
+					remapSaturate(1.0 - saturate(getLuminance(cloudScattering - 0.5) + 0.05)
+								, 0.0, 1.0, 1.0, 2.0))
+			);
+			
+			float cloudBlendWeight = smoothRemap(camera.y, cloudHeight.x, cloudHeight.y, 50.0, 50.0, 1.0);
+			blendFactor = mix(blendFactor, 1.0, cloudBlendWeight);
+			
+			color.rgb = mix(skyBaseColor, color.rgb, blendFactor);
+			
 		}
 
 		#if defined DISTANT_HORIZONS && !defined END && !defined NETHER

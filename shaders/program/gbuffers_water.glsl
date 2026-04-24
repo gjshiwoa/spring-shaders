@@ -205,6 +205,8 @@ void main() {
 			#endif
 		#endif
 
+		// color.rgb = vec3(getwaves1RoughnessMask(vMcPos.xz));
+
 	}else{
 		vec3 albedo = toLinearR(texColor.rgb);
 		vec3 diffuse = albedo / PI;

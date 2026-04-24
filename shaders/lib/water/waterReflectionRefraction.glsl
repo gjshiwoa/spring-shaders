@@ -12,9 +12,23 @@ vec2 waterRefractionCoord(vec3 normalTex, vec3 worldNormal, float worldDis0, flo
 }
 #include "/lib/common/octahedralMapping.glsl"
 
-vec2 SSRT(vec3 viewPos, vec3 reflectViewDir, vec3 normalTex, out vec3 outMissPos){
-    float curStep = REFLECTION_STEP_SIZE;
+// 排除 SSR 命中天空
+bool isNotSky(vec2 screenUV){
+    #ifdef DISTANT_HORIZONS
+        return texture(dhDepthTex0, screenUV).r < 1.0
+            || texture(depthtex1,   screenUV).r < 1.0;
+    #elif defined VOXY
+        return texture(depthtex1,      screenUV).r < 1.0
+            || texture(vxDepthTexTrans, screenUV).r < 1.0;
+    #else
+        return texture(depthtex1, screenUV).r < 1.0;
+    #endif
+}
 
+// 屏幕空间反射光线行进（SSRT）
+// 返回命中 UV；未命中返回 vec2(-1.0)，outMissPos 输出最后有效采样点供 PT fallback
+vec2 SSRT(vec3 viewPos, vec3 reflectViewDir, vec3 normalTex, out vec3 outMissPos){
+    // 起点沿法线偏移，避免自相交
     vec3 startPos = viewPos;
     float worldDis = length(viewPos);
     #ifdef GBF
@@ -25,25 +39,28 @@ vec2 SSRT(vec3 viewPos, vec3 reflectViewDir, vec3 normalTex, out vec3 outMissPos
         startPos += normalTex * clamp(worldDis / 60.0, 0.01, 0.33);
     #endif
 
-    float jitter = temporalBayer64(gl_FragCoord.xy);
-
+    float curStep       = REFLECTION_STEP_SIZE;
     float cumUnjittered = 0.0;
+    float jitter        = temporalBayer64(gl_FragCoord.xy);
+
+    vec3 preTestPos    = startPos;
+    vec3 curTestPos    = startPos;
     vec3 testScreenPos = viewPosToScreenPos(vec4(startPos, 1.0)).xyz;
-    vec3 preTestPos = startPos;
-    bool isHit = false;
+    bool isHit         = false;
 
     outMissPos = vec3(0.0);
 
-    vec3 curTestPos = startPos;
-
+    // DH / Voxy 扩大采样次数
     float N_SAMPLES = REFLECTION_SAMPLES;
     #if defined VOXY || defined DISTANT_HORIZONS
         N_SAMPLES *= 1.5;
     #endif
+
+    // 主循环：指数步进
     for (int i = 0; i < int(N_SAMPLES); ++i){
         cumUnjittered += curStep;
         float adjustedDist = cumUnjittered - jitter * curStep;
-        curTestPos = startPos + reflectViewDir * adjustedDist;
+        curTestPos    = startPos + reflectViewDir * adjustedDist;
         testScreenPos = viewPosToScreenPos(vec4(curTestPos, 1.0)).xyz;
 
         if (outScreen(testScreenPos.xy)){
@@ -63,16 +80,21 @@ vec2 SSRT(vec3 viewPos, vec3 reflectViewDir, vec3 normalTex, out vec3 outMissPos
         #endif
         vec3 ivalueTestScreenPos = vec3(testScreenPos.xy, closest);
 
+        // 穿过表面：进入二分细化
         if (testScreenPos.z > closest){
             isHit = true;
-            vec3 ds = curTestPos - preTestPos;
-            vec3 probePos = curTestPos;
-            float sig = -1.0;
+
+            vec3  ds       = curTestPos - preTestPos;
+            vec3  probePos = curTestPos;
+            float sig      = -1.0;
             float closestB = 1.0;
+
+            // 5 次二分精修
             for (int j = 1; j <= 5; ++j){
                 float n = pow(0.5, float(j));
-                probePos = probePos + sig * n * ds;
+                probePos      = probePos + sig * n * ds;
                 testScreenPos = viewPosToScreenPos(vec4(probePos, 1.0)).xyz;
+
                 closestB = texture(depthtex1, testScreenPos.xy).r;
                 #if defined DISTANT_HORIZONS && !defined NETHER && !defined END
                     #ifdef GBF
@@ -86,47 +108,35 @@ vec2 SSRT(vec3 viewPos, vec3 reflectViewDir, vec3 normalTex, out vec3 outMissPos
                 sig = sign(closestB - testScreenPos.z);
             }
 
-            vec3 newTestPos = screenPosToViewPos(vec4(ivalueTestScreenPos, 1.0)).xyz;
-            float tp_dist = distance(curTestPos, newTestPos);
-            float ds_len = length(ds);
-            float cosA = dot(reflectViewDir, normalize(normalTex));
+            // 过滤擦边命中伪影
+            vec3  newTestPos = screenPosToViewPos(vec4(ivalueTestScreenPos, 1.0)).xyz;
+            float tp_dist    = distance(curTestPos, newTestPos);
+            float ds_len     = length(ds);
+            float cosA       = dot(reflectViewDir, normalize(normalTex));
             if (tp_dist < ds_len * saturate(sqrt(1.0 - cosA * cosA))){
-                return testScreenPos.st;
+                if (isNotSky(testScreenPos.xy)) return testScreenPos.st;
+                outMissPos = preTestPos;
+                return vec2(-1.0);
             }
             outMissPos = preTestPos;
             break;
         }
 
         preTestPos = curTestPos;
-        curStep *= REFLECTION_STEP_GROWTH_BASE;
+        curStep   *= REFLECTION_STEP_GROWTH_BASE;
     }
 
-    bool depthCondition = true;
-    // #if !defined END && !defined NETHER
-        #ifdef DISTANT_HORIZONS
-            depthCondition = texture(dhDepthTex0, testScreenPos.xy).r < 1.0 || texture(depthtex1, testScreenPos.xy).r < 1.0;
-        #elif defined VOXY
-            depthCondition = texture(depthtex1, testScreenPos.xy).r < 1.0 || texture(vxDepthTexOpaque, testScreenPos.xy).r < 1.0;
-        #else
-            depthCondition = texture(depthtex1, testScreenPos.xy).r < 1.0;
-        #endif
-    // #endif
-
+    // 未命中：最终采样点若非天空视为远端命中
     if (!isHit){
-        if(depthCondition) return vec2(testScreenPos.xy);
-        else{ 
-            outMissPos = curTestPos;
-            return vec2(-1.0);
-        }
+        if (isNotSky(testScreenPos.xy)) return vec2(testScreenPos.xy);
+        outMissPos = curTestPos;
+        return vec2(-1.0);
     }
 
     return vec2(-1.0);
 }
 
 vec3 skyReflection(vec3 reflectWorldDir){
-    // #if defined END || defined NETHER
-    //     return vec3(0.0);
-    // #endif
     #ifndef GBF
         vec3 reflectSkyColor = texture(colortex7, clamp(directionToOctahedral(reflectWorldDir) * 0.5, 0.0, 0.5 - 1.0 / 512.0)).rgb;
     #else
@@ -255,8 +265,6 @@ vec3 temporal_Reflection(vec3 color_c, int samples, float r){
 }
 
 vec3 JointBilateralFiltering_Refl_Horizontal(){
-    // return texelFetch(colortex3, ivec2(gl_FragCoord.xy), 0).rgb;
-    
     ivec2 pix = ivec2(gl_FragCoord.xy);
     vec2 curGD = texelFetch(colortex6, ivec2(pix - 0.5 * viewSize), 0).rg;
     vec3  normal0 = unpackNormal(curGD.r);
@@ -283,9 +291,9 @@ vec3 JointBilateralFiltering_Refl_Horizontal(){
         vec3  n  = unpackNormal(gd.r);
         float z  = linearizeDepth(gd.g);
 
-        float wN = saturate(mix(1.0, dot(n, normal0), 25.0));             // 法线权重
-        float wZ = exp(-abs(z - z0) / (1.0 + fDepth * 2.0 + z0 / 2.0));      // 深度权重
-        float wS = exp(-dx * dx * invSigma2);               // 空间高斯权重
+        float wN = saturate(mix(1.0, dot(n, normal0), 25.0));
+        float wZ = exp(-abs(z - z0) / (1.0 + fDepth * 2.0 + z0 / 2.0));
+        float wS = exp(-dx * dx * invSigma2);
         vec3 w  = vec3(wN * wZ * wS);
 
         vec3 col = texelFetch(colortex3, p, 0).rgb;
@@ -297,8 +305,6 @@ vec3 JointBilateralFiltering_Refl_Horizontal(){
 }
 
 vec3 JointBilateralFiltering_Refl_Vertical(){
-    // return texelFetch(colortex1, ivec2(gl_FragCoord.xy), 0).rgb;
-
     ivec2 pix = ivec2(gl_FragCoord.xy);
     vec2 curGD = texelFetch(colortex6, ivec2(pix - 0.5 * viewSize), 0).rg;
     vec3  normal0 = unpackNormal(curGD.r);
@@ -324,9 +330,9 @@ vec3 JointBilateralFiltering_Refl_Vertical(){
         vec3  n  = unpackNormal(gd.r);
         float z  = linearizeDepth(gd.g);
 
-        float wN = saturate(mix(1.0, dot(n, normal0), 25.0));             // 法线权重
-        float wZ = exp(-abs(z - z0) / (1.0 + fDepth * 2.0 + z0 / 2.0));      // 深度权重
-        float wS = exp(-dy * dy * invSigma2);               // 空间高斯权重
+        float wN = saturate(mix(1.0, dot(n, normal0), 25.0));
+        float wZ = exp(-abs(z - z0) / (1.0 + fDepth * 2.0 + z0 / 2.0));
+        float wS = exp(-dy * dy * invSigma2);
         vec3 w  = vec3(wN * wZ * wS);
 
         vec3 col = texelFetch(colortex1, p, 0).rgb;

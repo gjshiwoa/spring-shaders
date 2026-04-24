@@ -84,7 +84,7 @@ vec3 computeCausticsWithDispersion(vec3 vMcPos) {
     vec3 sampleUV = vMcPos.xyz;
     sampleUV *= CAUSTICS_FREQ;
     sampleUV.xz = rotate2D(sampleUV.xz, -0.45);
-    sampleUV.z *= 3.0;
+    sampleUV.z *= 4.0;
     sampleUV -= CAUSTICS_SPEED * vec3(0.0, frameTimeCounter * 0.8, frameTimeCounter);
 
     vec2 caustBase = texture(colortex8, sampleUV).ba;
