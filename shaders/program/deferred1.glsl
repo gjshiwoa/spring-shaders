@@ -21,6 +21,8 @@ const bool shadowtex1Mipmap = false;
 const bool shadowcolor0Mipmap = false;
 const bool shadowcolor1Mipmap = false;
 
+const bool colortex10MipmapEnabled = true;
+
 void main() {
 	vec4 CT7 = texture(colortex7, texcoord);
 	
@@ -56,6 +58,12 @@ void main() {
 
 	if(ivec2(gl_FragCoord.xy) == passUV){
 		CT7 = vec4(1.0, 0.0, 0.0, 1.0);
+	}
+
+	if(ivec2(gl_FragCoord.xy) == lightColorUV){
+		int lod = int(round(log2(viewSize.x))) - 1;
+		vec3 lightColor = textureLod(colortex10, vec2(0.25), lod).rgb;
+		CT7.rgb = mix(lightColor, CT7.rgb, 0.95);
 	}
 
 

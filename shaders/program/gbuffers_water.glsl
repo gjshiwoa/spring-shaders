@@ -13,7 +13,7 @@ varying float isNoonS, isNightS, sunRiseSetS;
 varying vec3 sunWorldDir, moonWorldDir, lightWorldDir;
 varying vec3 sunViewDir, moonViewDir, lightViewDir;
 
-varying vec3 sunColor, skyColor;
+varying vec3 sunColor, skyColor, lightColor;
 
 varying mat3 tbnMatrix;
 
@@ -234,6 +234,9 @@ void main() {
 		float UoN = dot(normalTexW, upWorldDir);
 		vec3 skyColorMix = mix(sunColor, skyColor, 0.98 - 0.05 * lightmap.y);
 		float hemiWeight = mix(1.0, UoN * 0.5 + 0.5, 0.66);
+		#if defined PATH_TRACING || defined COLORED_LIGHT
+			lightmap.y *= 0.15;
+		#endif
 		vec3 skyLight = lightmap.y * BRDF_D * skyColorMix * hemiWeight;
 
 		#ifdef NETHER
@@ -241,10 +244,13 @@ void main() {
 		#endif
 		vec3 direct = sunColor * BRDF * shade * cos_theta;
 
-		vec3 artificial = lightmap.x * artificial_color * diffuse;
+		vec3 artificial = lightmap.x * lightColor * diffuse;
 		artificial += saturate(materialParams.emissiveness) * diffuse * EMISSIVENESS_BRIGHTNESS;
 
 		vec3 c = albedo * 0.005;
+		#ifdef PATH_TRACING
+			c *= DEFERRED10_PT_ALBEDO_SCALE / DEFERRED10_ALBEDO_SCALE;
+		#endif
 		c += skyLight * SKY_LIGHT_BRIGHTNESS;
 		c += nightVision * diffuse * NIGHT_VISION_BRIGHTNESS;
 		c += direct * DIRECT_LUMINANCE;
@@ -354,6 +360,13 @@ void main() {
 	#ifdef NETHER
 		skyColor = vec3(0.0);
 		sunColor = vec3(0.0);
+	#endif
+
+	#if defined PATH_TRACING || defined COLORED_LIGHT
+		lightColor = normalize(texelFetch(gaux4, lightColorUV, 0).rgb) * 0.66;
+		lightColor = max(lightColor, vec3(0.01));
+	#else
+		lightColor = artificial_color;
 	#endif
 
 	lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;

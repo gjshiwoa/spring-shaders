@@ -88,7 +88,12 @@ void main() {
 		skyColor *= 1.0 - 0.5 * rainStrength;
 	#endif
 
-	lightColor = artificial_color;
+	#if defined PATH_TRACING || defined COLORED_LIGHT
+		lightColor = normalize(texelFetch(gaux4, lightColorUV, 0).rgb) * 0.66;
+		lightColor = max(lightColor, vec3(0.01));
+	#else
+		lightColor = artificial_color;
+	#endif
 	#ifdef END
 		sunColor = mix(vec3(1.0), endColor, 0.8) * 0.5;
 		skyColor = endColor * 0.5;

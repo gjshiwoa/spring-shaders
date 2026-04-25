@@ -40,6 +40,8 @@ void main() {
 		color.rgb = applyLetterbox(color.rgb, LETTER_BOX_SIZE);
 	#endif
 
+	// color.rgb = 10.0 * texelFetch(colortex7, lightColorUV, 0).rgb;
+
 	
 	
 	// color.rgb = drawTransmittanceLut1();

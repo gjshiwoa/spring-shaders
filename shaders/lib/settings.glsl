@@ -193,6 +193,7 @@ const ivec2 LeftLitUV = ivec2(1 + 30, 256 + 10);
 const ivec2 rightLitPreUV = ivec2(1 + 40, 256 + 10);
 const ivec2 LeftLitPreUV = ivec2(1 + 50, 256 + 10);
 const ivec2 passUV = ivec2(1 + 60, 256 + 10);
+const ivec2 lightColorUV = ivec2(1 + 70, 256 + 10);
 
 #define ATMOSPHERE_SCATTERING_SAMPLES 16    // [4 8 12 16 20 24 32 48 64 86 128]
 
