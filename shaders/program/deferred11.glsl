@@ -37,6 +37,19 @@ const bool shadowcolor1Mipmap = false;
 #include "/lib/common/materialIdMapper.glsl"
 #include "/lib/common/octahedralMapping.glsl"
 #include "/lib/atmosphere/fog.glsl"
+#include "/lib/atmosphere/clouds2D.glsl"
+
+vec3 compositeCloudLayer(vec3 clearSkyColor, vec4 cloudLayer, float blendFactor) {
+	vec3 cloudScattering = max(cloudLayer.rgb, vec3(0.0));
+	float cloudTransmittance = max(cloudLayer.a, 0.0);
+	vec3 cloudedSkyColor = clearSkyColor * cloudTransmittance + cloudScattering;
+
+	if(cloudTransmittance < 1.0) {
+		cloudedSkyColor = mix(clearSkyColor, cloudedSkyColor, blendFactor);
+	}
+
+	return cloudedSkyColor;
+}
 
 void main() {
 	vec4 CT7 = texelFetch(colortex7, ivec2(gl_FragCoord.xy), 0);
@@ -70,16 +83,26 @@ void main() {
 		float cloudTransmittance = intScattTrans.a;
 		vec3 cloudScattering = intScattTrans.rgb;
 
-		vec3 celestial = drawCelestial(worldDir, cloudTransmittance, false);
+		vec4 cloud2D = vec4(vec3(0.0), 1.0);
+		#ifdef CLOUDS_2D
+			cloud2D = renderCloud2D(earthPos, worldDir, cloudTransmittance);
+		#endif
+
+		vec3 celestial = drawCelestial(worldDir, cloudTransmittance * cloud2D.a, false);
 
 		color.rgb = skyBaseColor;	
 		// color.rgb += celestial;
+
+		#ifdef CLOUDS_2D
+			color.rgb = compositeCloudLayer(color.rgb, cloud2D, CLOUDS_2D_SKY_MIX);
+		#endif
+
 		cloudTransmittance = max(cloudTransmittance, 0.0);
 		cloudScattering = max(cloudScattering, vec3(0.0));
 		color.rgb = color.rgb * cloudTransmittance + cloudScattering;
 
 		float VoL = saturate(dot(worldDir, sunWorldDir));
-		float phase = saturate(hgPhase1(VoL, 0.66 - 0.56 * rainStrength));
+		float phase = saturate(phasefunc_KleinNishina(VoL, 0.66 - 0.56 * rainStrength));
 		if(cloudTransmittance < 1.0){
 
 			float blendFactor = saturate(
@@ -91,7 +114,12 @@ void main() {
 			float cloudBlendWeight = smoothRemap(camera.y, cloudHeight.x, cloudHeight.y, 50.0, 50.0, 1.0);
 			blendFactor = mix(blendFactor, 1.0, cloudBlendWeight);
 			
-			color.rgb = mix(skyBaseColor, color.rgb, blendFactor);
+			vec3 clearSkyColor = skyBaseColor;
+			#ifdef CLOUDS_2D
+				clearSkyColor = compositeCloudLayer(clearSkyColor, cloud2D, CLOUDS_2D_SKY_MIX);
+			#endif
+
+			color.rgb = mix(clearSkyColor, color.rgb, blendFactor);
 			
 		}
 

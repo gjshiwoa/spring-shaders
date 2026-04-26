@@ -117,6 +117,7 @@ option.CAMERA_HEIGHT = 相机高度
 screen.atmosphere_scattering = 大气散射
 screen.volumetric_fog = 体积雾
 screen.volumetric_clouds = 体积云
+screen.clouds_2d = 2D云
 screen.celestial = 天体
 
 option.MIE_G = 米氏散射G值
@@ -157,6 +158,7 @@ option.VOLUMETRIC_CLOUDS_MAX_SAMPLES = 体积云最大采样数
 option.VOLUMETRIC_CLOUDS_MIN_SAMPLES = 体积云最小采样数
 option.VOLUMETRIC_CLOUDS_MIN_HEIGHT = 体积云云底高度
 option.CLOUD_THICKNESS = 云厚度
+option.CLOUD_SCALE = 云缩放
 option.VOLUME_CLOUD_NOISE_SEED = 体积云噪波种子
 option.VOLUME_CLOUD_NOISE_SEED.comment = 影响云的分布
 option.CLOUD_SPEED = 云移动速度
@@ -195,6 +197,16 @@ option.CLOUD_SHADOW_SAMPLES_MAX = 云影最大采样数
 option.CLOUD_SHADOW_OCCLUSION_COEFFICIENT = 云影遮蔽系数
 option.CLOUD_SHADOW_OCCLUSION_COEFFICIENT.comment = 控制云影遮挡地表阳光的压暗强度
 option.CLOUD_STEP_ALL = 高海拔裁切
+
+option.CLOUDS_2D = 2D云
+option.CLOUDS_2D_HEIGHT = 2D云高度
+option.CLOUDS_2D_COVERAGE = 2D云覆盖率
+option.CLOUDS_2D_DENSITY = 2D云密度
+option.CLOUDS_2D_SCALE = 2D云缩放
+option.CLOUDS_2D_SPEED = 2D云移动速度
+option.CLOUDS_2D_BRIGHTNESS = 2D云亮度
+option.CLOUDS_2D_FADE_DISTANCE = 2D云淡出距离
+option.CLOUDS_2D_SKY_MIX = 2D云天空色混合强度
 
 option.SUN_RADIUS = 太阳半径
 option.SUN_BRIGHTNESS = 太阳亮度

@@ -106,7 +106,7 @@ float GetInScatterProbability(float height_fraction, float ds_loded, float atten
 }
 
 float GetDirectScatterProbability(float CosTheta, float eccentricity, float silverIntensity, float silverSpread){
-    return max(hgPhase1(CosTheta, eccentricity), silverIntensity * hgPhase1(CosTheta, (0.99 - silverSpread)));
+    return max(phasefunc_KleinNishina(CosTheta, eccentricity), silverIntensity * phasefunc_KleinNishina(CosTheta, 0.99 - silverSpread));
 }
 
 vec3 sunLuminance(vec3 pos, float VoL, float iVoL, float extinction){
@@ -271,8 +271,8 @@ vec3 underWaterFog(vec3 color, vec3 worldDir, float worldDis){
     // float eyeBrightness = eyeBrightnessSmooth.y / 240.0;
     density = mix(1.0, density * 15.0, 0.66);
 
-    float phase0 = hgPhase1(dot(sunWorldDir, worldDir), 0.25);
-    float phase1 = hgPhase1(dot(sunWorldDir, worldDir), 0.55) * 0.5;
+    float phase0 = phasefunc_KleinNishina(dot(sunWorldDir, worldDir), 0.25);
+    float phase1 = phasefunc_KleinNishina(dot(sunWorldDir, worldDir), 0.55) * 0.5;
     float phase = phase0 + phase1;
 
     vec3 underWaterFogColor = 1.0 * density * phase * endColor;

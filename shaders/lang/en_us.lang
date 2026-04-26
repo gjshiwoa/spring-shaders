@@ -117,6 +117,7 @@ option.CAMERA_HEIGHT = Camera Height
 screen.atmosphere_scattering = Atmospheric Scattering
 screen.volumetric_fog = Volumetric Fog
 screen.volumetric_clouds = Volumetric Clouds
+screen.clouds_2d = 2D Clouds
 screen.celestial = Celestial Bodies
 
 option.MIE_G = Mie Scattering G-value
@@ -157,6 +158,7 @@ option.VOLUMETRIC_CLOUDS_MAX_SAMPLES = Volumetric Clouds Max Samples
 option.VOLUMETRIC_CLOUDS_MIN_SAMPLES = Volumetric Clouds Min Samples
 option.VOLUMETRIC_CLOUDS_MIN_HEIGHT = Cloud Base Height
 option.CLOUD_THICKNESS = Cloud Thickness
+option.CLOUD_SCALE = Cloud Scale
 option.VOLUME_CLOUD_NOISE_SEED = Volumetric Cloud Noise Seed
 option.VOLUME_CLOUD_NOISE_SEED.comment = Affects cloud distribution.
 option.CLOUD_SPEED = Cloud Speed
@@ -195,6 +197,16 @@ option.CLOUD_SHADOW_SAMPLES_MAX = Cloud Shadow Max Samples
 option.CLOUD_SHADOW_OCCLUSION_COEFFICIENT = Cloud Shadow Occlusion Coefficient
 option.CLOUD_SHADOW_OCCLUSION_COEFFICIENT.comment = Controls how strongly cloud shadows darken the ground beneath them.
 option.CLOUD_STEP_ALL = High Altitude Clipping
+
+option.CLOUDS_2D = 2D Clouds
+option.CLOUDS_2D_HEIGHT = 2D Cloud Height
+option.CLOUDS_2D_COVERAGE = 2D Cloud Coverage
+option.CLOUDS_2D_DENSITY = 2D Cloud Density
+option.CLOUDS_2D_SCALE = 2D Cloud Scale
+option.CLOUDS_2D_SPEED = 2D Cloud Speed
+option.CLOUDS_2D_BRIGHTNESS = 2D Cloud Brightness
+option.CLOUDS_2D_FADE_DISTANCE = 2D Cloud Fade Distance
+option.CLOUDS_2D_SKY_MIX = 2D Cloud Sky Color Mix
 
 option.SUN_RADIUS = Sun Radius
 option.SUN_BRIGHTNESS = Sun Brightness

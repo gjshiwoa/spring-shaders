@@ -19,6 +19,7 @@ varying vec3 sunColor, skyColor;
 #include "/lib/common/position.glsl"
 #include "/lib/common/normal.glsl"
 #include "/lib/common/noise.glsl"
+#define ATMOSPHERIC_SCATTERING_KLEIN_NISHINA_PHASE
 #include "/lib/atmosphere/atmosphericScattering.glsl"
 
 #ifdef FSH

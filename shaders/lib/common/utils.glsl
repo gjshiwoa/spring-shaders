@@ -374,6 +374,14 @@ vec2 floorUV(vec2 uv){
 
 
 
+float pow2(float x) {
+    return x * x;
+}
+
+vec3 pow2(vec3 x) {
+    return x * x;
+}
+
 float hgPhase(float cosTheta, float g){
     float numer = 1.0f - g * g;
     float denom = 1.0f + g * g + 2.0f * g * cosTheta;
@@ -383,5 +391,35 @@ float hgPhase(float cosTheta, float g){
 float hgPhase1(float cos_angle, float g){
     float g2 = g * g;
     return ((1.0 - g2) / pow((1.0 + g2 - 2.0 * g * cos_angle), 1.5)) / (4.0 * PI);
+}
+
+float phasefunc_KleinNishinaE(float cosTheta, float e) {
+    return e / (2.0 * PI * (e * (1.0 - cosTheta) + 1.0) * log(2.0 * e + 1.0));
+}
+
+vec3 phasefunc_KleinNishinaE(float cosTheta, vec3 e) {
+    return e / (2.0 * PI * (e * (1.0 - cosTheta) + 1.0) * log(2.0 * e + 1.0));
+}
+
+float phasefunc_KleinNishina(float cosTheta, float g) {
+    float e = 1.0;
+    for (int i = 0; i < 8; ++i) {
+        float gFromE = 1.0 / e - 2.0 / log(2.0 * e + 1.0) + 1.0;
+        float deriv = 4.0 / ((2.0 * e + 1.0) * pow2(log(2.0 * e + 1.0))) - 1.0 / pow2(e);
+        e = e - (gFromE - g) / deriv;
+    }
+
+    return phasefunc_KleinNishinaE(cosTheta, e);
+}
+
+vec3 phasefunc_KleinNishina(float cosTheta, vec3 g) {
+    vec3 e = vec3(1.0);
+    for (int i = 0; i < 8; ++i) {
+        vec3 gFromE = 1.0 / e - 2.0 / log(2.0 * e + 1.0) + 1.0;
+        vec3 deriv = 4.0 / ((2.0 * e + 1.0) * pow2(log(2.0 * e + 1.0))) - 1.0 / pow2(e);
+        e = e - (gFromE - g) / deriv;
+    }
+
+    return phasefunc_KleinNishinaE(cosTheta, e);
 }
 

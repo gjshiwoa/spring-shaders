@@ -51,6 +51,25 @@ float MiePhase(float cos_theta){
     return (1 - g2) / (4.0 * PI * pow((1 + g2 - 2 * g * cos_theta), 1.5));
 }
 
+vec3 AtmospherePhasePow2(vec3 x) {
+    return x * x;
+}
+
+vec3 AtmospherePhaseKleinNishinaE(float cosTheta, vec3 e) {
+    return e / (2.0 * PI * log(2.0 * e + 1.0) * (1.0 + e * (1.0 - cosTheta)));
+}
+
+vec3 AtmospherePhaseKleinNishina(float cosTheta, vec3 g) {
+    vec3 e = vec3(1.0);
+    for (int i = 0; i < 8; ++i) {
+        vec3 gFromE = 1.0 / e - 2.0 / log(2.0 * e + 1.0) + 1.0;
+        vec3 deriv = 4.0 / ((2.0 * e + 1.0) * AtmospherePhasePow2(log(2.0 * e + 1.0))) - 1.0 / AtmospherePhasePow2(e);
+        e = e - (gFromE - g) / deriv;
+    }
+
+    return AtmospherePhaseKleinNishinaE(cosTheta, e);
+}
+
 vec3 Scattering(float h, vec3 lightDir, vec3 worldDir){
     float cos_theta = dot(lightDir, worldDir);
 
@@ -356,8 +375,14 @@ mat2x3 AtmosphericScattering(vec3 worldPos, vec3 worldDirO, vec3 lightDir, vec3 
     }
 
     float cos_theta = dot(worldDirO, lightDir);
+    #ifdef ATMOSPHERIC_SCATTERING_KLEIN_NISHINA_PHASE
+        vec3 miePhase = AtmospherePhaseKleinNishina(cos_theta, vec3(MIE_G));
+    #else
+        vec3 miePhase = vec3(MiePhase(cos_theta));
+    #endif
+
     vec3 inScattering    = inScatteringR * RayleighSigma * RayleiPhase(cos_theta)
-                        + inScatteringM * MieSigma      * MiePhase(cos_theta);
+                        + inScatteringM * MieSigma      * miePhase;
                         // inScattering *= vec3(0.9,0.7,0.75);
     vec3 multiScattering = multiScatteringR * RayleighSigma
                         + multiScatteringM * MieSigma * mieAmount * MIE_STRENGTHNESS;

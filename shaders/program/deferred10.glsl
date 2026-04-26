@@ -49,6 +49,66 @@ const bool shadowcolor1Mipmap = false;
 #include "/lib/atmosphere/clouds2D.glsl"
 
 
+vec3 getSkyBaseColor(vec3 worldDir) {
+	vec3 skyBaseColor = texture(colortex1, texcoord * 0.5 + 0.5).rgb * SKY_BASE_COLOR_BRIGHTNESS;
+	float skyMixFac = remapSaturate(dot(worldDir, upWorldDir), 0.0, 0.33, 1.0, 0.0);
+	float highFac = remapSaturate(camera.y, 2000.0, 2500.0, 1.0, 0.0);
+
+	skyBaseColor = mix(skyBaseColor, mix(sunColor, skyColor, 0.9), skyMixFac * sunRiseSetS * highFac);
+	skyBaseColor *= mix(vec3(1.0), vec3(1.25, 0.9, 1.0), sunRiseSetS * highFac);
+	return skyBaseColor;
+}
+
+vec4 getSkyClouds(vec3 worldDir, out float cloudHitLength) {
+	vec4 clouds = vec4(vec3(0.0), 1.0);
+	cloudHitLength = clamp(intersectHorizontalPlane(camera, worldDir, 650), 0.0, 20000.0);
+
+	#ifdef VOLUMETRIC_CLOUDS
+		vec2 cloudUV = texcoord * 0.5 + vec2(0.5, 0.0);
+		if(!outScreen(cloudUV * 2.0 - vec2(1.0, 0.0) + vec2(-1.0, 1.0) * invViewSize) && camera.y < 5000.0) {
+			clouds = texture(colortex3, cloudUV);
+			if(dot(clouds.rgb, clouds.rgb) <= 1e-9 && (1.0 - isNightS) > 1e-4) {
+				clouds.a = 1.0;
+			}
+		}
+	#endif
+
+	return vec4(max(clouds.rgb, vec3(0.0)), max(clouds.a, 0.0));
+}
+
+float getSkyCloudBlendFactor(vec3 cloudScattering, float cloudHitLength, float phase) {
+	float fadeDistance = (1.0 - 0.66 * sunRiseSetS) * CLOUD_FADE_DISTANCE * (1.0 + phase * sunRiseSetS);
+	float luminancePower = remapSaturate(1.0 - saturate(getLuminance(cloudScattering - 0.5) + 0.05), 0.0, 1.0, 1.0, 2.0);
+	float blendFactor = saturate(pow(exp(-cloudHitLength / fadeDistance), luminancePower));
+
+	float insideCloudWeight = smoothRemap(camera.y, cloudHeight.x, cloudHeight.y, 50.0, 50.0, 1.0);
+	return mix(blendFactor, 1.0, insideCloudWeight);
+}
+
+vec3 compositeCloudLayer(vec3 clearSkyColor, vec4 cloudLayer, float blendFactor) {
+	vec3 cloudScattering = max(cloudLayer.rgb, vec3(0.0));
+	float cloudTransmittance = max(cloudLayer.a, 0.0);
+	vec3 cloudedSkyColor = clearSkyColor * cloudTransmittance + cloudScattering;
+
+	if(cloudTransmittance < 1.0) {
+		cloudedSkyColor = mix(clearSkyColor, cloudedSkyColor, blendFactor);
+	}
+
+	return cloudedSkyColor;
+}
+
+float getSkyCrepuscularLight(float phase, vec4 viewPos) {
+	float crepuscularLight = 0.0;
+
+	#ifdef CREPUSCULAR_LIGHT
+		if(phase > 0.01 && sunRiseSetS + isNoonS > 0.001) {
+			crepuscularLight = computeCrepuscularLight(viewPos) * phase;
+		}
+	#endif
+
+	return crepuscularLight;
+}
+
 
 void main() {
 	vec4 CT2 = texelFetch(colortex2, ivec2(gl_FragCoord.xy), 0);
@@ -230,67 +290,36 @@ void main() {
 		
 
 	}else{
-		float d_p2a = RaySphereIntersection(earthPos, worldDir, vec3(0.0), earth_r + atmosphere_h).y;
-		float d_p2e = RaySphereIntersection(earthPos, worldDir, vec3(0.0), earth_r).x;
-		float d = d_p2e > 0.0 ? d_p2e : d_p2a;
-		float dist1 = skyB > 0.5 ? d : worldDis1;
+		float cloudHitLength;
+		vec4 skyClouds = getSkyClouds(worldDir, cloudHitLength);
+		float cloudTransmittance = skyClouds.a;
+		vec3 cloudScattering = skyClouds.rgb;
 
-		float cloudTransmittance = 1.0;
-		vec3 cloudScattering = vec3(0.0);
-		float cloudHitLength = clamp(intersectHorizontalPlane(camera, worldDir, 650), 0.0, 20000.0);
-
-		vec4 cloudP = cloud2D(worldDir);
-		
-
-		#ifdef VOLUMETRIC_CLOUDS
-			vec2 cloud_uv = texcoord * 0.5 + vec2(0.5, 0.0);
-			if(!outScreen(cloud_uv * 2.0 - vec2(1.0, 0.0) + vec2(-1.0, 1.0) * invViewSize) && camera.y < 5000.0)	{
-				vec4 CT1_c = texture(colortex3, cloud_uv);
-				if(dot(CT1_c.rgb, CT1_c.rgb) <= 1e-9 && (1.0 - isNightS) > 1e-4){
-					CT1_c.a = 1.0;
-				}
-				cloudScattering = CT1_c.rgb;
-				cloudTransmittance = CT1_c.a;
-			}
+		vec4 cloud2D = vec4(vec3(0.0), 1.0);
+		#ifdef CLOUDS_2D
+			cloud2D = renderCloud2D(earthPos, worldDir, cloudTransmittance);
 		#endif
 
-		vec3 skyBaseColor = texture(colortex1, texcoord * 0.5 + 0.5).rgb * SKY_BASE_COLOR_BRIGHTNESS;
-		float skyMixFac = remapSaturate(dot(worldDir, upWorldDir), 0.0, 0.33, 1.0, 0.0);
-		vec3 skyMixCol = mix(sunColor, skyColor, 0.9);
-		float highFac = remapSaturate(camera.y, 2000.0, 2500.0, 1.0, 0.0);
-		skyBaseColor = mix(skyBaseColor, skyMixCol, skyMixFac * sunRiseSetS * highFac);
-		skyBaseColor *= mix(vec3(1.0), vec3(1.25, 0.9, 1.0), sunRiseSetS * highFac);
-		vec3 celestial = drawCelestial(worldDir, cloudTransmittance, true);
+		vec3 skyBaseColor = getSkyBaseColor(worldDir);
+		vec3 celestial = drawCelestial(worldDir, cloudTransmittance * cloud2D.a, true);
 
-		color.rgb = skyBaseColor;	
-		color.rgb += celestial;
-		// color.rgb += cloudP.rgb * sunColor;
-		cloudTransmittance = max(cloudTransmittance, 0.0);
-		cloudScattering = max(cloudScattering, vec3(0.0));
-		color.rgb = color.rgb * cloudTransmittance + cloudScattering;
+		vec3 clearSkyColor = skyBaseColor + celestial;
+		vec3 cloudedSkyColor = clearSkyColor;
 
-		float VoL = saturate(dot(worldDir, sunWorldDir));
-		float phase = saturate(hgPhase1(VoL, 0.66 - 0.56 * rainStrength));
-		float crepuscularLight = 0.0;
-		#ifdef CREPUSCULAR_LIGHT
-			if(phase > 0.01 && sunRiseSetS + isNoonS > 0.001) crepuscularLight = computeCrepuscularLight(viewPos1) * phase;
+		#ifdef CLOUDS_2D
+			cloudedSkyColor = compositeCloudLayer(cloudedSkyColor, cloud2D, CLOUDS_2D_SKY_MIX);
 		#endif
-		if(cloudTransmittance < 1.0){
 
-			float blendFactor = saturate(
-				pow(exp(-cloudHitLength / ((1.0 - 0.66 * sunRiseSetS) * CLOUD_FADE_DISTANCE * (1.0 + 1.0 * phase * sunRiseSetS))),
-					remapSaturate(1.0 - saturate(getLuminance(cloudScattering - 0.5) + 0.05)
-								, 0.0, 1.0, 1.0, 2.0))
-			);
-			
-			float cloudBlendWeight = smoothRemap(camera.y, cloudHeight.x, cloudHeight.y, 50.0, 50.0, 1.0);
-			blendFactor = mix(blendFactor, 1.0, cloudBlendWeight);
-			
-			color.rgb = mix((skyBaseColor + celestial), color.rgb, blendFactor);
-			
+		float cloudPhase = saturate(phasefunc_KleinNishina(saturate(dot(worldDir, sunWorldDir)), 0.66 - 0.56 * rainStrength));
+		float volumetricCloudBlendFactor = 1.0;
+		if(cloudTransmittance < 1.0) {
+			volumetricCloudBlendFactor = getSkyCloudBlendFactor(cloudScattering, cloudHitLength, cloudPhase);
 		}
-		
-		color.rgb += pow(crepuscularLight, 1.0) * sunColor * max3(0.6 * sunRiseSetS, 5.0 * rainStrength, 0.05 * isNoonS) * saturate(1.0 - isNightS)
+		cloudedSkyColor = compositeCloudLayer(cloudedSkyColor, skyClouds, volumetricCloudBlendFactor);
+
+		float crepuscularLight = getSkyCrepuscularLight(cloudPhase, viewPos1);
+		color.rgb = cloudedSkyColor;
+		color.rgb += crepuscularLight * sunColor * max3(0.6 * sunRiseSetS, 5.0 * rainStrength, 0.05 * isNoonS) * saturate(1.0 - isNightS)
 					* remapSaturate(camera.y, 600.0, 1000.0, 1.0, 0.0);
 		// color.rgb = vec3(computeCrepuscularLight(viewPos1));
 		// color.rgb = vec3(crepuscularLight);

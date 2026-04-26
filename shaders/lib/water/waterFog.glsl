@@ -26,7 +26,7 @@ void waterFog(inout vec3 transmittance, inout vec3 scattering, vec4 startPos, ve
         vec3 t1 = fastExp(-lightPathOpticalDepth);
 
         float cosTheta = dot(stepDir, lightWorldDir);
-        float phase = hgPhase(cosTheta, 0.1);
+        float phase = phasefunc_KleinNishina(cosTheta, 0.1);
         
         scattering += sunColor * t1 *  coe * phase * transmittance * 0.1 * ds;
     }
@@ -60,8 +60,8 @@ vec3 underWaterFog(vec3 worldDir, float worldDis){
     float eyeBrightness = eyeBrightnessSmooth.y / 240.0;
     vec3 scattering = mix(vec3(0.2, 0.6, 0.9), vec3(density * UNDERWATER_FOG_LIGHT_BRI) * waterFogColor, 0.5);
 
-    float phase0 = hgPhase1(dot(sunWorldDir, worldDir), 0.15);
-    float phase1 = hgPhase1(dot(sunWorldDir, worldDir), 0.75) * 0.2;
+    float phase0 = phasefunc_KleinNishina(dot(sunWorldDir, worldDir), 0.15);
+    float phase1 = phasefunc_KleinNishina(dot(sunWorldDir, worldDir), 0.75) * 0.2;
     float phase = phase0 + phase1;
 
     vec3 underWaterFogColor = UNDERWATER_FOG_BRI 
