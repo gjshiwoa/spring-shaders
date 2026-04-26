@@ -1,3 +1,4 @@
+// 感谢 Coldnight冷夜 大佬提供的2d云代码
 float cloud2DWorley(vec2 p) {
 	vec2 cell = floor(p);
 	vec2 localPos = fract(p);

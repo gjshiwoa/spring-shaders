@@ -393,6 +393,7 @@ float hgPhase1(float cos_angle, float g){
     return ((1.0 - g2) / pow((1.0 + g2 - 2.0 * g * cos_angle), 1.5)) / (4.0 * PI);
 }
 
+// 感谢 Luna 大佬提供的Klein-Nishina代码
 float phasefunc_KleinNishinaE(float cosTheta, float e) {
     return e / (2.0 * PI * (e * (1.0 - cosTheta) + 1.0) * log(2.0 * e + 1.0));
 }
