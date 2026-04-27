@@ -24,8 +24,9 @@
         "frameCounter",
         "frameTimeCounter",
         "framemod8",
-        "isEyeInWater"
-        
+        "isEyeInWater",
+
+        "voxyTaaAmount"
     ],
 
     "samplers": {
@@ -49,7 +50,7 @@
             vec2(3.0f / 4.0f, 1.0f / 9.0f),
             vec2(-7.0f / 8.0f, 7.0f / 9.0f)
         );
-        return Halton_2_3[frameCounter % 8] * invViewSize;
+        return Halton_2_3[frameCounter % 8] * invViewSize * voxyTaaAmount;
     }
     "
 }

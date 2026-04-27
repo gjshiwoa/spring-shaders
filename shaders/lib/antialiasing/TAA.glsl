@@ -58,7 +58,7 @@ vec3 clipAABB(vec3 nowColor, vec3 preColor, float depthConfidence){
     float TAA_variance_clip_gamma = TAA_VARIANCE_CLIP_GAMMA;
 
     #ifdef TAA_DEPTH_CONFIDENCE
-        TAA_variance_clip_gamma += mix(1.0, depthConfidence, 1.0) * TAA_DEPTH_CONFIDENCE_STRENGTH;
+        TAA_variance_clip_gamma += depthConfidence * TAA_DEPTH_CONFIDENCE_STRENGTH;
         TAA_variance_clip_gamma = max(TAA_variance_clip_gamma, 0.5);
     #endif
 
@@ -91,13 +91,13 @@ vec3 clipAABB(vec3 nowColor, vec3 preColor, float depthConfidence){
         return preColor;
 }
 
-float getBlendFactor(float depth_confidence, vec3 preColor, vec3 nowColor){
+float getBlendFactor(float depthConfidence, vec3 preColor, vec3 nowColor){
     float lumPre = getLuminance(preColor);
     float lumNow = getLuminance(nowColor);
     float lumDiff = abs(lumNow - lumPre) / (max(lumNow, lumPre) + 0.001);
     float fLum = smoothstep(0.01, 0.15, lumDiff);
 
-    float fDepth = (1.0 - depth_confidence);
+    float fDepth = (1.0 - depthConfidence);
 
     float blendFactor = max(fDepth, fLum) * 0.05;
     return clamp(blendFactor, 0.02, 0.05);
