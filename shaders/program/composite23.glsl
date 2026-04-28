@@ -30,7 +30,7 @@ const bool shadowcolor1Mipmap = false;
 
 
 void main() {
-	vec4 color = max(texture(colortex0, texcoord), 0.0);
+	vec4 color = max(texelFetch(colortex0, ivec2(gl_FragCoord.xy), 0), 0.0);
 
 	#ifdef EXPOSURE
 		avgExposure(color.rgb);

@@ -177,7 +177,7 @@ void main() {
 		// bzyzhang: 练习项目(十一)：次表面散射的近似实现
 		// https://zhuanlan.zhihu.com/p/348106844
 		float sssWrap = SSS_INTENSITY * materialParams.subsurfaceScattering;
-		if(plants > 0.5) sssWrap = 20.0;
+		if(plants > 0.5) sssWrap = 5.0;
 		cos_theta = saturate((cos_theta_O + sssWrap) / (1 + sssWrap));
 
 		#ifndef PATH_TRACING

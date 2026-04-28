@@ -56,7 +56,7 @@ float sampleCloudDensity(vec3 cameraPos, bool doCheaply){
         sin(cameraPos.z * 0.016 + windDisturbanceTime * 0.21),
         cos(cameraPos.x * 0.014 - windDisturbanceTime * 0.17)
     );
-    cameraPos.xz += windDisturbance * 25.0;
+    cameraPos.xz += windDisturbance * 15.0;
 
     // cameraPos *= 0.0045;
     // cameraPos = floor(cameraPos);
@@ -71,42 +71,44 @@ float sampleCloudDensity(vec3 cameraPos, bool doCheaply){
     final_cloud *= remapSaturate(height_fraction, 0.0, 0.1, 0.0, 1.0) * remapSaturate(height_fraction, 0.8, 1.0, 1.0, 0.0);
     final_cloud *= cloudSigmaE;
 
-    return saturate(final_cloud > (0.0075) ? final_cloud : 0.0);
+    return saturate(final_cloud > (0.01) ? final_cloud : 0.0);
 }
 
 float computeCloudShadowTransmittance(vec3 mcCameraPos, vec3 lightWorldDir, float jitter){
     lightWorldDir = normalize(lightWorldDir);
-    if(abs(lightWorldDir.y) < 1e-5) return 1.0;
+    float lightYAbs = abs(lightWorldDir.y);
+    if(lightYAbs < 1e-5) return 1.0;
 
-    float distToCloudMin = intersectHorizontalPlane(mcCameraPos, lightWorldDir, cloudHeightMin);
-    float distToCloudMax = intersectHorizontalPlane(mcCameraPos, lightWorldDir, cloudHeightMin + CLOUD_THICKNESS * 0.66);
+    float invLightY = 1.0 / lightWorldDir.y;
+    float distToCloudMin = (cloudHeightMin - mcCameraPos.y) * invLightY;
+    float distToCloudMax = (cloudHeightMin + CLOUD_THICKNESS * 0.66 - mcCameraPos.y) * invLightY;
 
     float tEnter = min(distToCloudMin, distToCloudMax);
     float tExit = max(distToCloudMin, distToCloudMax);
     if(tExit <= 0.0) return 1.0;
 
     tEnter = max(tEnter, 0.0);
+    tExit = min(tExit, CLOUD_SHADOW_MAX_DISTANCE);
     float cloudSpan = max(tExit - tEnter, 0.0);
     if(cloudSpan <= 0.0) return 1.0;
 
-    float horizFactor = smoothstep(0.75, 0.95, 1.0 - abs(lightWorldDir.y));
+    float horizFactor = smoothstep(0.75, 0.95, 1.0 - lightYAbs);
     float actualSamples = mix(float(CLOUD_SHADOW_SAMPLES), float(CLOUD_SHADOW_SAMPLES_MAX), horizFactor);
     int sampleCount = int(actualSamples);
 
     float ds = cloudSpan / actualSamples;
-    float sampleJitter = fract(jitter);
+    vec3 sampleStep = lightWorldDir * ds;
+    vec3 samplePos = mcCameraPos + lightWorldDir * (tEnter + fract(jitter) * ds);
 
     float cloudShadowOpticalDepth = 0.0;
-    float cloudShadowStepScale = ds * CLOUD_SHADOW_OCCLUSION_COEFFICIENT;
     for(int i = 0; i < CLOUD_SHADOW_SAMPLES_MAX; i++){
         if(i >= sampleCount) break;
-        float sampleT = (float(i) + sampleJitter) / actualSamples;
-        float distToCloudSam = mix(tEnter, tExit, sampleT);
-        float cloudShadowDensity = sampleCloudDensity(mcCameraPos + distToCloudSam * lightWorldDir, true);
+        float cloudShadowDensity = sampleCloudDensity(samplePos, true);
         cloudShadowOpticalDepth += saturate(cloudShadowDensity);
+        samplePos += sampleStep;
     }
 
-    return exp(-cloudShadowOpticalDepth * cloudShadowStepScale);
+    return exp(-cloudShadowOpticalDepth * ds * CLOUD_SHADOW_OCCLUSION_COEFFICIENT);
 }
 
 

@@ -27,7 +27,7 @@ const bool shadowcolor1Mipmap = false;
 
 
 void main() {
-	vec4 color = texture(colortex0, texcoord);
+	vec4 color = texelFetch(colortex0, ivec2(gl_FragCoord.xy), 0);
 
 	#define BLOOM_UPSAMPLE
 	vec3 blur = vec3(0.0);
@@ -56,8 +56,8 @@ void main() {
 	
 
 
-	vec4 CT2 = texture(colortex2, texcoord);
-    if(ivec2(gl_FragCoord.xy) == vec2(0.0)){
+	vec4 CT2 = texelFetch(colortex2, ivec2(gl_FragCoord.xy), 0);
+    if(ivec2(gl_FragCoord.xy) == ivec2(0.0)){
         float AverageLum = mix(preLum, curLum, saturate(frameTime*2.0));
         CT2.a = AverageLum;
     }

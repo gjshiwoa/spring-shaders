@@ -198,7 +198,7 @@ vec4 fogLuminance(inout vec4 intScattTrans, vec3 pos, vec3 oriStartPos, float st
 
     float height_fraction = getHeightFractionForPoint(pos.y, fogHeight);
 
-    float phase = hgPhase1(VoL, 0.05);
+    float phase = hgPhase1(VoL, 0.1);
     float phase1 = hgPhase1(VoL, 0.75) * 0.075;
     phase += phase1;
 
