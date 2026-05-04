@@ -175,7 +175,7 @@ const vec3 MieSigma = vec3(3.996) * 1e-6;
 const vec3 MieAbsorptionSigma = vec3(4.4) * 1e-6;
 const vec3 OzoneAbsorptionSigma = vec3(0.650, 1.881, 0.085) * 1e-6;
 
-#define Information CHUN_v2_2026_04_BY_ZY     //     [CHUN_v2_2026_04_BY_ZY]
+#define Information CHUN_v2_2026_05_BY_ZY     //     [CHUN_v2_2026_05_BY_ZY]
 
 const float H_R = 8500.0;
 const float H_M = 1200.0;
@@ -584,6 +584,9 @@ const vec3 filterPower = vec3(1.0, 1.0, 1.0) * FILTER_CONTRAST;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define TONE_MAPPING AgX        // [AgX ACESFull Hejl Hable ACES Lottes Neutral Uchimura]
+
+#define HDRTONEMAP_SHOULDERSTART 203.0 // [80.0 100.0 120.0 160.0 203.0 240.0 300.0 400.0]
+#define HDRTONEMAP_WHITECLIP 1000.0    // [300.0 400.0 600.0 800.0 1000.0 1500.0 2000.0 4000.0 10000.0]
 
 #define ACES_FULL_ADDITIVE 1.5
 #define ACES_ADDITIVE 0.75

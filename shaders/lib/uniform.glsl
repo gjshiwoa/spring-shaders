@@ -139,6 +139,13 @@ uniform int framemod8;
 
 uniform float voxyTaaAmount;
 
+#if defined(HDR_MOD_INSTALLED) && defined(HDR_ENABLED)
+uniform float HdrGamePeakBrightness;
+uniform float HdrGamePaperWhiteBrightness;
+uniform float HdrGameMinimumBrightness;
+uniform float HdrUIBrightness;
+#endif
+
 uniform float rainStrength; 
 uniform float wetness;
 

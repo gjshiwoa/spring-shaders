@@ -26,6 +26,18 @@ const bool shadowcolor1Mipmap = false;
 #include "/lib/camera/depthOfField.glsl"
 #include "/lib/antialiasing/FSR.glsl"
 
+vec3 sRGBEncodeSafe(vec3 c) {
+	vec3 s = sign(c);
+	c = abs(c);
+
+	bvec3 cutoff = lessThan(c, vec3(0.0031308));
+	vec3 higher = vec3(1.055) * pow(c, vec3(1.0 / 2.4)) - vec3(0.055);
+	vec3 lower = c * vec3(12.92);
+	c = mix(higher, lower, cutoff);
+
+	return c * s;
+}
+
 
 void main() {
 	#ifdef FSR_RCAS
@@ -34,7 +46,12 @@ void main() {
 		vec4 color = max(texture(colortex0, texcoord), 0.0);
 	#endif
 
-	toGamma(color);
+	#if defined(HDR_MOD_INSTALLED) && defined(HDR_ENABLED)
+		color.rgb *= HdrGamePaperWhiteBrightness / max(HdrUIBrightness, 1.0);
+		color.rgb = sRGBEncodeSafe(color.rgb);
+	#else
+		toGamma(color);
+	#endif
 
 	#ifdef LETTER_BOX
 		color.rgb = applyLetterbox(color.rgb, LETTER_BOX_SIZE);
@@ -60,7 +77,11 @@ void main() {
 	// color.rgb = vec3(textureLod(shadowtex1, texcoord, 0).r);
 	
 /* RENDERTARGETS: 0 */
-	gl_FragData[0] = saturate(vec4(color.rgb, 1.0));
+	#if defined(HDR_MOD_INSTALLED) && defined(HDR_ENABLED)
+		gl_FragData[0] = vec4(color.rgb, 1.0);
+	#else
+		gl_FragData[0] = saturate(vec4(color.rgb, 1.0));
+	#endif
 }
 
 #endif

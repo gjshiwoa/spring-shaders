@@ -28,6 +28,37 @@ const bool shadowcolor1Mipmap = false;
 
 #include "/lib/camera/postFX.glsl"
 
+#if defined(HDR_MOD_INSTALLED) && defined(HDR_ENABLED)
+vec3 ReinhardHDR(vec3 x, float peak) {
+	return x / (x / peak + 1.0);
+}
+
+vec3 ReinhardExtendedHDR(vec3 x, float whiteMax, float peak) {
+	return ReinhardHDR(x, peak) * (1.0 + (peak * x) / (whiteMax * whiteMax));
+}
+
+float ComputeReinhardExtendableScaleHDR(float w, float p, float m, float x, float y) {
+	return p * (w * w * y - (p * x * x)) / (w * w * x * (p - y));
+}
+
+vec3 ReinhardPiecewiseExtendedHDR(vec3 x, float whiteMax, float peak, float shoulder) {
+	const float xMin = 0.0;
+	float exposure = ComputeReinhardExtendableScaleHDR(whiteMax, peak, xMin, shoulder, shoulder);
+	vec3 extended = ReinhardExtendedHDR(x * exposure, whiteMax * exposure, peak);
+	extended = min(extended, peak);
+	return mix(x, extended, step(shoulder, x));
+}
+
+vec3 HDRToneMap(vec3 color) {
+	float paperWhite = max(HdrGamePaperWhiteBrightness, 1.0);
+	float peak = max(HdrGamePeakBrightness / paperWhite, 1.0);
+	float shoulder = min(HDRTONEMAP_SHOULDERSTART / paperWhite, peak - 0.001);
+	float whiteClip = max(HDRTONEMAP_WHITECLIP / paperWhite, shoulder + 0.001);
+
+	return ReinhardPiecewiseExtendedHDR(color, whiteClip, peak, shoulder);
+}
+#endif
+
 
 void main() {
 	vec4 color = max(texelFetch(colortex0, ivec2(gl_FragCoord.xy), 0), 0.0);
@@ -49,7 +80,11 @@ void main() {
     //     toLinear(q_albedo);
 	// color.rgb = q_albedo;
 	
-	color.rgb = max(TONE_MAPPING(color.rgb), vec3(0.0));
+	#if defined(HDR_MOD_INSTALLED) && defined(HDR_ENABLED)
+		color.rgb = max(HDRToneMap(color.rgb), vec3(0.0));
+	#else
+		color.rgb = max(TONE_MAPPING(color.rgb), vec3(0.0));
+	#endif
 	#ifdef POST_PROCESS_NOISE
 		color.rgb += rand2_3(texcoord + sin(frameTimeCounter)) / 255.0;
 	#endif
@@ -88,7 +123,11 @@ void main() {
 	}
 	
 /* DRAWBUFFERS:06 */
-	gl_FragData[0] = saturate(color);
+	#if defined(HDR_MOD_INSTALLED) && defined(HDR_ENABLED)
+		gl_FragData[0] = color;
+	#else
+		gl_FragData[0] = saturate(color);
+	#endif
 	gl_FragData[1] = CT6;
 }
 
