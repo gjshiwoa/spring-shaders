@@ -63,32 +63,13 @@ void main() {
 		color.rgb += nightVision * texColor.rgb * NIGHT_VISION_BRIGHTNESS / PI;
 	}
 
-#ifdef PATH_TRACING
-#ifdef VOXY
 /* RENDERTARGETS: 0,4,5,9,19 */
-#else
-/* RENDERTARGETS: 0,4,5,9 */
-#endif
+
 	gl_FragData[0] = vec4(color.rgb, color.a);
 	gl_FragData[1] = vec4(pack2x8To16(1.0, 0.0), pack2x8To16(entityIdMap / ID_SCALE, 0.0), pack4x8To2x16(specularTex));
 	gl_FragData[2] = vec4(normalEncode(normalTex), lightmapCoord);
 	gl_FragData[3] = vec4(0.0, 0.0, normalEncode(N));
-#ifdef VOXY
 	gl_FragData[4] = vec4(1.0, 0.0, 0.0, 1.0);
-#endif
-#else
-#ifdef VOXY
-/* RENDERTARGETS: 0,4,5,19 */
-#else
-/* RENDERTARGETS: 0,4,5 */
-#endif
-	gl_FragData[0] = vec4(color.rgb, color.a);
-	gl_FragData[1] = vec4(pack2x8To16(1.0, 0.0), pack2x8To16(entityIdMap / ID_SCALE, 0.0), pack4x8To2x16(specularTex));
-	gl_FragData[2] = vec4(normalEncode(normalTex), lightmapCoord);
-#ifdef VOXY
-	gl_FragData[3] = vec4(1.0, 0.0, 0.0, 1.0);
-#endif
-#endif
 }
 
 #endif

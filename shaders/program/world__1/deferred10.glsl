@@ -126,7 +126,8 @@ void main() {
 	// color.rgb = vec3(texture(colortex1, texcoord * 0.5).rgb);
 	color.rgb = max(BLACK, color.rgb);
 
-	CT4.rg = pack4x8To2x16(vec4(albedo, ao));
+	vec4 CT13 = vec4(0.0);
+	CT13.rg = pack4x8To2x16(vec4(albedo, ao));
 
 	vec4 viewPos1R = screenPosToViewPos(vec4(texcoord.st, depth1, 1.0));
 	vec4 worldPos1R = viewPosToWorldPos(viewPos1R);
@@ -135,9 +136,9 @@ void main() {
 
 	vec4 CT9 = texelFetch(colortex9, ivec2(gl_FragCoord.xy), 0);
 
-/* DRAWBUFFERS:049 */
+/* RENDERTARGETS: 0,13,9 */
 	gl_FragData[0] = color;
-	gl_FragData[1] = CT4;
+	gl_FragData[1] = CT13;
 	gl_FragData[2] = vec4(velocity, CT9.ba);
 }
 

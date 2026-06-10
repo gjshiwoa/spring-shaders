@@ -248,7 +248,7 @@ void main() {
 		artificial += saturate(materialParams.emissiveness) * diffuse * EMISSIVENESS_BRIGHTNESS;
 
 		vec3 c = albedo * 0.005;
-		#ifdef PATH_TRACING
+		#if defined PATH_TRACING && !defined END && !defined NETHER
 			c *= DEFERRED10_PT_ALBEDO_SCALE / DEFERRED10_ALBEDO_SCALE;
 		#endif
 		c += skyLight * SKY_LIGHT_BRIGHTNESS;

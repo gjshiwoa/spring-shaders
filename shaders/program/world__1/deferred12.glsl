@@ -47,11 +47,9 @@ void main() {
 
 			vec3 hrrNormalW = unpackNormal(CT6.r);
 			vec3 hrrNormalV = normalize(gbufferModelView * vec4(hrrNormalW, 0.0)).xyz;
-			vec3 hrrNormalVO = normalize(normalDecode(texelFetch(colortex9, ivec2(gl_FragCoord.xy * 2.0 - viewSize), 0).ba));
 			vec3 NVO = hrrNormalV;
-			#ifdef PATH_TRACING
-				NVO = hrrNormalVO;
-			#endif
+			vec3 hrrNormalVO = normalize(normalDecode(texelFetch(colortex9, ivec2(gl_FragCoord.xy * 2.0 - viewSize), 0).ba));
+			NVO = hrrNormalVO;
 
 			vec2 mcLightmap = texelFetch(colortex5, ivec2(gl_FragCoord.xy * 2 - viewSize), 0).ba;
 			vec2 lightmap = AdjustLightmap(mcLightmap);

@@ -22,17 +22,11 @@ void main() {
 		CT5 = vec4(normalEncode(normalize(shadowLightPosition)), vec2(0.0, 1.0));
 	}
 
-#ifdef VOXY
 /* RENDERTARGETS: 0,4,5,19 */
-#else
-/* RENDERTARGETS: 0,4,5 */
-#endif
 	gl_FragData[0] = vec4(color.rgb, color.a);
 	gl_FragData[1] = CT4;
 	gl_FragData[2] = CT5;
-#ifdef VOXY
 	gl_FragData[3] = vec4(1.0, 0.0, 0.0, 1.0);
-#endif
 }
 
 #endif

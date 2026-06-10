@@ -46,9 +46,13 @@ void main() {
 		vec3 normalV = normalize(normalDecode(normalEnc));
 		vec3 normalW = normalize(viewPosToWorldPos(vec4(normalV, 0.0)).xyz);	
 
-		vec4 CT4RG = vec4(CT4R, CT4G);
-		vec3 albedo = CT4RG.rgb;
-		float ao = CT4RG.a;
+		vec4 CT13 = texture(colortex13, texcoord);
+		vec2 CT13R = unpack16To2x8(CT13.r);
+		vec2 CT13G = unpack16To2x8(CT13.g);
+		vec3 albedo = vec3(CT13R.x, CT13R.y, CT13G.x);
+		float ao = CT13G.y;
+		float wetFactor = CT4G.y;
+		albedo = mix(albedo, vec3(0.95), wetFactor);
 
 		MaterialParams params = MapMaterialParams(specularMap);
 

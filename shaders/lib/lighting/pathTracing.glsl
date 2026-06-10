@@ -577,9 +577,9 @@ vec4 temporal_RT(vec4 color_c){
     }
 
     #if PATH_TRACING_QUALITY == 0
-        float blend = 0.97;
+        float blend = 0.98;
     #elif PATH_TRACING_QUALITY == 1
-        float blend = 0.97;
+        float blend = 0.98;
     #elif PATH_TRACING_QUALITY == 2
         float blend = 0.95;
     #elif PATH_TRACING_QUALITY == 3
@@ -592,17 +592,17 @@ vec4 temporal_RT(vec4 color_c){
 
 
 #if PATH_TRACING_QUALITY == 0
-    const float PT_F_R = 32.0;
-    const float PT_F_Q = 32.0;
+    const float PT_F_R = 128.0;
+    const float PT_F_Q = 128.0;
 #elif PATH_TRACING_QUALITY == 1
+    const float PT_F_R = 64.0;
+    const float PT_F_Q = 64.0;
+#elif PATH_TRACING_QUALITY == 2
     const float PT_F_R = 32.0;
     const float PT_F_Q = 32.0;
-#elif PATH_TRACING_QUALITY == 2
+#elif PATH_TRACING_QUALITY == 3
     const float PT_F_R = 16.0;
     const float PT_F_Q = 16.0;
-#elif PATH_TRACING_QUALITY == 3
-    const float PT_F_R = 12.0;
-    const float PT_F_Q = 12.0;
 #endif
 
 vec4 JointBilateralFiltering_PT_Horizontal(){
@@ -644,7 +644,7 @@ vec4 JointBilateralFiltering_PT_Horizontal(){
 }
 
 vec4 JointBilateralFiltering_PT_Vertical(){
-    // return texelFetch(colortex11, ivec2(gl_FragCoord.xy), 0);
+    // return texelFetch(colortex10, ivec2(gl_FragCoord.xy), 0);
 
     ivec2 pix = ivec2(gl_FragCoord.xy);
     vec2 curGD = texelFetch(colortex6, pix, 0).rg;
@@ -673,7 +673,7 @@ vec4 JointBilateralFiltering_PT_Vertical(){
         vec4 w  = vec4(wN * wZ);
         w.a = abs(dy) < 3.0 ? w.a : 0.0;
 
-        vec4 col = texelFetch(colortex11, p, 0);
+        vec4 col = texelFetch(colortex10, p, 0);
         cSum += col * w;
         wSum += w;
     }
@@ -706,7 +706,7 @@ vec4 getGI_PT(float depth, vec3 normal){
             uv_closet = curUV;
         }
     }
-    return texelFetch(colortex11, uv_closet, 0);
+    return texelFetch(colortex10, uv_closet, 0);
 }
 #endif
 

@@ -176,35 +176,13 @@ void main() {
 	// noiseCoord /=64.0 * noiseTextureResolution;
     // color.rgb = vec3(textureBicubic(noisetex, noiseCoord, noiseTextureResolution).g);
 
-#ifdef PATH_TRACING
-#ifdef VOXY
 /* RENDERTARGETS: 0,4,5,9,19 */
-#else
-/* RENDERTARGETS: 0,4,5,9 */
-#endif
-#else
-#ifdef VOXY
-/* RENDERTARGETS: 0,4,5,19 */
-#else
-/* RENDERTARGETS: 0,4,5 */
-#endif
-#endif
 
 	gl_FragData[0] = vec4(color.rgb, color.a);
-	gl_FragData[1] = vec4(pack2x8To16(parallaxShadow, 0.0), pack2x8To16(blockID/ID_SCALE, 0.0), pack4x8To2x16(specularTex));
+	gl_FragData[1] = vec4(pack2x8To16(parallaxShadow, 0.0), pack2x8To16(blockID/ID_SCALE, wetFactor), pack4x8To2x16(specularTex));
 	gl_FragData[2] = vec4(normalEncode(normalize(normalFinal)), lmcoord);
-
-#ifdef PATH_TRACING
 	gl_FragData[3] = vec4(0.0, 0.0, normalEncode(N));
-#endif
-
-#ifdef VOXY
-#ifdef PATH_TRACING
 	gl_FragData[4] = vec4(1.0, 0.0, 0.0, 1.0);
-#else
-	gl_FragData[3] = vec4(1.0, 0.0, 0.0, 1.0);
-#endif
-#endif
 }
  
 #endif

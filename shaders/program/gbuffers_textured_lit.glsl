@@ -77,7 +77,7 @@ void main() {
 	sunColor = texelFetch(gaux4, sunColorUV, 0).rgb * 0.5;
 	skyColor = texelFetch(gaux4, skyColorUV, 0).rgb;
 
-	#ifdef PATH_TRACING
+	#if defined PATH_TRACING && !defined END && !defined NETHER
 		baseLight = vec3(DEFERRED10_PT_ALBEDO_SCALE);
 	#else
 		baseLight = vec3(DEFERRED10_ALBEDO_SCALE);

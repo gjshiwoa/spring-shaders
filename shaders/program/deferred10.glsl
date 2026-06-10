@@ -111,7 +111,6 @@ float getSkyCrepuscularLight(float phase, vec4 viewPos) {
 
 
 void main() {
-	vec4 CT2 = texelFetch(colortex2, ivec2(gl_FragCoord.xy), 0);
 	vec4 color = texture(colortex0, texcoord);	// albedo
 	vec3 texColor = color.rgb;
 	vec3 albedo = pow(texColor, vec3(2.2));
@@ -284,7 +283,7 @@ void main() {
 		// color.rgb = sunColor * gi.rgb + lightmap.y * mix(sunColor, skyColor, SUN_SKY_BLEND - 0.05 * noRSM * lightmap.y) * mix(1.0, UoN * 0.5 + 0.5, 0.75);
 		// color.rgb *= vec3(ao);
 		// color.rgb = vec3(shadow);
-		// color.rgb = gi_PT;
+		// color.rgb = getGI_PT(depth1, normalW).rgb;
 		// color.rgb = RightLitDiff * 1.0;
 		// color.rgb = specularMap.rgb;
 		
@@ -333,14 +332,14 @@ void main() {
 
 	// color.rgb = toLinearR(texelFetch(customimg0, ivec3(relWorldToVoxelCoord(worldPos1.xyz - 0.1 * normalW)), 0).rgb);
 	
-	CT4.rg = pack4x8To2x16(vec4(albedo, ao));
+	vec4 CT13 = vec4(0.0);
+	CT13.rg = pack4x8To2x16(vec4(albedo, ao));
 	vec4 CT9 = texelFetch(colortex9, ivec2(gl_FragCoord.xy), 0);
 
-/* DRAWBUFFERS:0249 */
+/* RENDERTARGETS: 0,13,9 */
 	gl_FragData[0] = color;
-	gl_FragData[1] = CT2;
-	gl_FragData[2] = CT4;
-	gl_FragData[3] = vec4(velocity, CT9.ba);
+	gl_FragData[1] = CT13;
+	gl_FragData[2] = vec4(velocity, CT9.ba);
 }
 
 #endif

@@ -25,7 +25,7 @@ const bool shadowcolor1Mipmap = false;
 #include "/lib/lighting/pathTracing.glsl"
 
 void main() {
-	vec4 CT11 = texture(colortex11, texcoord);
+	vec4 CT10 = texture(colortex10, texcoord);
 
 	vec4 gi = vec4(BLACK, 1.0);
 	vec2 uv = texcoord * 2;
@@ -40,11 +40,11 @@ void main() {
 
 	if(!outScreen(uv) && isTerrainHrr > 0.5){
 		gi = JointBilateralFiltering_PT_Vertical();
-		CT11 = gi;
+		CT10 = gi;
 	}
 	
-/* RENDERTARGETS: 11 */
-	gl_FragData[0] = CT11;
+/* RENDERTARGETS: 10 */
+	gl_FragData[0] = CT10;
 }
 
 #endif

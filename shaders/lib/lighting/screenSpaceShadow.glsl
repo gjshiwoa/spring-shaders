@@ -22,9 +22,8 @@ float screenSpaceShadow(vec3 viewPos, vec3 normal, float shadowMappingResult){
     float cumDist = 0.0;
 
     float jitter = temporalBayer64(gl_FragCoord.xy);
-    startPos += remapSaturate(dist, 5.0, shadowDistance, 0.01, 0.1) * rayDir;
-    startPos += remapSaturate(dist, 5.0, shadowDistance, 0.01, 0.1) * normal;
-    if(dist > far * 3.0) startPos += 0.3 * (1.0 + saturate(dist - far * 3.0)) * normal;
+    startPos += remap(dist, 5.0, shadowDistance, 0.01, 0.1) * rayDir;
+    startPos += remap(dist, 5.0, shadowDistance, 0.01, 0.1) * normal;
 
     float shadow = 0.0;
 

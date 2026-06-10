@@ -111,7 +111,7 @@ const int noiseTextureResolution = 64;
 
 #define RAINY_GROUND_WET_ENABLE
 #define RAINY_GROUND_WET_NOISE
-#define WET_GROUND_SMOOTHNESS 0.95   // [0.5 0.6 0.7 0.8 0.9 0.95 1.0]
+#define WET_GROUND_SMOOTHNESS 0.99   // [0.5 0.6 0.7 0.8 0.9 0.95 0.99 1.0]
 #define WET_GROUND_F0 0.02           // [0.01 0.02 0.05 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9]
 
 #define RIPPLE
@@ -175,7 +175,7 @@ const vec3 MieSigma = vec3(3.996) * 1e-6;
 const vec3 MieAbsorptionSigma = vec3(4.4) * 1e-6;
 const vec3 OzoneAbsorptionSigma = vec3(0.650, 1.881, 0.085) * 1e-6;
 
-#define Information CHUN_v2_2026_05_BY_ZY     //     [CHUN_v2_2026_05_BY_ZY]
+#define Information CHUN_v2_2026_06_BY_ZY     //     [CHUN_v2_2026_06_BY_ZY]
 
 const float H_R = 8500.0;
 const float H_M = 1200.0;
