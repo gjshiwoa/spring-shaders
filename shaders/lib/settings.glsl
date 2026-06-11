@@ -112,7 +112,7 @@ const int noiseTextureResolution = 64;
 #define RAINY_GROUND_WET_ENABLE
 #define RAINY_GROUND_WET_NOISE
 #define WET_GROUND_SMOOTHNESS 0.99   // [0.5 0.6 0.7 0.8 0.9 0.95 0.99 1.0]
-#define WET_GROUND_F0 0.02           // [0.01 0.02 0.05 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9]
+#define WET_GROUND_F0 0.05           // [0.01 0.02 0.05 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9]
 
 #define RIPPLE
 #define RIPPLE_DISTANCE 20.0        // [10.0 15.0 20.0 25.0 30.0 35.0 40.0 45.0 50.0]

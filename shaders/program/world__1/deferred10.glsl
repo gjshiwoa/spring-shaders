@@ -63,7 +63,7 @@ void main() {
 	if(skyB < 0.5){	
 		MaterialParams materialParams = MapMaterialParams(specularMap);
 		#ifdef PBR_REFLECTIVITY
-			mat2x3 PBR = CalculatePBR(viewDir, normalV, lightViewDir, albedo, materialParams);
+			mat2x3 PBR = CalculatePBR(viewDir, normalV, lightViewDir, albedo, materialParams, CT4G.y);
 			vec3 BRDF = PBR[0] + PBR[1];
 			vec3 BRDF_D = reflectDiffuse(viewDir, normalV, albedo, materialParams);
 		#else

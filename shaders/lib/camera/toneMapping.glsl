@@ -131,6 +131,22 @@ vec3 agxDefaultContrastApprox7(vec3 x) {
             + 0.002857;
 }
 
+vec3 agxDefaultContrastApprox(vec3 v) {
+    const float threshold = 0.6060606060606061;
+    const float a_up = 69.86278913545539;
+    const float a_down = 59.507875;
+    const float b_up = 13.0 / 4.0;
+    const float b_down = 3.0 / 1.0;
+    const float c_up = -4.0 / 13.0;
+    const float c_down = -1.0 / 3.0;
+
+    vec3 mask = step(v, vec3(threshold));
+    vec3 a = a_up + (a_down - a_up) * mask;
+    vec3 b = b_up + (b_down - b_up) * mask;
+    vec3 c = c_up + (c_down - c_up) * mask;
+    return 0.5 + (((-2.0 * threshold)) + 2.0 * v) * pow(1.0 + a * pow(abs(v - threshold), b), c);
+}
+
 vec3 simpleFilter(vec3 color, vec3 slope, vec3 offset, vec3 power, float sat) {
     float luma = getLuminance(color);
     vec3 c = pow(color * slope, power);
@@ -150,7 +166,7 @@ vec3 AgX(vec3 color) {
 	const float middle_grey = 0.18;
 	color = clamp(log2(color / middle_grey), -hev, hev);
 	color = (color + hev) / AGX_EV;
-    color = agxDefaultContrastApprox7(color);
+    color = agxDefaultContrastApprox6(color);
 
     color = AgXOutsetMatrix * color;
     color = max(color, 0.0);

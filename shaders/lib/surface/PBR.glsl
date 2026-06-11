@@ -149,7 +149,9 @@ vec3 ComplexFresnel(vec3 N, vec3 K) {
     return F0;
 }
 
-mat2x3 CalculatePBR(vec3 viewDir, vec3 N, vec3 L, vec3 albedo, MaterialParams params) {
+mat2x3 CalculatePBR(vec3 viewDir, vec3 N, vec3 L, vec3 albedo, MaterialParams params, float wetness) {
+    vec3 albedoWet = mix(albedo, vec3(0.95), wetness);
+
     vec3 V = -viewDir;
     vec3 H = normalize(L + V);
     
@@ -159,7 +161,7 @@ mat2x3 CalculatePBR(vec3 viewDir, vec3 N, vec3 L, vec3 albedo, MaterialParams pa
     float NoL = saturate(dot(N, L));
     
     vec3 F0 = vec3(params.metalness);
-    F0 = mix(vec3(0.04), albedo, params.metalness);
+    F0 = mix(vec3(0.04), albedoWet, params.metalness);
 
     vec3 F = F_Schlick(VoH, F0);
 
