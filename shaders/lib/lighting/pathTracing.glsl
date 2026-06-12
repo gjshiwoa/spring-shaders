@@ -592,11 +592,11 @@ vec4 temporal_RT(vec4 color_c){
 
 
 #if PATH_TRACING_QUALITY == 0
-    const float PT_F_R = 128.0;
-    const float PT_F_Q = 128.0;
+    const float PT_F_R = 32.0;
+    const float PT_F_Q = 32.0;
 #elif PATH_TRACING_QUALITY == 1
-    const float PT_F_R = 64.0;
-    const float PT_F_Q = 64.0;
+    const float PT_F_R = 32.0;
+    const float PT_F_Q = 32.0;
 #elif PATH_TRACING_QUALITY == 2
     const float PT_F_R = 32.0;
     const float PT_F_Q = 32.0;

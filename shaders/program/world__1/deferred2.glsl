@@ -22,7 +22,7 @@ const bool shadowcolor1Mipmap = false;
 #include "/lib/lighting/RSM.glsl"
 
 void main() {
-	vec4 CT1 = texture(colortex1, texcoord);
+	vec4 CT3 = texelFetch(colortex3, ivec2(gl_FragCoord.xy), 0);
 
 	vec4 gi = vec4(BLACK, 1.0);
 	vec2 uv = texcoord * 2;
@@ -31,12 +31,12 @@ void main() {
 	#if defined RSM_ENABLED || defined AO_ENABLED
 		if(!outScreen(uv) && hrrZ < 1.0){
 			gi = JointBilateralFiltering_RSM_Horizontal();
-			CT1 = gi;
+			CT3 = gi;
 		}
 	#endif
 	
-/* DRAWBUFFERS:1 */
-	gl_FragData[0] = CT1;
+/* DRAWBUFFERS:3 */
+	gl_FragData[0] = CT3;
 }
 
 #endif

@@ -271,7 +271,7 @@ vec4 JointBilateralFiltering_RSM_Horizontal(){
 }
 
 vec4 JointBilateralFiltering_RSM_Vertical(){
-    // return texelFetch(colortex1, ivec2(gl_FragCoord.xy), 0);
+    // return texelFetch(colortex3, ivec2(gl_FragCoord.xy), 0);
 
     ivec2 pix = ivec2(gl_FragCoord.xy);
     vec2 curGD = texelFetch(colortex6, pix, 0).rg;
@@ -300,7 +300,7 @@ vec4 JointBilateralFiltering_RSM_Vertical(){
         vec4 w  = vec4(wN * wZ);
         w.a = abs(dy) < 3.0 ? w.a : 0.0;
 
-        vec4 col = texelFetch(colortex1, p, 0);
+        vec4 col = texelFetch(colortex3, p, 0);
         cSum += col * w;
         wSum += w;
     }
@@ -333,8 +333,8 @@ vec4 getGI(float depth, vec3 normal){
             uv_closet = curUV;
         }
     }
-    // return catmullRom(colortex1, uv_closet * invViewSize);
-    return texelFetch(colortex1, uv_closet, 0);
+    // return catmullRom(colortex3, uv_closet * invViewSize);
+    return texelFetch(colortex3, uv_closet, 0);
 }
 
 
@@ -367,7 +367,7 @@ vec4 getGI(float depth, vec3 normal){
 //         float weight = normalWeight * depthWeight;
 //         // if(weight < 0.001) continue;
 
-//         vec4 curColor = texelFetch(colortex1, curUV, 0);
+//         vec4 curColor = texelFetch(colortex3, curUV, 0);
 
 //         c_s += curColor * weight;
 //         w_s += weight;

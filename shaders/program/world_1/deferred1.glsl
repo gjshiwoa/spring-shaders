@@ -34,7 +34,6 @@ const bool shadowcolor1Mipmap = false;
 #include "/lib/lighting/SSAO.glsl"
 
 void main() {
-	vec4 CT1 = texture(colortex1, texcoord);
 	vec4 CT3 = texture(colortex3, texcoord);
 
 	vec2 hrrUV = texcoord * 2.0;
@@ -57,7 +56,6 @@ void main() {
 		#if defined RSM_ENABLED || defined AO_ENABLED
 			gi = temporal_RSM(gi);
 			gi = max(vec4(0.0), gi);
-			CT1 = gi;
 			CT3 = gi;
 		#endif
 	}
@@ -79,9 +77,8 @@ void main() {
 	// }
 
 
-/* DRAWBUFFERS:13 */
-	gl_FragData[0] = CT1;
-	gl_FragData[1] = CT3;
+/* DRAWBUFFERS:3 */
+	gl_FragData[0] = CT3;
 }
 
 #endif

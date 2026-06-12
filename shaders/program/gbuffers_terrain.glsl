@@ -167,6 +167,7 @@ void main() {
 	#if !defined PATH_TRACING && PARALLAX_TYPE == 1
 		normalFinal = mix(normalFinal, N1, remapSaturate(dot(N, -normalize(viewPos.xyz)), 0.0, 0.25, 1.0, 0.0));
 	#endif
+	// normalFinal = normalize(tbn * (textureGrad(normals, parallaxUV, texGradX, texGradY).rgb * 2.0 - 1.0));
 	// color.rgb = vec3(biome_precipitation);
 
 	// vec2 noiseCoord = mcPos.xz;

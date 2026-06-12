@@ -22,7 +22,7 @@ const bool shadowcolor1Mipmap = false;
 #include "/lib/lighting/RSM.glsl"
 
 void main() {
-	vec4 CT1 = texture(colortex1, texcoord);
+	vec4 CT3 = texelFetch(colortex3, ivec2(gl_FragCoord.xy), 0);
 
 	#ifndef PATH_TRACING
 		vec4 gi = vec4(BLACK, 1.0);
@@ -39,13 +39,13 @@ void main() {
 		#if defined RSM_ENABLED || defined AO_ENABLED
 			if(!outScreen(uv) && isTerrainHrr > 0.5){
 				gi = JointBilateralFiltering_RSM_Vertical();
-				CT1 = gi;
+				CT3 = gi;
 			}
 		#endif
 	#endif
 	
-/* DRAWBUFFERS:1 */
-	gl_FragData[0] = CT1;
+/* DRAWBUFFERS:3 */
+	gl_FragData[0] = CT3;
 }
 
 #endif

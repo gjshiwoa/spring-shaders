@@ -114,7 +114,7 @@ vec3 F_Schlick(float VoH, vec3 F0){
 }
 
 vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness){
-    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(0.9 * (1.0 - cosTheta), 5.0);
 }
 
 vec3 BurleyDiffuse(vec3 kD, vec3 albedo, float roughness, float NoL, float NoV, float VoH){

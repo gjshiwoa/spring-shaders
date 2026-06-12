@@ -335,7 +335,7 @@ vec3 JointBilateralFiltering_Refl_Vertical(){
         float wS = exp(-dy * dy * invSigma2);
         vec3 w  = vec3(wN * wZ * wS);
 
-        vec3 col = texelFetch(colortex1, p, 0).rgb;
+        vec3 col = texelFetch(colortex3, p, 0).rgb;
         cSum += col * w;
         wSum += w;
     }
@@ -358,7 +358,7 @@ vec3 getReflectColor(float depth, vec3 normal){
 
     if(centerWeight > 0.9){
         #ifdef PBR_REFLECTION_BLUR
-            return texelFetch(colortex1, ivec2(uv), 0).rgb;
+            return texelFetch(colortex3, ivec2(uv), 0).rgb;
         #else
             return texelFetch(colortex3, ivec2(uv), 0).rgb;
         #endif
@@ -383,7 +383,7 @@ vec3 getReflectColor(float depth, vec3 normal){
     }
 
     #ifdef PBR_REFLECTION_BLUR
-        return texelFetch(colortex1, ivec2(uv_closet), 0).rgb;
+        return texelFetch(colortex3, ivec2(uv_closet), 0).rgb;
     #else
         return texelFetch(colortex3, ivec2(uv_closet), 0).rgb;
     #endif

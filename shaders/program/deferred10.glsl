@@ -281,7 +281,8 @@ void main() {
 		color.rgb += artificial;
 
 		// color.rgb = sunColor * gi.rgb + lightmap.y * mix(sunColor, skyColor, SUN_SKY_BLEND - 0.05 * noRSM * lightmap.y) * mix(1.0, UoN * 0.5 + 0.5, 0.75);
-		// color.rgb *= vec3(ao);
+		// color.rgb = vec3(gi.rgb);
+		// color.rgb = vec3(gi.a);
 		// color.rgb = vec3(shadow);
 		// color.rgb = getGI_PT(depth1, normalW).rgb;
 		// color.rgb = RightLitDiff * 1.0;
