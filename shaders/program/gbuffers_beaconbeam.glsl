@@ -22,7 +22,7 @@ void main() {
 		CT5 = vec4(normalEncode(normalize(shadowLightPosition)), vec2(0.0, 1.0));
 	}
 
-/* RENDERTARGETS: 0,4,5,19 */
+/* RENDERTARGETS: 0,4,5,15 */
 	gl_FragData[0] = vec4(color.rgb, color.a);
 	gl_FragData[1] = CT4;
 	gl_FragData[2] = CT5;

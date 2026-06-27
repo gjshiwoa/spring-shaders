@@ -63,7 +63,7 @@ void main() {
 		color.rgb += nightVision * texColor.rgb * NIGHT_VISION_BRIGHTNESS / PI;
 	}
 
-/* RENDERTARGETS: 0,4,5,9,19 */
+/* RENDERTARGETS: 0,4,5,9,15 */
 
 	gl_FragData[0] = vec4(color.rgb, color.a);
 	gl_FragData[1] = vec4(pack2x8To16(1.0, 0.0), pack2x8To16(entityIdMap / ID_SCALE, 0.0), pack4x8To2x16(specularTex));

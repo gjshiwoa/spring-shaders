@@ -28,7 +28,7 @@ void main() {
 	float heldBlockLight = max(heldBlockLightValue, heldBlockLightValue2) / 15.0;
 	lmCoord.x = max(heldBlockLight * 0.5, lmCoord.x);
 
-/* RENDERTARGETS: 0,4,5,9,19 */
+/* RENDERTARGETS: 0,4,5,9,15 */
 
 	gl_FragData[0] = vec4(color.rgb, color.a);
 	gl_FragData[1] = vec4(pack2x8To16(1.0, 0.0), pack2x8To16(HAND / ID_SCALE, 0.0), pack4x8To2x16(vec4(0.0)));

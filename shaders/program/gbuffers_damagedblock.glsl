@@ -29,7 +29,7 @@ void main() {
 	vec3 normalTex = normalize(tbnMatrix * (textureGrad(normals, parallaxUV, texGradX, texGradY).rgb * 2.0 - 1.0));
 	vec4 specularTex = texture(specular, texcoord);
 
-/* RENDERTARGETS: 0,4,5,9,19 */
+/* RENDERTARGETS: 0,4,5,9,15 */
 
 	gl_FragData[0] = vec4(color.rgb, color.a);
 	gl_FragData[1] = vec4(pack2x8To16(1.0, 0.0), 0.0, pack4x8To2x16(specularTex));

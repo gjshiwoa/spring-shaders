@@ -177,7 +177,7 @@ void main() {
 	// noiseCoord /=64.0 * noiseTextureResolution;
     // color.rgb = vec3(textureBicubic(noisetex, noiseCoord, noiseTextureResolution).g);
 
-/* RENDERTARGETS: 0,4,5,9,19 */
+/* RENDERTARGETS: 0,4,5,9,15 */
 
 	gl_FragData[0] = vec4(color.rgb, color.a);
 	gl_FragData[1] = vec4(pack2x8To16(parallaxShadow, 0.0), pack2x8To16(blockID/ID_SCALE, wetFactor), pack4x8To2x16(specularTex));

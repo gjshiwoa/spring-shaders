@@ -50,10 +50,10 @@ void main() {
 	vec3 worldDir = normalize(worldPos0.xyz);
 	float worldDis0 = length(worldPos0.xyz);
 	
-	float CT19 = texelFetch(colortex19, ivec2(gl_FragCoord.xy), 0).r;
+	float CT15 = texelFetch(colortex15, ivec2(gl_FragCoord.xy), 0).r;
 	float depth1 = texelFetch(depthtex1, ivec2(gl_FragCoord.xy), 0).r;
 	float vxDepth1 = texelFetch(vxDepthTexOpaque, ivec2(gl_FragCoord.xy), 0).r;
-	bool vxTemp = CT19 < 0.9;
+	bool vxTemp = CT15 < 0.9;
 	bool vxWater = abs(vxTransColor.a - 0.97) < 0.015 && vxTemp;
 	bool vxTrans = vxTransColor.a < 0.96 && vxTransColor.a > 0.005 && vxTemp;
 
